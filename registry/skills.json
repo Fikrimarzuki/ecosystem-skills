@@ -1,0 +1,925 @@
+[
+  {
+    "id": "skill-discovery-smoke-test",
+    "name": "Skill Discovery Smoke Test",
+    "description": "Harmless first-party skill used to verify agent skill discovery, reference resolution and script execution.",
+    "category": "tooling",
+    "tags": ["smoke-test", "discovery"],
+    "origin": "first-party",
+    "source": {
+      "type": "first-party",
+      "path": "skills/shared/skill-discovery-smoke-test"
+    },
+    "author": "Ecosystem Skills",
+    "license": "UNLICENSED",
+    "agents": ["claude-code", "codex"],
+    "docs": [
+      {
+        "label": "Verification checklist",
+        "href": "skills/shared/skill-discovery-smoke-test/references/verification-checklist.md"
+      }
+    ],
+    "review": {
+      "status": "unreviewed"
+    }
+  },
+  {
+    "id": "momee-character-art",
+    "name": "Momee Character Art",
+    "description": "Draw, revise or review Momee character artwork (Mom, Dad, Boy, Girl) as editable, animation-aware SVG in the Soft Storybook Adventure style, with structural SVG checks, Inkscape export and side-by-side comparison sheets. Works against the ecosystem-assets repository.",
+    "category": "illustration",
+    "tags": ["momee", "svg", "character-art", "inkscape"],
+    "origin": "first-party",
+    "source": {
+      "type": "first-party",
+      "path": "skills/projects/momee/momee-character-art"
+    },
+    "agents": ["claude-code", "codex"],
+    "requires": ["inkscape", "nodejs", "playwright-core", "sips"],
+    "docs": [
+      {
+        "label": "Migration record (ES3)",
+        "href": "docs/migrations/es3-momee-character-art.md"
+      }
+    ],
+    "review": {
+      "status": "unreviewed"
+    }
+  },
+  {
+    "id": "grill-me",
+    "name": "Grill Me",
+    "description": "Entry point for a relentless interview that sharpens a plan or design. A two-line pointer that delegates to the grilling skill.",
+    "category": "planning",
+    "tags": ["interview", "assumptions"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/mattpocock/skills"
+      },
+      "path": "skills/productivity/grill-me",
+      "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2"
+    },
+    "author": "mattpocock",
+    "license": "MIT",
+    "agents": ["claude-code", "codex"],
+    "requires": [],
+    "requiresSkills": ["grilling"],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+      "contentHash": "sha256-2e6ecc339b8c08fdaf8440c79f309be6adc1e275160cfd1c32975e176a4a049c",
+      "findings": [
+        "Automated scan: 2 files, 0 script(s), pattern categories: none.",
+        "Instruction-only pointer: tells the agent to call the Skill tool with \"grilling\"; useless without that skill.",
+        "disable-model-invocation: true and agents/openai.yaml allow_implicit_invocation: false \u2014 user-invoked only.",
+        "No scripts, no pattern hits.",
+        "ES6: classified REDUNDANT. A 2-line pointer to grilling that is user-invoked only. grilling already triggers on 'grill' phrases and can be invoked directly. Codex has no 'Skill tool', so the pointer may not resolve there."
+      ],
+      "notes": "Not approved in ES6 (redundant with grilling). Status stays 'reviewed'."
+    }
+  },
+  {
+    "id": "grilling",
+    "name": "Grilling",
+    "description": "Interviews the user about a plan in rounds over a design tree, asking every currently answerable question with a recommended answer.",
+    "category": "planning",
+    "tags": ["interview", "assumptions", "design-tree"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/mattpocock/skills"
+      },
+      "path": "skills/productivity/grilling",
+      "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2"
+    },
+    "author": "mattpocock",
+    "license": "MIT",
+    "agents": ["claude-code", "codex"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "approved",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4 automated scan; ES6 full read of every file at the pinned revision)",
+      "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+      "contentHash": "sha256-f8441dadff0662905d89dba1ef5204e45fc848ea138570525af474c9a1ed8837",
+      "findings": [
+        "Automated scan: 2 files, 0 script(s), pattern categories: none.",
+        "Instruction-only; no scripts, no pattern hits.",
+        "Auto-triggers on 'grill' phrases.",
+        "ES6 full read: interviews in rounds over a design tree and waits for the user before acting. It dispatches sub-agents to look up facts in the environment (filesystem, tools) instead of asking the user. No network, credential or concealment instructions."
+      ],
+      "notes": "Approved for the ES6 pilot. Smallest useful grill skill; grill-me is a redundant pointer to it.",
+      "approvedBy": "Owner \u2014 ES6 controlled pilot authorization (2026-10-26)"
+    }
+  },
+  {
+    "id": "improve-codebase-architecture",
+    "name": "Improve Codebase Architecture",
+    "description": "Scans a codebase for module-deepening opportunities, writes an HTML report, then grills through the chosen one.",
+    "category": "architecture",
+    "tags": ["architecture-review", "refactoring"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/mattpocock/skills"
+      },
+      "path": "skills/engineering/improve-codebase-architecture",
+      "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2"
+    },
+    "author": "mattpocock",
+    "license": "MIT",
+    "agents": ["claude-code", "codex"],
+    "requires": [],
+    "requiresSkills": ["grilling", "codebase-design", "domain-modeling"],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+      "contentHash": "sha256-a06adb368b32959b3ffd0338bd04608878349eca337f0d44fec7d4f3ea728081",
+      "findings": [
+        "Automated scan: 3 files, 0 script(s), pattern categories: none.",
+        "Instruction-only; no scripts, no pattern hits.",
+        "Invokes grilling, codebase-design and domain-modeling via the Skill tool. Writes an HTML report to the OS temp directory (not the repo) and opens it; the report loads Tailwind and Mermaid from CDNs.",
+        "User-invoked only (disable-model-invocation: true)."
+      ],
+      "notes": "Low risk; approve only with its three dependencies."
+    }
+  },
+  {
+    "id": "codebase-design",
+    "name": "Codebase Design",
+    "description": "Architecture vocabulary (modules, interfaces, depth, seams) and a design-it-twice pattern using parallel sub-agents.",
+    "category": "architecture",
+    "tags": ["architecture-review", "modules"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/mattpocock/skills"
+      },
+      "path": "skills/engineering/codebase-design",
+      "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2"
+    },
+    "author": "mattpocock",
+    "license": "MIT",
+    "agents": ["claude-code", "codex"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+      "contentHash": "sha256-967032d9eead896fbc84e3d91f5dd051130b666b3b155247d3a932c24e1d6697",
+      "findings": [
+        "Automated scan: 4 files, 0 script(s), pattern categories: none.",
+        "Instruction-only; no scripts, no pattern hits.",
+        "Uses parallel sub-agents (token cost)."
+      ],
+      "notes": "Dependency of improve-codebase-architecture."
+    }
+  },
+  {
+    "id": "domain-modeling",
+    "name": "Domain Modeling",
+    "description": "Keeps a domain glossary and ADRs current while design decisions are made.",
+    "category": "architecture",
+    "tags": ["adr", "glossary", "documentation"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/mattpocock/skills"
+      },
+      "path": "skills/engineering/domain-modeling",
+      "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2"
+    },
+    "author": "mattpocock",
+    "license": "MIT",
+    "agents": ["claude-code", "codex"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+      "contentHash": "sha256-6c803adbca216354e95d2acbed918b9c005ab94a971f327a3e7de257f419dc87",
+      "findings": [
+        "Automated scan: 4 files, 0 script(s), pattern categories: none.",
+        "Instruction-only; no scripts, no pattern hits.",
+        "Writes ADR and glossary files into the project."
+      ],
+      "notes": "Dependency of improve-codebase-architecture."
+    }
+  },
+  {
+    "id": "brainstorming",
+    "name": "Brainstorming",
+    "description": "Collaborative design dialogue before implementation, with an optional local browser 'visual companion' for mockups.",
+    "category": "planning",
+    "tags": ["brainstorming", "design", "requirements"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/obra/superpowers"
+      },
+      "path": "skills/brainstorming",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b"
+    },
+    "author": "obra",
+    "license": "MIT",
+    "agents": ["claude-code", "codex", "cursor"],
+    "requires": ["nodejs"],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "contentHash": "sha256-7a88d3800cdd0898f3e5b783c580845f337feaebe484e1680f39a5344cac1239",
+      "findings": [
+        "Automated scan: 8 files, 4 script(s) (scripts/helper.js, scripts/server.cjs, scripts/start-server.sh, scripts/stop-server.sh), pattern categories: credentials, filesystem, hidden, shell.",
+        "Description uses forceful auto-trigger wording (\"You MUST use this before any creative work\"); expect it to fire often.",
+        "Optional visual companion runs a bundled Node HTTP/WebSocket server (scripts/server.cjs) bound to 127.0.0.1 by default; BRAINSTORM_HOST can bind other interfaces.",
+        "server.cjs calls child_process.exec with BRAINSTORM_OPEN_CMD from the environment (shell) when set; otherwise execFile for platform launchers.",
+        "start-server.sh runs the server in the background (nohup; idle shutdown after 4 h by default) and stores session files under <project>/.superpowers/brainstorm/ when --project-dir is given.",
+        "Cross-references superpowers:writing-plans (soft)."
+      ],
+      "notes": "Medium risk only if the visual companion is used; the dialogue itself is instruction-only."
+    }
+  },
+  {
+    "id": "writing-plans",
+    "name": "Writing Plans",
+    "description": "Turns an agreed design into a detailed, bite-sized implementation plan.",
+    "category": "planning",
+    "tags": ["planning", "implementation-plan"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/obra/superpowers"
+      },
+      "path": "skills/writing-plans",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b"
+    },
+    "author": "obra",
+    "license": "MIT",
+    "agents": ["claude-code", "codex", "cursor"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "approved",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4 automated scan; ES6 full read of every file at the pinned revision)",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "contentHash": "sha256-1bb69e9a3a19932daa41514e9b592f30647c9fc2fdee86cfd3a28e96a1199c16",
+      "findings": [
+        "Automated scan: 1 files, 0 script(s), pattern categories: none.",
+        "Instruction-only; no scripts, no pattern hits.",
+        "Cross-references superpowers:executing-plans, subagent-driven-development and using-git-worktrees (soft; not registered).",
+        "ES6 full read: writes the plan to docs/superpowers/plans/YYYY-MM-DD-<feature>.md in the current project unless the user specifies another location. The plan template names superpowers:subagent-driven-development / executing-plans as the execution step. Those skills are not registered or approved, but planning works without them, so they are not hard requirements.",
+        "No scripts, network or credential handling."
+      ],
+      "notes": "Approved for the ES6 pilot. Expect a plan file to be written into the project it runs in.",
+      "approvedBy": "Owner \u2014 ES6 controlled pilot authorization (2026-10-26)"
+    }
+  },
+  {
+    "id": "systematic-debugging",
+    "name": "Systematic Debugging",
+    "description": "Root-cause-first debugging process with supporting techniques (tracing, defense in depth, condition-based waiting).",
+    "category": "debugging",
+    "tags": ["debugging", "root-cause"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/obra/superpowers"
+      },
+      "path": "skills/systematic-debugging",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b"
+    },
+    "author": "obra",
+    "license": "MIT",
+    "agents": ["claude-code", "codex", "cursor"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "contentHash": "sha256-23f1e6ad53a3f9e522f56fc9c5df2172f8163be4f09fa13d10d9478a30747648",
+      "findings": [
+        "Automated scan: 11 files, 2 script(s) (condition-based-waiting-example.ts, find-polluter.sh), pattern categories: credentials, filesystem.",
+        "Includes find-polluter.sh, which runs `npm test` once per matching test file to bisect test pollution \u2014 executes the project's tests when used.",
+        "Includes a TypeScript example file and pressure-test scenario documents (test-*.md) used to evaluate the skill.",
+        "Pattern hits are example paths and prose, not actions."
+      ],
+      "notes": "Low risk; the script only runs on explicit use."
+    }
+  },
+  {
+    "id": "test-driven-development",
+    "name": "Test-Driven Development",
+    "description": "Red-green-refactor discipline: write the failing test first, then the minimal code.",
+    "category": "testing",
+    "tags": ["tdd", "testing"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/obra/superpowers"
+      },
+      "path": "skills/test-driven-development",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b"
+    },
+    "author": "obra",
+    "license": "MIT",
+    "agents": ["claude-code", "codex", "cursor"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "contentHash": "sha256-6fee3f1855272c1b33120f493e4274a22d206eb4ecfe7dd180d72681440d0f8c",
+      "findings": [
+        "Automated scan: 2 files, 0 script(s), pattern categories: none.",
+        "Instruction-only; no scripts, no pattern hits."
+      ],
+      "notes": "Low risk."
+    }
+  },
+  {
+    "id": "requesting-code-review",
+    "name": "Requesting Code Review",
+    "description": "Dispatches a reviewer sub-agent with a structured template to review work before merging.",
+    "category": "code-review",
+    "tags": ["code-review", "subagents"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/obra/superpowers"
+      },
+      "path": "skills/requesting-code-review",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b"
+    },
+    "author": "obra",
+    "license": "MIT",
+    "agents": ["claude-code", "codex", "cursor"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "contentHash": "sha256-eb86495044789c3624de6304dfb518e8019ea24078fa3b8ea9e3a6741b9baee8",
+      "findings": [
+        "Automated scan: 2 files, 0 script(s), pattern categories: none.",
+        "Instruction-only plus a reviewer prompt template; no scripts, no pattern hits."
+      ],
+      "notes": "Low risk."
+    }
+  },
+  {
+    "id": "verification-before-completion",
+    "name": "Verification Before Completion",
+    "description": "Requires running verification commands and showing evidence before claiming work is done.",
+    "category": "testing",
+    "tags": ["verification", "quality"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/obra/superpowers"
+      },
+      "path": "skills/verification-before-completion",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b"
+    },
+    "author": "obra",
+    "license": "MIT",
+    "agents": ["claude-code", "codex", "cursor"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "approved",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4 automated scan; ES6 full read of every file at the pinned revision)",
+      "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "contentHash": "sha256-7ae5df5694cf8e59aeedee71ad8a6b1e93892a4963f25f93ace13e102d5454a7",
+      "findings": [
+        "Automated scan: 1 files, 0 script(s), pattern categories: none.",
+        "Instruction-only; no scripts, no pattern hits.",
+        "ES6 full read: requires running the project's own verification commands (tests, lint, build) and showing the output before any completion claim. Broad trigger wording, so it will fire often.",
+        "Bundles no commands of its own; no network or credential instructions."
+      ],
+      "notes": "Approved for the ES6 pilot.",
+      "approvedBy": "Owner \u2014 ES6 controlled pilot authorization (2026-10-26)"
+    }
+  },
+  {
+    "id": "react-best-practices",
+    "name": "React Best Practices",
+    "description": "React and Next.js performance rules from Vercel, organised as ~70 rule files plus a compiled AGENTS.md.",
+    "category": "react",
+    "tags": ["react", "nextjs", "performance"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/vercel-labs/agent-skills"
+      },
+      "path": "skills/react-best-practices",
+      "revision": "063bee94c3f4df8453406c830b0a7df0f2860278"
+    },
+    "author": "Vercel (vercel-labs)",
+    "license": "MIT",
+    "agents": [],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "contentHash": "sha256-7605b851db9ae9c78791cdc0343f7acdea8e739ae3919de2b346cb8b6c56878b",
+      "findings": [
+        "Automated scan: 76 files, 0 script(s), pattern categories: network.",
+        "Instruction-only (76 markdown/JSON files, ~230 KB); no scripts.",
+        "Two package-install mentions are code examples.",
+        "License MIT per SKILL.md frontmatter and repository README; the repository has no LICENSE file."
+      ],
+      "notes": "Low risk; large context footprint."
+    }
+  },
+  {
+    "id": "composition-patterns",
+    "name": "React Composition Patterns",
+    "description": "React component composition patterns (compound components, avoiding boolean props) from Vercel.",
+    "category": "react",
+    "tags": ["react", "components", "architecture"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/vercel-labs/agent-skills"
+      },
+      "path": "skills/composition-patterns",
+      "revision": "063bee94c3f4df8453406c830b0a7df0f2860278"
+    },
+    "author": "Vercel (vercel-labs)",
+    "license": "MIT",
+    "agents": [],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "contentHash": "sha256-a09f9d3d037627ca48168e14afae3f68e413750fc686e1715512e324e657e76a",
+      "findings": [
+        "Automated scan: 14 files, 0 script(s), pattern categories: none.",
+        "Instruction-only; no scripts, no pattern hits.",
+        "License MIT per SKILL.md frontmatter and README; no LICENSE file in the repository."
+      ],
+      "notes": "Low risk."
+    }
+  },
+  {
+    "id": "web-design-guidelines",
+    "name": "Web Interface Guidelines",
+    "description": "Reviews UI code against Vercel's Web Interface Guidelines, fetched at run time.",
+    "category": "frontend-design",
+    "tags": ["ui-review", "ux", "accessibility"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/vercel-labs/agent-skills"
+      },
+      "path": "skills/web-design-guidelines",
+      "revision": "063bee94c3f4df8453406c830b0a7df0f2860278"
+    },
+    "author": "Vercel (vercel-labs)",
+    "license": "MIT",
+    "agents": [],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "contentHash": "sha256-6720fe4919bd761048109104adce67fe9730571554c0557daff81e166ca0024e",
+      "findings": [
+        "Automated scan: 1 files, 0 script(s), pattern categories: instructions.",
+        "HIGH: instructs the agent to WebFetch its actual rules and output instructions from raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main on every run. The executed instructions are unpinned and unreviewed, so pinning this skill does not pin its behaviour.",
+        "Requires network access at run time.",
+        "Repository has no LICENSE file; MIT per README."
+      ],
+      "notes": "Recommend reject as-is. Alternative: a first-party fork that vendors the guidelines at a pinned commit."
+    }
+  },
+  {
+    "id": "frontend-design",
+    "name": "Frontend Design",
+    "description": "Guidance for distinctive, intentional visual design when building or reshaping UI: aesthetic direction, typography, avoiding templated defaults.",
+    "category": "frontend-design",
+    "tags": ["ui", "design", "css"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/anthropics/skills"
+      },
+      "path": "skills/frontend-design",
+      "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44"
+    },
+    "author": "Anthropic (anthropics)",
+    "license": "Apache-2.0",
+    "agents": ["claude-code"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "approved",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4 automated scan; ES6 full read of every file at the pinned revision)",
+      "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "contentHash": "sha256-897580988957672e5c5620ae2752aad18b099855e17e917fe7e7415eca86643c",
+      "findings": [
+        "Automated scan: 2 files, 0 script(s), pattern categories: none.",
+        "Instruction-only; no scripts, no pattern hits.",
+        "Skill folder ships LICENSE.txt (Apache-2.0); the repository root has no license.",
+        "ES6 full read: design-direction guidance (palette, type, layout, copy). It may use the agent's memory as hints and take screenshots when the environment supports it. No network, credential or concealment instructions.",
+        "LICENSE.txt is the standard Apache-2.0 text, unmodified, and is installed with the skill."
+      ],
+      "notes": "Approved for the ES6 pilot.",
+      "approvedBy": "Owner \u2014 ES6 controlled pilot authorization (2026-10-26)"
+    }
+  },
+  {
+    "id": "claude-api",
+    "name": "Claude API",
+    "description": "Reference for building with the Claude API and Anthropic SDKs (C#, Go, Java, PHP, Python, Ruby, TypeScript and raw HTTP), plus eval and model-migration guides.",
+    "category": "ai-engineering",
+    "tags": ["anthropic", "llm", "sdk"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/anthropics/skills"
+      },
+      "path": "skills/claude-api",
+      "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44"
+    },
+    "author": "Anthropic (anthropics)",
+    "license": "Apache-2.0",
+    "agents": ["claude-code"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "contentHash": "sha256-69796a7807b240b1ee6fe745b371a7111ba3f095c94b68be1cf1b00abea73240",
+      "findings": [
+        "Automated scan: 96 files, 4 script(s) (shared/evals/report/build-report-lite.mjs, shared/evals/report/runner-scaffold.mjs, shared/preserved-thinking-migration/drop_block_probe.py, shared/preserved-thinking-migration/prefix_diff.py), pattern categories: credentials, filesystem, instructions, network, shell.",
+        "Very large: 96 files, ~2 MB of reference material.",
+        "MEDIUM: points the agent at live documentation via WebFetch (shared/live-sources.md) and the official SDK repositories when unsure. Unpinned reference material enters context at run time.",
+        "Contains 4 helper scripts (eval report builders, migration probes in Python/Node) that are not run unless invoked.",
+        "curl / API-key / install hits are documentation examples. The 'pipe to shell' and 'override wording' hits are explicit warnings against running curl | sh lines or using override language.",
+        "Skill folder ships LICENSE.txt (Apache-2.0)."
+      ],
+      "notes": "Low-to-medium risk; high context cost."
+    }
+  },
+  {
+    "id": "mcp-builder",
+    "name": "MCP Builder",
+    "description": "Guide for building MCP servers in Python or TypeScript, with an evaluation harness.",
+    "category": "ai-engineering",
+    "tags": ["mcp", "tools", "agents"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/anthropics/skills"
+      },
+      "path": "skills/mcp-builder",
+      "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44"
+    },
+    "author": "Anthropic (anthropics)",
+    "license": "Apache-2.0",
+    "agents": ["claude-code"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "contentHash": "sha256-7a067e2e075022bf2eac9b916d4c39928dab55bb19eeb3b319a8f5cf2d749b09",
+      "findings": [
+        "Automated scan: 10 files, 2 script(s) (scripts/connections.py, scripts/evaluation.py), pattern categories: credentials, hidden, instructions, network, shell.",
+        "MEDIUM: tells the agent to WebFetch the MCP SDK READMEs from raw.githubusercontent.com/modelcontextprotocol/*/main at run time. That is unpinned reference material entering context (not the skill's own rules); treat it as untrusted data.",
+        "Includes scripts/evaluation.py and connections.py (need python3 with `anthropic` and `mcp` packages); they launch MCP servers and call the Anthropic API with an API key from the environment when run.",
+        "Reference docs include package-install commands and server code examples.",
+        "Skill folder ships LICENSE.txt (Apache-2.0)."
+      ],
+      "notes": "Medium risk: runtime fetch of unpinned docs; evaluation scripts need an API key."
+    }
+  },
+  {
+    "id": "doc-coauthoring",
+    "name": "Doc Co-authoring",
+    "description": "Structured workflow for co-authoring docs, proposals and specs with the user.",
+    "category": "documentation",
+    "tags": ["writing", "documentation", "specs"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/anthropics/skills"
+      },
+      "path": "skills/doc-coauthoring",
+      "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44"
+    },
+    "author": "Anthropic (anthropics)",
+    "license": "unknown",
+    "agents": ["claude-code"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "contentHash": "sha256-d2acb4ca04662eb47a3449e5ee1e2752fda8c51bc532e48bf7a49f5b652c96e4",
+      "findings": [
+        "Automated scan: 1 files, 0 script(s), pattern categories: none.",
+        "Instruction-only; no scripts, no pattern hits.",
+        "LICENSE: no LICENSE.txt in the skill folder and no license at the repository root, unlike sibling skills. No redistribution grant was found."
+      ],
+      "notes": "Recommend not installing until upstream states a license."
+    }
+  },
+  {
+    "id": "vue-best-practices",
+    "name": "Vue Best Practices",
+    "description": "Vue 3 best practices (Composition API, data flow, reactivity) with focused reference files.",
+    "category": "vue",
+    "tags": ["vue", "composition-api"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/vuejs-ai/skills"
+      },
+      "path": "skills/vue-best-practices",
+      "revision": "198f0cd8f7f9c0a3d9b566ccc16de6677519ee78"
+    },
+    "author": "vuejs-ai",
+    "license": "MIT",
+    "agents": ["claude-code"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "198f0cd8f7f9c0a3d9b566ccc16de6677519ee78",
+      "contentHash": "sha256-83a14c768bff7f1faa35abfb9e28763a101862477fe86a25a7652aa337c3ed82",
+      "findings": [
+        "Automated scan: 23 files, 0 script(s), pattern categories: hidden, network.",
+        "Instruction-only; no scripts.",
+        "HTML-comment hits are filenames inside code samples; network hits are plugin examples.",
+        "Description uses forceful trigger wording (\"MUST be used for Vue.js tasks\")."
+      ],
+      "notes": "Low risk."
+    }
+  },
+  {
+    "id": "nuxt",
+    "name": "Nuxt",
+    "description": "Nuxt framework reference (configuration, data fetching, modules, layers) generated from Nuxt docs.",
+    "category": "vue",
+    "tags": ["nuxt", "vue", "ssr"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/antfu/skills"
+      },
+      "path": "skills/nuxt",
+      "revision": "8886fe2d385d3644cbb47e46ae9cb1cf09307d3b"
+    },
+    "author": "antfu",
+    "license": "MIT",
+    "agents": [],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "8886fe2d385d3644cbb47e46ae9cb1cf09307d3b",
+      "contentHash": "sha256-59d44bd988161c4a666c3fb72f93280a5fb83dc57cddc47962fa9cd632aaea94",
+      "findings": [
+        "Automated scan: 20 files, 0 script(s), pattern categories: credentials, filesystem, hidden, network.",
+        "Instruction-only (20 files); no scripts.",
+        "Install-command, path and HTML-comment hits are documentation examples.",
+        "GENERATION.md records the Nuxt source commit it was generated from."
+      ],
+      "notes": "Low risk."
+    }
+  },
+  {
+    "id": "wcag-guide",
+    "name": "WCAG Guide",
+    "description": "Explains WCAG 2.2 success criteria, conformance levels and what changed.",
+    "category": "accessibility",
+    "tags": ["accessibility", "wcag", "a11y"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/Community-Access/accessibility-agents"
+      },
+      "path": "skills/wcag-guide",
+      "revision": "decf6bac7f086c19afb242797b4974671ceff597"
+    },
+    "author": "Community-Access",
+    "license": "MIT",
+    "agents": ["claude-code", "codex"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "decf6bac7f086c19afb242797b4974671ceff597",
+      "contentHash": "sha256-88d2d7612e855d17ccb22a9e79ba6fb6bf7f516b8bd047247bf0ed86903782aa",
+      "findings": [
+        "Automated scan: 4 files, 0 script(s), pattern categories: none.",
+        "Instruction-only; no scripts, no pattern hits.",
+        "Part of a 108-skill collection; sibling skills (e.g. web-accessibility-wizard) dispatch other skills without asking and were not shortlisted."
+      ],
+      "notes": "Low risk; smaller maintainer base than the other sources."
+    }
+  },
+  {
+    "id": "supabase-postgres-best-practices",
+    "name": "Postgres Best Practices",
+    "description": "Postgres performance and schema-design rules from Supabase (indexes, RLS, query patterns).",
+    "category": "database",
+    "tags": ["postgres", "sql", "schema-design"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/supabase/agent-skills"
+      },
+      "path": "skills/supabase-postgres-best-practices",
+      "revision": "c9be0e931b7930f7d02126d04774d904c381e7d7"
+    },
+    "author": "Supabase",
+    "license": "MIT",
+    "agents": ["claude-code"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "c9be0e931b7930f7d02126d04774d904c381e7d7",
+      "contentHash": "sha256-0f2a737498dc84cf915e921ced293c59a0eb4e1e221b1d1007974c94c6f48e36",
+      "findings": [
+        "Automated scan: 36 files, 0 script(s), pattern categories: none.",
+        "Instruction-only (36 files); no scripts, no pattern hits."
+      ],
+      "notes": "Low risk; applies to Postgres generally, some rules are Supabase-specific."
+    }
+  },
+  {
+    "id": "threejs-fundamentals",
+    "name": "Three.js Fundamentals",
+    "description": "Three.js scene setup: scenes, cameras, renderer and tone mapping, the animation loop, transforms and cleanup (WebGL or WebGPU/TSL). One of 13 Three.js skills in the repo.",
+    "category": "graphics-3d",
+    "tags": ["threejs", "webgl", "3d"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/CloudAI-X/threejs-skills"
+      },
+      "path": "skills/threejs-fundamentals",
+      "revision": "0e181866f095b5f06d005133876e926515390d95"
+    },
+    "author": "CloudAI-X",
+    "license": "MIT",
+    "agents": ["claude-code"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "0e181866f095b5f06d005133876e926515390d95",
+      "contentHash": "sha256-8044f4589aa4e8efa7c3940235aa93c7c6a0bec27e22bd784c4f23a7a86cfad2",
+      "findings": [
+        "Automated scan: 1 files, 0 script(s), pattern categories: none.",
+        "Instruction-only single file; no scripts, no pattern hits.",
+        "Individual maintainer."
+      ],
+      "notes": "Low risk."
+    }
+  },
+  {
+    "id": "differential-review",
+    "name": "Differential Review",
+    "description": "Security-focused review of code changes using git history, with adversarial analysis and reporting templates.",
+    "category": "security",
+    "tags": ["security-review", "code-review", "git"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/trailofbits/skills"
+      },
+      "path": "plugins/differential-review/skills/differential-review",
+      "revision": "196a9073ab10d35bacf111f945e02c00b2c6883a"
+    },
+    "author": "Trail of Bits",
+    "license": "CC-BY-SA-4.0",
+    "agents": ["claude-code", "codex"],
+    "requires": ["git"],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "196a9073ab10d35bacf111f945e02c00b2c6883a",
+      "contentHash": "sha256-74714e524398181022f0c01851d4ebbdc4d99c1b88e408aa2ccd62935dc8aaac",
+      "findings": [
+        "Automated scan: 7 files, 0 script(s), pattern categories: filesystem.",
+        "Instruction-only; no scripts.",
+        "Runs git diff/log/blame (read-only) and optionally gh pr.",
+        "License CC-BY-SA-4.0: redistribution or modified copies require attribution and the same license."
+      ],
+      "notes": "Low risk; mind share-alike if forked."
+    }
+  },
+  {
+    "id": "security-threat-model",
+    "name": "Security Threat Model",
+    "description": "Repository-grounded threat modeling: trust boundaries, assets, attacker capabilities and mitigations.",
+    "category": "security",
+    "tags": ["threat-modeling", "security-review"],
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/openai/skills"
+      },
+      "path": "skills/.curated/security-threat-model",
+      "revision": "49f948faa9258a0c61caceaf225e179651397431"
+    },
+    "author": "OpenAI",
+    "license": "Apache-2.0",
+    "agents": ["codex"],
+    "requires": [],
+    "requiresSkills": [],
+    "review": {
+      "status": "reviewed",
+      "reviewedAt": "2026-10-26",
+      "reviewer": "Claude (ES4: automated scan + targeted manual read; not a line-by-line audit)",
+      "revision": "49f948faa9258a0c61caceaf225e179651397431",
+      "contentHash": "sha256-f45232673b5db14001348c00ba93b262f480d2a77e3fb17bc8ff7206a07d001a",
+      "findings": [
+        "Automated scan: 5 files, 0 script(s), pattern categories: shell.",
+        "Instruction-only; no scripts.",
+        "One 'dynamic execution' hit is a threat example in a prompt template.",
+        "Skill folder ships LICENSE.txt (Apache-2.0); upstream path is in a dot-directory (.curated).",
+        "Writes a Markdown threat-model file when used."
+      ],
+      "notes": "Low risk."
+    }
+  }
+]

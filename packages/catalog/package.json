@@ -1,0 +1,26 @@
+{
+  "name": "@ecosystem-skills/catalog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "validate": "tsx src/cli.ts validate",
+    "build": "tsx src/cli.ts build",
+    "links": "tsx src/cli.ts links",
+    "ext": "tsx src/cli.ts",
+    "eval": "tsx evals/run.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "vitest": "^5.0.5"
+  }
+}

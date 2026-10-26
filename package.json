@@ -1,0 +1,38 @@
+{
+  "name": "ecosystem-skills",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm catalog:build && pnpm --filter @ecosystem-skills/web dev",
+    "build": "pnpm catalog:build && pnpm --filter @ecosystem-skills/web build",
+    "preview": "pnpm --filter @ecosystem-skills/web preview",
+    "catalog:validate": "pnpm --filter @ecosystem-skills/catalog validate",
+    "catalog:build": "pnpm --filter @ecosystem-skills/catalog build",
+    "skills:links": "pnpm --filter @ecosystem-skills/catalog links",
+    "skills:review": "pnpm --filter @ecosystem-skills/catalog ext review",
+    "skills:install": "pnpm --filter @ecosystem-skills/catalog ext install",
+    "skills:rollback": "pnpm --filter @ecosystem-skills/catalog ext rollback",
+    "skills:uninstall": "pnpm --filter @ecosystem-skills/catalog ext uninstall",
+    "skills:status": "pnpm --filter @ecosystem-skills/catalog ext status",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm -r test",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm catalog:validate && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.0"
+  }
+}

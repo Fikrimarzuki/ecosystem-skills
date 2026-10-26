@@ -1,0 +1,36 @@
+[
+  {
+    "id": "inkscape",
+    "name": "Inkscape CLI",
+    "type": "cli-tool",
+    "homepage": "https://inkscape.org",
+    "description": "Reference SVG renderer used by export-png.sh. Resolved from $INKSCAPE, then PATH, then the macOS app bundle."
+  },
+  {
+    "id": "nodejs",
+    "name": "Node.js",
+    "type": "dependency",
+    "homepage": "https://nodejs.org",
+    "description": "Runs check-svg.mjs and compare-sheet.mjs."
+  },
+  {
+    "id": "playwright-core",
+    "name": "playwright-core + Chromium",
+    "type": "dependency",
+    "homepage": "https://playwright.dev",
+    "description": "Headless Chromium used by compare-sheet.mjs through ecosystem-assets' scripts/lib/render.mjs; installed and pinned in ecosystem-assets, not here."
+  },
+  {
+    "id": "sips",
+    "name": "sips",
+    "type": "cli-tool",
+    "description": "macOS built-in image tool; export-png.sh uses it to report output size and alpha. Not available on other platforms."
+  },
+  {
+    "id": "git",
+    "name": "Git",
+    "type": "cli-tool",
+    "homepage": "https://git-scm.com",
+    "description": "Version control CLI. differential-review reads history with git diff, log and blame."
+  }
+]

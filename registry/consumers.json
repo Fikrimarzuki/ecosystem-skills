@@ -1,0 +1,107 @@
+[
+  {
+    "id": "claude-code-global",
+    "name": "Global Claude Code",
+    "kind": "global",
+    "agents": ["claude-code"]
+  },
+  {
+    "id": "codex-global",
+    "name": "Global Codex",
+    "kind": "global",
+    "agents": ["codex"]
+  },
+  {
+    "id": "codyssey",
+    "name": "Codyssey",
+    "kind": "project"
+  },
+  {
+    "id": "ecosystem-skills",
+    "name": "Ecosystem Skills",
+    "kind": "project",
+    "agents": ["claude-code", "codex"],
+    "assignments": [
+      {
+        "skill": "skill-discovery-smoke-test",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "verified",
+          "verifiedAt": "2026-10-26",
+          "method": "Real agent runs from repo root via relative symlinks (.claude/skills, .agents/skills): claude-code 2.1.310 (stream-json init skill list; reference read; script run) and codex-cli 0.164.0 (codex exec; reference read; script run). See docs/agent-compatibility.md."
+        }
+      },
+      {
+        "skill": "grilling",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified",
+          "method": "Per-agent evidence is in registry/evidence.json (es6/es7/es8 records). Links verified with skills:links. claude-code: explicit invocation passed (ES6); natural triggering NOT observed in 6 controlled ES8 runs (0/6 loaded the skill; behavior passed 4/6 vs 2/6 in controls) but was observed once in ES7 in this repo. codex: explicit invocation passed (ES6); natural triggering not tested (usage limit, deferred). Assignment left unverified: verification is per assignment and natural triggering is unproven on both agents.",
+          "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified",
+          "method": "Per-agent evidence is in registry/evidence.json (es6/es7/es8 records). Links verified with skills:links. claude-code: explicit invocation passed (ES6); natural triggering observed in 2/6 ES8 runs (both on a 'can you confirm this is ready' prompt; 0/4 on fix and check prompts). codex: explicit invocation passed (ES6); natural triggering not tested (usage limit, deferred). Assignment left unverified: verification is per assignment and natural triggering is unproven on both agents.",
+          "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b"
+        }
+      }
+    ]
+  },
+  {
+    "id": "fm-studios",
+    "name": "FM Studios",
+    "kind": "project"
+  },
+  {
+    "id": "gateway",
+    "name": "Gateway",
+    "kind": "project"
+  },
+  {
+    "id": "hearthside",
+    "name": "Hearthside",
+    "kind": "project"
+  },
+  {
+    "id": "momee",
+    "name": "Momee",
+    "kind": "project"
+  },
+  {
+    "id": "playdeck",
+    "name": "Playdeck",
+    "kind": "project"
+  },
+  {
+    "id": "playnest",
+    "name": "Playnest",
+    "kind": "project"
+  },
+  {
+    "id": "ecosystem-assets",
+    "name": "Ecosystem Assets",
+    "kind": "project",
+    "description": "Creative source repository where Momee art work happens.",
+    "agents": ["claude-code", "codex"],
+    "assignments": [
+      {
+        "skill": "momee-character-art",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "verified",
+          "verifiedAt": "2026-10-26",
+          "method": "ES5 real-agent runs from the ecosystem-assets root on macOS arm64 after switching both adapters to relative symlinks into ecosystem-skills. Claude Code 2.1.310 (-p): discovered once, SKILL.md via Skill tool, reference read, check-svg, Inkscape export and compare-sheet all succeeded. Codex CLI 0.164.0 (exec, read-only sandbox): discovered once, SKILL.md and reference read, check-svg succeeded; Inkscape and Chromium steps cannot run inside the Codex sandbox (known, also true of the original). Direct runs: export and comparison sheet byte-identical to pre-migration baselines. Windows and global discovery not verified. See docs/migrations/es3-momee-character-art.md.",
+          "contentHash": "sha256-24c991af1692e04f3e269258aee0943ebeb8f8eb688942a1ed63e4ac82109217"
+        }
+      }
+    ]
+  }
+]

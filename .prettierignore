@@ -1,0 +1,6 @@
+node_modules
+dist
+pnpm-lock.yaml
+apps/web/public/catalog.json
+# skill content is canonical and kept byte-stable; never auto-format it
+skills
