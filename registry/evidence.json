@@ -390,5 +390,269 @@
     "environment": "Fresh session per run; each workspace is its own git repo with no skill directories in any parent; the skill was linked only for the treatment condition. Treatment links only the tested skill. Same fixture, prompt, tool permissions and agent version for both conditions.",
     "commands": "Agents ran tests in 2/2 treatment runs and 2/2 control runs.",
     "notes": "Invocation is counted from load evidence in the agent trace only (Skill tool call or SKILL.md read); behavior is judged by a coarse rubric and is independent of invocation. Natural triggering is probabilistic; 2 treatment run(s) is a small sample."
+  },
+  {
+    "id": "es8-grilling-codex-g1",
+    "skill": "grilling",
+    "agent": "codex",
+    "agentVersion": "0.164.0",
+    "date": "2026-10-27",
+    "context": "ES8 evaluation: disposable fixture workspace with project-local relative symlinks (treatment) versus the same fixture without the skill (control), macOS arm64",
+    "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+    "contentHash": "sha256-f8441dadff0662905d89dba1ef5204e45fc848ea138570525af474c9a1ed8837",
+    "task": "I want to add a way to organize skills into collections so I can find related skills more easily. Before implementing anything, help me figure out what the feature should do.",
+    "trigger": "natural",
+    "scenario": "g1",
+    "fixture": "skillbox",
+    "discovery": "not-tested",
+    "instructions": "not-tested",
+    "invocation": "fail",
+    "result": "partial",
+    "trials": {
+      "treatment": {
+        "runs": 2,
+        "invoked": 0,
+        "passed": 0,
+        "partial": 2,
+        "failed": 0,
+        "inconclusive": 0
+      },
+      "control": {
+        "runs": 2,
+        "passed": 1,
+        "partial": 1,
+        "failed": 0,
+        "inconclusive": 0
+      }
+    },
+    "environment": "Fresh session per run; each workspace is its own git repo with no skill directories in any parent; the skill was linked only for the treatment condition. Treatment links only the tested skill. Same fixture, prompt, tool permissions and agent version for both conditions. Codex ran sequentially from a normal terminal inside its own sandbox (read-only; workspace-write for the fix scenario V1).",
+    "commands": "No test commands were run by the agent in any run.",
+    "notes": "Invocation is counted from load evidence in the agent trace only (SKILL.md read); behavior is judged by a coarse rubric and is independent of invocation. Natural triggering is probabilistic; 2 treatment run(s) is a small sample. Controls passed at least as often, so no behavioral improvement from the skill is established. Codex traces do not list available skills, so discovery is not demonstrated by these runs (see the explicit-invocation record)."
+  },
+  {
+    "id": "es8-grilling-codex-g2",
+    "skill": "grilling",
+    "agent": "codex",
+    "agentVersion": "0.164.0",
+    "date": "2026-10-27",
+    "context": "ES8 evaluation: disposable fixture workspace with project-local relative symlinks (treatment) versus the same fixture without the skill (control), macOS arm64",
+    "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+    "contentHash": "sha256-f8441dadff0662905d89dba1ef5204e45fc848ea138570525af474c9a1ed8837",
+    "task": "I am planning a notes feature for this app. The requirements from stakeholders are: it must work fully offline, notes must sync in real time between a user's devices, and it must use no server and no peer-to-peer communication. Before building anything, help me work out what we are going to do.",
+    "trigger": "natural",
+    "scenario": "g2",
+    "fixture": "skillbox",
+    "discovery": "not-tested",
+    "instructions": "not-tested",
+    "invocation": "fail",
+    "result": "partial",
+    "trials": {
+      "treatment": {
+        "runs": 2,
+        "invoked": 0,
+        "passed": 0,
+        "partial": 2,
+        "failed": 0,
+        "inconclusive": 0
+      },
+      "control": {
+        "runs": 2,
+        "passed": 0,
+        "partial": 1,
+        "failed": 1,
+        "inconclusive": 0
+      }
+    },
+    "environment": "Fresh session per run; each workspace is its own git repo with no skill directories in any parent; the skill was linked only for the treatment condition. Treatment links only the tested skill. Same fixture, prompt, tool permissions and agent version for both conditions. Codex ran sequentially from a normal terminal inside its own sandbox (read-only; workspace-write for the fix scenario V1).",
+    "commands": "No test commands were run by the agent in any run.",
+    "notes": "Invocation is counted from load evidence in the agent trace only (SKILL.md read); behavior is judged by a coarse rubric and is independent of invocation. Natural triggering is probabilistic; 2 treatment run(s) is a small sample. Controls passed at least as often, so no behavioral improvement from the skill is established. Codex traces do not list available skills, so discovery is not demonstrated by these runs (see the explicit-invocation record)."
+  },
+  {
+    "id": "es8-grilling-codex-g3",
+    "skill": "grilling",
+    "agent": "codex",
+    "agentVersion": "0.164.0",
+    "date": "2026-10-27",
+    "context": "ES8 evaluation: disposable fixture workspace with project-local relative symlinks (treatment) versus the same fixture without the skill (control), macOS arm64",
+    "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+    "contentHash": "sha256-f8441dadff0662905d89dba1ef5204e45fc848ea138570525af474c9a1ed8837",
+    "task": "I need to decide how this project should manage which skills each of my projects gets: either one central assignments file for everything, or a small config file inside every project. Help me decide which approach to take.",
+    "trigger": "natural",
+    "scenario": "g3",
+    "fixture": "skillbox",
+    "discovery": "not-tested",
+    "instructions": "not-tested",
+    "invocation": "fail",
+    "result": "partial",
+    "trials": {
+      "treatment": {
+        "runs": 2,
+        "invoked": 0,
+        "passed": 0,
+        "partial": 0,
+        "failed": 2,
+        "inconclusive": 0
+      },
+      "control": {
+        "runs": 2,
+        "passed": 0,
+        "partial": 0,
+        "failed": 2,
+        "inconclusive": 0
+      }
+    },
+    "environment": "Fresh session per run; each workspace is its own git repo with no skill directories in any parent; the skill was linked only for the treatment condition. Treatment links only the tested skill. Same fixture, prompt, tool permissions and agent version for both conditions. Codex ran sequentially from a normal terminal inside its own sandbox (read-only; workspace-write for the fix scenario V1).",
+    "commands": "No test commands were run by the agent in any run.",
+    "notes": "Invocation is counted from load evidence in the agent trace only (SKILL.md read); behavior is judged by a coarse rubric and is independent of invocation. Natural triggering is probabilistic; 2 treatment run(s) is a small sample. Controls passed at least as often, so no behavioral improvement from the skill is established. Codex traces do not list available skills, so discovery is not demonstrated by these runs (see the explicit-invocation record)."
+  },
+  {
+    "id": "es8-verification-before-completion-codex-v1",
+    "skill": "verification-before-completion",
+    "agent": "codex",
+    "agentVersion": "0.164.0",
+    "date": "2026-10-27",
+    "context": "ES8 evaluation: disposable fixture workspace with project-local relative symlinks (treatment) versus the same fixture without the skill (control), macOS arm64",
+    "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+    "contentHash": "sha256-7ae5df5694cf8e59aeedee71ad8a6b1e93892a4963f25f93ace13e102d5454a7",
+    "task": "slugify in src/slug.ts turns \"Hello   World\" into \"hello---world\". Please fix it and confirm whether it works.",
+    "trigger": "natural",
+    "scenario": "v1",
+    "fixture": "slug-bug",
+    "discovery": "pass",
+    "instructions": "pass",
+    "invocation": "pass",
+    "result": "verified",
+    "trials": {
+      "treatment": {
+        "runs": 2,
+        "invoked": 2,
+        "passed": 2,
+        "partial": 0,
+        "failed": 0,
+        "inconclusive": 0
+      },
+      "control": {
+        "runs": 2,
+        "passed": 2,
+        "partial": 0,
+        "failed": 0,
+        "inconclusive": 0
+      }
+    },
+    "environment": "Fresh session per run; each workspace is its own git repo with no skill directories in any parent; the skill was linked only for the treatment condition. Treatment links only the tested skill. Same fixture, prompt, tool permissions and agent version for both conditions. Codex ran sequentially from a normal terminal inside its own sandbox (read-only; workspace-write for the fix scenario V1).",
+    "commands": "Agents ran tests in 2/2 treatment runs and 2/2 control runs.",
+    "notes": "Invocation is counted from load evidence in the agent trace only (SKILL.md read); behavior is judged by a coarse rubric and is independent of invocation. Natural triggering is probabilistic; 2 treatment run(s) is a small sample. Controls passed at least as often, so no behavioral improvement from the skill is established."
+  },
+  {
+    "id": "es8-verification-before-completion-codex-v2",
+    "skill": "verification-before-completion",
+    "agent": "codex",
+    "agentVersion": "0.164.0",
+    "date": "2026-10-27",
+    "context": "ES8 evaluation: disposable fixture workspace with project-local relative symlinks (treatment) versus the same fixture without the skill (control), macOS arm64",
+    "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+    "contentHash": "sha256-7ae5df5694cf8e59aeedee71ad8a6b1e93892a4963f25f93ace13e102d5454a7",
+    "task": "Is the stats module in src/stats.ts complete? Please check and let me know.",
+    "trigger": "natural",
+    "scenario": "v2",
+    "fixture": "stats-incomplete",
+    "discovery": "not-tested",
+    "instructions": "not-tested",
+    "invocation": "fail",
+    "result": "partial",
+    "trials": {
+      "treatment": {
+        "runs": 2,
+        "invoked": 0,
+        "passed": 2,
+        "partial": 0,
+        "failed": 0,
+        "inconclusive": 0
+      },
+      "control": {
+        "runs": 2,
+        "passed": 2,
+        "partial": 0,
+        "failed": 0,
+        "inconclusive": 0
+      }
+    },
+    "environment": "Fresh session per run; each workspace is its own git repo with no skill directories in any parent; the skill was linked only for the treatment condition. Treatment links only the tested skill. Same fixture, prompt, tool permissions and agent version for both conditions. Codex ran sequentially from a normal terminal inside its own sandbox (read-only; workspace-write for the fix scenario V1).",
+    "commands": "Agents ran tests in 2/2 treatment runs and 2/2 control runs.",
+    "notes": "Invocation is counted from load evidence in the agent trace only (SKILL.md read); behavior is judged by a coarse rubric and is independent of invocation. Natural triggering is probabilistic; 2 treatment run(s) is a small sample. Controls passed at least as often, so no behavioral improvement from the skill is established. Codex traces do not list available skills, so discovery is not demonstrated by these runs (see the explicit-invocation record)."
+  },
+  {
+    "id": "es8-verification-before-completion-codex-v3",
+    "skill": "verification-before-completion",
+    "agent": "codex",
+    "agentVersion": "0.164.0",
+    "date": "2026-10-27",
+    "context": "ES8 evaluation: disposable fixture workspace with project-local relative symlinks (treatment) versus the same fixture without the skill (control), macOS arm64",
+    "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+    "contentHash": "sha256-7ae5df5694cf8e59aeedee71ad8a6b1e93892a4963f25f93ace13e102d5454a7",
+    "task": "Can you confirm this is ready?",
+    "trigger": "natural",
+    "scenario": "v3",
+    "fixture": "calc-complete",
+    "discovery": "pass",
+    "instructions": "pass",
+    "invocation": "pass",
+    "result": "verified",
+    "trials": {
+      "treatment": {
+        "runs": 2,
+        "invoked": 2,
+        "passed": 2,
+        "partial": 0,
+        "failed": 0,
+        "inconclusive": 0
+      },
+      "control": {
+        "runs": 2,
+        "passed": 2,
+        "partial": 0,
+        "failed": 0,
+        "inconclusive": 0
+      }
+    },
+    "environment": "Fresh session per run; each workspace is its own git repo with no skill directories in any parent; the skill was linked only for the treatment condition. Treatment links only the tested skill. Same fixture, prompt, tool permissions and agent version for both conditions. Codex ran sequentially from a normal terminal inside its own sandbox (read-only; workspace-write for the fix scenario V1).",
+    "commands": "Agents ran tests in 2/2 treatment runs and 2/2 control runs.",
+    "notes": "Invocation is counted from load evidence in the agent trace only (SKILL.md read); behavior is judged by a coarse rubric and is independent of invocation. Natural triggering is probabilistic; 2 treatment run(s) is a small sample. Controls passed at least as often, so no behavioral improvement from the skill is established."
+  },
+  {
+    "id": "es93-verification-before-completion-claude-code-playnest",
+    "agent": "claude-code",
+    "agentVersion": "2.1.310",
+    "skill": "verification-before-completion",
+    "date": "2026-10-27",
+    "context": "ES9.3 single-consumer rollout: consumer playnest (web-playnest repository root), project-local relative symlinks created by skills:sync to the managed install; macOS arm64",
+    "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+    "contentHash": "sha256-7ae5df5694cf8e59aeedee71ad8a6b1e93892a4963f25f93ace13e102d5454a7",
+    "task": "Explicit, read-only request naming the skill: quote its \"Iron Law\" block and report where it was loaded from; no commands besides reading the skill, no file changes.",
+    "trigger": "explicit",
+    "discovery": "pass",
+    "instructions": "pass",
+    "invocation": "pass",
+    "result": "verified",
+    "environment": "Fresh claude -p session from the Playnest root; Bash, Edit, Write and NotebookEdit denied.",
+    "notes": "Listed once in the session skill list; loaded via the Skill tool with base directory <playnest>/.claude/skills/verification-before-completion; quoted the Iron Law verbatim. No commands run, no files changed. Explicit invocation only: natural triggering and behavioral effect were not tested here."
+  },
+  {
+    "id": "es93-verification-before-completion-codex-playnest",
+    "agent": "codex",
+    "agentVersion": "0.164.0",
+    "skill": "verification-before-completion",
+    "date": "2026-10-27",
+    "context": "ES9.3 single-consumer rollout: consumer playnest (web-playnest repository root), project-local relative symlinks created by skills:sync to the managed install; macOS arm64",
+    "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+    "contentHash": "sha256-7ae5df5694cf8e59aeedee71ad8a6b1e93892a4963f25f93ace13e102d5454a7",
+    "task": "Explicit, read-only request naming the skill: quote its \"Iron Law\" block and report where it was loaded from; no commands besides reading the skill, no file changes.",
+    "trigger": "explicit",
+    "discovery": "pass",
+    "instructions": "pass",
+    "invocation": "pass",
+    "result": "verified",
+    "environment": "Single codex exec in the read-only sandbox from the Playnest root (no other Codex process running).",
+    "notes": "Its only command was cat .agents/skills/verification-before-completion/SKILL.md (frontmatter returned); quoted the Iron Law verbatim and reported the Playnest .agents path. No files changed. Explicit invocation only: natural triggering and behavioral effect were not tested here."
   }
 ]

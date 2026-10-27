@@ -255,6 +255,54 @@ describe('buildCatalog', () => {
     ).toEqual([]);
   });
 
+  it('allows unknown discovery for a natural run only when the same skill, agent and revision shows it elsewhere', () => {
+    const rec = (over = {}) => ({
+      id: 'r1',
+      skill: 'ext',
+      agent: 'codex',
+      agentVersion: '1',
+      date: '2026-10-27',
+      context: 'c',
+      revision: SHA,
+      contentHash: HASH,
+      task: 't',
+      discovery: 'pass',
+      instructions: 'pass',
+      invocation: 'pass',
+      result: 'verified',
+      ...over,
+    });
+    const natural = rec({
+      id: 'r2',
+      trigger: 'natural',
+      discovery: 'not-tested',
+      instructions: 'not-tested',
+      invocation: 'fail',
+      result: 'partial',
+    });
+    const ok = errors(reg({ skills: [external()], evidence: [rec(), natural] }));
+    expect(ok).toEqual([]);
+    // no supporting record, different agent, different revision, or an explicit record: still refused
+    expect(errors(reg({ skills: [external()], evidence: [natural] })).join()).toMatch(
+      /requires discovery to pass/,
+    );
+    expect(
+      errors(
+        reg({ skills: [external()], evidence: [rec({ agent: 'claude-code' }), natural] }),
+      ).join(),
+    ).toMatch(/requires discovery/);
+    expect(
+      errors(
+        reg({ skills: [external()], evidence: [rec({ revision: 'e'.repeat(40) }), natural] }),
+      ).join(),
+    ).toMatch(/requires discovery/);
+    expect(
+      errors(
+        reg({ skills: [external()], evidence: [rec(), { ...natural, trigger: undefined }] }),
+      ).join(),
+    ).toMatch(/requires discovery/);
+  });
+
   it('validates natural-trigger trial counts', () => {
     const tally = (over = {}) => ({
       runs: 2,

@@ -921,5 +921,79 @@
       ],
       "notes": "Low risk."
     }
+  },
+  {
+    "id": "caveman",
+    "name": "Caveman",
+    "category": "communication",
+    "tags": ["brevity", "tokens", "output-style"],
+    "description": "Terse \"caveman\" reply style: answer first, no ceremony, every technical fact and code/command/error kept verbatim. Opt-in per session; changes how the agent writes replies, not what it does.",
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/JuliusBrussee/caveman"
+      },
+      "path": "skills/caveman",
+      "revision": "9b68f7ed12b05e7efaff18e65c5a3fc2849fd0a4"
+    },
+    "author": "JuliusBrussee",
+    "license": "Apache-2.0",
+    "agents": ["claude-code", "codex", "cursor"],
+    "review": {
+      "status": "approved",
+      "reviewedAt": "2026-10-27",
+      "reviewer": "Claude (ES11.1: full read of the skill folder at the pinned revision; automated scan; plugin, hook and installer layers inspected but excluded)",
+      "revision": "9b68f7ed12b05e7efaff18e65c5a3fc2849fd0a4",
+      "contentHash": "sha256-c103ae20e566ce58518950de912680b2a702d2a2bd2b0fc28ae671de36d44988",
+      "approvedBy": "Owner \u2014 ES11.2 approval authorization (2026-10-27); core skill folder only",
+      "findings": [
+        "Automated scan: 2 files (SKILL.md, README.md), 0 scripts; one hit is a ~/.config path in the README describing plugin configuration.",
+        "Communication style only: no tools, commands, network or file writes. It explicitly keeps full prose for security warnings, irreversible actions, step-order-sensitive instructions, questions to the user, and anything persisted (code, comments, commits, docs, PRs, memory files).",
+        "Persistent once triggered (\"every response, whole session\" until \"stop caveman\"/\"normal mode\"). Its triggers include broad phrases such as \"be brief\" and \"less tokens\".",
+        "\"/caveman ultra\" and \"/caveman wenyan\" are aliases for the separate ultracave/megacave skills, which are not registered; without them those aliases do nothing. \"/caveman status\" reads a hook value only the plugin provides and degrades to \"(not tracked by this host)\".",
+        "Plugin-only and excluded: SessionStart/SubagentStart hooks that run Node to force the mode on every session (Claude plugin, .codex/hooks.json), a curl|bash / irm|iex installer and an unpinned npx CLI, and the Caveman Cloud gateway/proxy used by other skills.",
+        "Apache-2.0 covers the repository; LICENSE and NOTICE live at the repository root, outside the skill folder. Keep them with any redistributed copy.",
+        "Overlap: none with registered skills. Compatible with verification-before-completion (facts and evidence are kept verbatim) and grilling (questions to the user stay in full sentences)."
+      ],
+      "notes": "Approved in ES11.2 for the core skills/caveman folder only, at the pinned revision and content hash. Not approved: ultracave/megacave modes, Caveman Cloud, caveman-compress, installers, hooks and the CLI. Approval is not agent verification: explicit loading and the session-wide style change are untested. Low risk as a skill-folder install; it may conflict with a project or user writing-style instruction, so activate only where terse replies are wanted."
+    }
+  },
+  {
+    "id": "ponytail",
+    "name": "Ponytail",
+    "category": "code-quality",
+    "tags": ["yagni", "minimal-change", "simplicity"],
+    "description": "\"Lazy senior dev\" mode: the smallest complete change, reuse before adding code or dependencies, no unrequested abstractions; ends each reply with what was skipped or not checked. Levels lite/full/ultra.",
+    "origin": "external",
+    "source": {
+      "type": "external",
+      "upstream": {
+        "url": "https://github.com/DietrichGebert/ponytail"
+      },
+      "path": "skills/ponytail",
+      "revision": "09c434ab73ca43761c5d8b0c5d341926c2fba710"
+    },
+    "author": "DietrichGebert",
+    "license": "MIT",
+    "agents": ["claude-code", "codex", "cursor"],
+    "review": {
+      "status": "approved",
+      "reviewedAt": "2026-10-27",
+      "reviewer": "Claude (ES11.1: full read of the skill folder at the pinned revision; automated scan; plugin, hook and installer layers inspected but excluded)",
+      "revision": "09c434ab73ca43761c5d8b0c5d341926c2fba710",
+      "contentHash": "sha256-b118474a4a7291f0d531f55de2c13c3b1bdbd80d563f4e67e36f0032b77fbdfa",
+      "approvedBy": "Owner \u2014 ES11.2 approval authorization (2026-10-27); core skill folder only",
+      "findings": [
+        "Automated scan: 1 file (SKILL.md), 0 scripts, no pattern hits.",
+        "Changes execution behavior, not just tone: it decides what code gets written (smallest complete change, reuse, no new dependencies or abstractions) and writes \"shortcut: <limit>, <when to upgrade>\" comments into code.",
+        "Guardrails are explicit: \"Never cut: validation at trust boundaries, error handling that prevents data loss, security, accessibility, ... anything the user asked for\"; finish callers, tests and fixtures the change breaks; new non-trivial logic needs a small test or assert; moved code keeps its error handling.",
+        "Weak spots: trivial changes need no test; tests are \"one small test or assert\" and the skill never says to run them; \"ultra\" pushes back on requested scope. Pair with verification-before-completion so completion claims still need fresh evidence.",
+        "Broad and persistent: \"Use on any coding task\" plus \"active for the whole session\" means it will trigger often once activated and overrides default engineering style until \"stop ponytail\".",
+        "Plugin-only and excluded: session/subagent hooks that run Node, a default-on per-turn ledger written to ~/.config/ponytail/band/<project>.csv, an optional per-turn webhook, statusline scripts, and always-on rules files for about ten agents (AGENTS.md, .agents/rules, .cursor/rules, ...).",
+        "Overlap: complementary to verification-before-completion (Ponytail reports what it skipped; VBC requires evidence); \"ultra\" partly overlaps grilling (challenging scope); its minimal-documentation stance can pull against writing-plans' detailed plan template. Upstream ponytail-review/ponytail-audit overlap requesting-code-review and the security skills and were not registered."
+      ],
+      "notes": "Approved in ES11.2 for the core skills/ponytail folder only, at the pinned revision and content hash. Not approved: ponytail-review/ponytail-audit, hooks, the ledger/telemetry, the webhook, statusline scripts and always-on rules files. Approval is not agent verification: coding behavior is unevaluated, it does not require running tests, and its broad \"any coding task\" trigger may be unwanted in some projects. Medium behavioral risk; before activating, evaluate it like ES8 (treatment vs control) and pair it with verification-before-completion; activate per project only."
+    }
   }
 ]

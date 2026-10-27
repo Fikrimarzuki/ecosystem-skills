@@ -1,3 +1,9 @@
 packages:
   - apps/*
   - packages/*
+
+# Dependency install scripts are not run. esbuild ships prebuilt platform binaries, so its postinstall is
+# unnecessary; recording the denial keeps `pnpm install --frozen-lockfile` exiting 0 in CI (pnpm 12 fails
+# installs that have unreviewed build scripts).
+allowBuilds:
+  esbuild: false

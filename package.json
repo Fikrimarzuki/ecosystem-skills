@@ -8,8 +8,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm catalog:build && pnpm --filter @ecosystem-skills/web dev",
-    "build": "pnpm catalog:build && pnpm --filter @ecosystem-skills/web build",
+    "dev": "pnpm --filter @ecosystem-skills/web dev",
+    "build": "pnpm --filter @ecosystem-skills/web build",
     "preview": "pnpm --filter @ecosystem-skills/web preview",
     "catalog:validate": "pnpm --filter @ecosystem-skills/catalog validate",
     "catalog:build": "pnpm --filter @ecosystem-skills/catalog build",
@@ -19,6 +19,11 @@
     "skills:rollback": "pnpm --filter @ecosystem-skills/catalog ext rollback",
     "skills:uninstall": "pnpm --filter @ecosystem-skills/catalog ext uninstall",
     "skills:status": "pnpm --filter @ecosystem-skills/catalog ext status",
+    "skills:list": "pnpm --filter @ecosystem-skills/catalog ext list",
+    "skills:assign": "pnpm --filter @ecosystem-skills/catalog ext assign",
+    "skills:unassign": "pnpm --filter @ecosystem-skills/catalog ext unassign",
+    "skills:sync": "pnpm --filter @ecosystem-skills/catalog ext sync",
+    "skills:verify": "pnpm --filter @ecosystem-skills/catalog ext verify",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",

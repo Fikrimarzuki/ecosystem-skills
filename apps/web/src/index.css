@@ -16,6 +16,87 @@ html.dark {
 body {
   @apply bg-zinc-50 font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100;
 }
+
+/*
+ * Ambient background: soft colour glows plus a faint grid that fades out toward the bottom. It sits behind
+ * everything (fixed, non-interactive, aria-hidden in the markup), so it never scrolls or takes clicks. Glows
+ * are deliberately pale so body text keeps AA contrast on them; surfaces (cards) are near-opaque.
+ */
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 28rem at 6% -6%, rgb(199 210 254 / 0.5), transparent 62%),
+    radial-gradient(46rem 26rem at 100% 0%, rgb(233 213 255 / 0.45), transparent 62%),
+    radial-gradient(42rem 24rem at 50% 108%, rgb(186 230 253 / 0.4), transparent 62%), #fafafa;
+}
+.app-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgb(79 70 229 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(79 70 229 / 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 10%, transparent 75%);
+}
+html.dark .app-bg {
+  background:
+    radial-gradient(60rem 28rem at 6% -6%, rgb(79 70 229 / 0.3), transparent 62%),
+    radial-gradient(46rem 26rem at 100% 0%, rgb(147 51 234 / 0.2), transparent 62%),
+    radial-gradient(42rem 24rem at 50% 108%, rgb(14 116 144 / 0.22), transparent 62%), #09090b;
+}
+html.dark .app-bg::after {
+  background-image:
+    linear-gradient(to right, rgb(165 180 252 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(165 180 252 / 0.05) 1px, transparent 1px);
+}
+
+@layer components {
+  /* A raised, slightly translucent panel. Near-opaque so text contrast does not depend on the background. */
+  .surface {
+    @apply rounded-2xl border border-zinc-200/80 bg-white/90 shadow-sm shadow-indigo-950/5 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/80 dark:shadow-none;
+  }
+  .surface-hover {
+    @apply transition duration-150 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-400/60;
+  }
+  /* Tailwind v4 cannot @apply a custom class, so the two button styles repeat the shared utilities. */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm shadow-indigo-600/25 transition duration-150 hover:bg-indigo-700 dark:hover:bg-indigo-500;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-300 bg-white/80 px-4 py-2.5 text-sm font-medium text-zinc-800 transition duration-150 hover:border-indigo-300 hover:bg-white dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-100 dark:hover:border-indigo-400/60 dark:hover:bg-zinc-900;
+  }
+  .gradient-text {
+    @apply bg-linear-to-r from-indigo-700 via-violet-700 to-fuchsia-700 bg-clip-text text-transparent dark:from-indigo-300 dark:via-violet-300 dark:to-fuchsia-300;
+  }
+}
+:root {
+  --focus: #4f46e5;
+}
+html.dark {
+  --focus: #a5b4fc;
+}
+/* Plain CSS on purpose: Tailwind's outline-2 utility leaves outline-style unset, which hides the ring. */
 :focus-visible {
-  @apply outline-2 outline-offset-2 outline-indigo-500;
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Skill cards show one ring on the whole card (focus-within), so the stretched link itself needs no outline. */
+a.card-link:focus-visible {
+  outline: none;
 }

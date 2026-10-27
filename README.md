@@ -4,9 +4,11 @@ Central registry for reusable AI-agent capabilities (Claude Code, Codex, Cursor 
 projects: skills (first-party and external), consumers, and the MCP/CLI integrations they depend on.
 A static, read-only website in `apps/web` browses the generated catalog.
 
-> Status: 2 first-party skills (Momee's is live in ecosystem-assets) and 25 reviewed external candidates, of which
-> 4 are approved and pilot-verified with Claude Code and Codex. 2 (`grilling`, `verification-before-completion`) are linked into this repo only.
-> Project-local discovery is verified for Claude Code and Codex on macOS; global discovery is not.
+> Status: 2 first-party skills and 27 reviewed external candidates. 6 are approved; 4 of those are installed locally
+> (`caveman` and `ponytail` are approved but not installed or assigned).
+> Active consumers: `ecosystem-skills` (smoke test, `grilling`, `verification-before-completion`), `ecosystem-assets`
+> (Momee character art) and `playnest` (`verification-before-completion`). Discovery and explicit invocation are
+> verified for Claude Code and Codex on macOS; natural triggering is partial and behavioral effect is not established.
 
 ## Setup
 
@@ -21,19 +23,22 @@ pnpm dev        # generates the catalog, starts the site at http://localhost:517
 
 | Command                                          | Purpose                                                              |
 | ------------------------------------------------ | -------------------------------------------------------------------- |
-| `pnpm dev`                                       | Build catalog, run the Vite dev server                               |
-| `pnpm build`                                     | Validate registry, build catalog, production site build              |
+| `pnpm dev`                                       | Run the Vite dev server (serves a freshly generated catalog)         |
+| `pnpm build`                                     | Production build: validates the registry, emits `dist/catalog.json`  |
 | `pnpm preview`                                   | Serve the production build                                           |
 | `pnpm catalog:validate`                          | Validate `registry/*.json` only                                      |
-| `pnpm catalog:build`                             | Validate and write `apps/web/public/catalog.json`                    |
+| `pnpm catalog:build`                             | Validate and write `apps/web/public/catalog.json` (inspection only)  |
 | `pnpm typecheck`                                 | TypeScript across workspaces                                         |
 | `pnpm lint`                                      | ESLint                                                               |
 | `pnpm format[:check]`                            | Prettier                                                             |
+| `pnpm skills:<command> --help`                   | Usage, notes and examples for any skills command                     |
 | `pnpm skills:links <dir> [id…]`                  | Read-only check of how skills are linked into a project              |
 | `pnpm skills:review <id>`                        | Download an external skill at its pin and scan it                    |
 | `pnpm skills:install <id>`                       | Install an **approved** external skill (local, ignored)              |
 | `pnpm skills:status`                             | Local install state; `skills:rollback`, `:uninstall`                 |
 | `pnpm --filter @ecosystem-skills/catalog eval …` | Natural-trigger evaluation harness (see docs/external-skills.md §11) |
+| `pnpm skills:list` / `:assign` / `:unassign`     | Inspect and change consumer assignments (registry only)              |
+| `pnpm skills:sync <consumer>` / `:verify`        | Reconcile and check a consumer's project-local links                 |
 | `pnpm test`                                      | Vitest (validation, install, review, page rendering)                 |
 | `pnpm check`                                     | Everything above, in order                                           |
 
@@ -52,6 +57,9 @@ docs/                registry reference, deployment
 
 ## Docs
 
+- [Website](docs/website.md) (landing page, pages, English/Bahasa Indonesia, status vocabulary, accessibility)
+- [Consumer management CLI](docs/consumers.md) (assign, sync, verify; approval vs installation vs activation)
+- [Onboarding: find a skill and get it working](docs/consumers.md#onboarding-from-discovery-to-verified-use) (who approves what)
 - [Registry reference](docs/registry.md)
 - [External skills](docs/external-skills.md) (discovery, review, install, update, rollback, licensing)
 - [Agent compatibility](docs/agent-compatibility.md) (verified discovery conventions)

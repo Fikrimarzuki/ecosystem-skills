@@ -38,7 +38,7 @@
         "install": "symlink",
         "verification": {
           "status": "unverified",
-          "method": "Per-agent evidence is in registry/evidence.json (es6/es7/es8 records). Links verified with skills:links. claude-code: explicit invocation passed (ES6); natural triggering NOT observed in 6 controlled ES8 runs (0/6 loaded the skill; behavior passed 4/6 vs 2/6 in controls) but was observed once in ES7 in this repo. codex: explicit invocation passed (ES6); natural triggering not tested (usage limit, deferred). Assignment left unverified: verification is per assignment and natural triggering is unproven on both agents.",
+          "method": "Per-agent evidence is in registry/evidence.json (es6/es7/es8 records). Links verified with skills:links. claude-code: explicit invocation passed (ES6); natural triggering NOT observed in 6 controlled ES8 runs (0/6 loaded the skill; behavior passed 4/6 vs 2/6 in controls) but was observed once in ES7 in this repo. codex: explicit invocation passed (ES6); natural triggering NOT observed in 6 controlled ES8.9 runs (0/6 loaded the skill; behavior passed 0/6 vs 1/6 in controls). No behavioral improvement is established on either agent. Assignment left unverified: verification is per assignment and natural triggering is unreliable on both agents.",
           "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2"
         }
       },
@@ -48,7 +48,7 @@
         "install": "symlink",
         "verification": {
           "status": "unverified",
-          "method": "Per-agent evidence is in registry/evidence.json (es6/es7/es8 records). Links verified with skills:links. claude-code: explicit invocation passed (ES6); natural triggering observed in 2/6 ES8 runs (both on a 'can you confirm this is ready' prompt; 0/4 on fix and check prompts). codex: explicit invocation passed (ES6); natural triggering not tested (usage limit, deferred). Assignment left unverified: verification is per assignment and natural triggering is unproven on both agents.",
+          "method": "Per-agent evidence is in registry/evidence.json (es6/es7/es8 records). Links verified with skills:links. claude-code: explicit invocation passed (ES6); natural triggering observed in 2/6 ES8 runs (both on a 'can you confirm this is ready' prompt; 0/4 on fix and check prompts). codex: explicit invocation passed (ES6); natural triggering observed in 4/6 ES8.9 runs (2/2 fix, 2/2 confirm-ready, 0/2 \"is it complete?\"); behavior passed 6/6 with and without the skill. No behavioral improvement is established on either agent. Assignment left unverified: verification is per assignment and natural triggering is unreliable on both agents.",
           "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b"
         }
       }
@@ -62,7 +62,17 @@
   {
     "id": "gateway",
     "name": "Gateway",
-    "kind": "project"
+    "kind": "project",
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "copy",
+        "verification": {
+          "status": "unverified"
+        }
+      }
+    ]
   },
   {
     "id": "hearthside",
@@ -82,7 +92,21 @@
   {
     "id": "playnest",
     "name": "Playnest",
-    "kind": "project"
+    "kind": "project",
+    "assignments": [
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "verified",
+          "verifiedAt": "2026-10-27",
+          "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+          "contentHash": "sha256-7ae5df5694cf8e59aeedee71ad8a6b1e93892a4963f25f93ace13e102d5454a7",
+          "method": "ES9.3: activated with skills:sync (relative symlinks in .claude/skills and .agents/skills); skills:verify 0 errors. Real agent runs from the Playnest root: Claude Code 2.1.310 listed and loaded it via the Skill tool from the project path; Codex 0.164.0 (read-only sandbox) read the linked SKILL.md. Verifies discovery and explicit invocation on macOS only; natural triggering and behavioral improvement are not established. See registry/evidence.json (es93-* records)."
+        }
+      }
+    ]
   },
   {
     "id": "ecosystem-assets",

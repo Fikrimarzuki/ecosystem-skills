@@ -26,6 +26,9 @@ function duplicates(ids: string[]): string[] {
 const byId = <T extends { id: string }>(a: T, b: T) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 const sortedUnique = <T extends string>(xs: T[]) => [...new Set(xs)].sort();
 
+/** The exact bytes of catalog.json: stable (sorted, no timestamps), shared by the CLI and the site build. */
+export const catalogToJson = (catalog: Catalog): string => JSON.stringify(catalog, null, 2) + '\n';
+
 export type ValidationResult = { ok: true; catalog: Catalog } | { ok: false; errors: string[] };
 
 /** Validate raw registry data and, if valid, produce the normalized catalog. */
@@ -137,7 +140,21 @@ export function buildCatalog(raw: unknown): ValidationResult {
           `${at}: "verified" natural evidence requires the skill to be invoked in every treatment run`,
         );
     }
-    if (ev.result === 'partial' && ev.discovery !== 'pass')
+    // Some agents (Codex) do not expose their skill list, so a natural-trigger run that never loads the skill
+    // cannot show discovery. That is accepted only when another record for the same skill, agent and
+    // revision demonstrates discovery; it is never assumed.
+    const discoveryShownElsewhere = reg.evidence.some(
+      (o) =>
+        o.id !== ev.id &&
+        o.skill === ev.skill &&
+        o.agent === ev.agent &&
+        o.revision === ev.revision &&
+        o.discovery === 'pass',
+    );
+    const discoveryOk =
+      ev.discovery === 'pass' ||
+      (ev.trigger === 'natural' && ev.discovery === 'not-tested' && discoveryShownElsewhere);
+    if (ev.result === 'partial' && !discoveryOk)
       errors.push(`${at}: "partial" requires discovery to pass`);
   }
 

@@ -1,14 +1,18 @@
 # Registry reference
 
-`registry/*.json` is the single source of truth. `pnpm catalog:build` validates it and writes the
-normalized `apps/web/public/catalog.json` (sorted, no timestamps, byte-identical for identical input).
+`registry/*.json` is the single source of truth. The site build validates it and generates the normalized
+`catalog.json` (sorted, no timestamps, byte-identical for identical input) into `apps/web/dist`; see
+[deployment.md](deployment.md). `pnpm catalog:build` writes the same file to the git-ignored
+`apps/web/public/catalog.json` for inspection.
 Unknown fields are rejected, so nothing unreviewed can leak into the public catalog.
 
 ## `skills.json`
 
 Array of skills. Key fields (schema: `packages/catalog/src/schema.ts`):
 
-- `id` (kebab-case, unique), `name`, `description`, `category`, `tags`
+- `id` (kebab-case, unique), `name`, `description`, `category`, `tags`. `category` is a free-form topic. The
+  website groups it into six browsing groups with an explicit table (see [website.md](website.md)); a new category
+  needs an entry there.
 - `origin`: `first-party` | `external` — must match `source.type`
 - `source`
   - first-party: `{ "type": "first-party", "path": "skills/shared/<id>" }` (repo-relative)
@@ -25,7 +29,8 @@ Array of skills. Key fields (schema: `packages/catalog/src/schema.ts`):
     reviewed folder; changing the pin forces a re-review
   - `approved` needs `approvedBy` (never set automatically) and all `requiresSkills` approved
 
-Installation state is not in the registry; see [external-skills.md](external-skills.md).
+Approval is a registry fact; **installation and activation are not**. They are machine-local, so they are neither in
+the registry nor in the public catalog; see [external-skills.md](external-skills.md) and [consumers.md](consumers.md).
 
 ## `consumers.json`
 
@@ -57,7 +62,8 @@ Agent compatibility evidence from real agent runs: one record per skill × agent
 Natural-trigger evaluations (ES8) add `trigger: "natural"`, `scenario`, `fixture`, `environment`, `commands`, and `trials`:
 `{ treatment: { runs, invoked, passed, partial, failed, inconclusive }, control?: { runs, passed, partial, failed,
 inconclusive } }`. Controls carry no `invoked` count, because a control run is never an invocation. `verified` natural
-evidence requires the skill to have been invoked in every treatment run.
+evidence requires the skill to have been invoked in every treatment run. Agents that do not expose their skill list (Codex) may record `discovery: "not-tested"` on a natural-trigger record
+only if another record for the same skill, agent and revision shows discovery passing.
 
 `verified` requires all three checks to pass, and `partial` requires discovery to pass. Evidence whose revision
 differs from the current pin is shown as **stale**. Evidence is not a consumer assignment: it says an agent can use

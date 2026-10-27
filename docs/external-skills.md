@@ -12,14 +12,26 @@ downloaded skill is executed, and instructions inside it are never followed whil
 | **Approved**   | Owner decision to allow installation of this exact revision | `review.status: "approved"` + `approvedBy`                            | yes                    |
 | **Rejected**   | Owner decision against it                                   | `review.status: "rejected"`                                           | yes                    |
 | **Installed**  | A local copy exists in `external/skills/<id>`               | `external/installed.json` (git-ignored)                               | **no** — machine-local |
+| **Assigned**   | A consumer _should_ have the skill (desired state)          | `registry/consumers.json` assignment                                  | yes                    |
+| **Activated**  | The consumer project links the skill into an agent folder   | `<project>/.claude/skills/<id>`, `<project>/.agents/skills/<id>`      | **no** — machine-local |
 | **Verified**   | An agent was shown to discover/use it for a consumer        | `registry/consumers.json` assignment `verification`                   | yes                    |
 
-`registry/skills.json` remains the single source of truth for metadata. Installation state is deliberately not
-published.
+No state implies the next one. Approval permits installation of one exact revision. It does not install, assign or
+activate the skill, and it is not evidence that an agent loads or benefits from it. Agent evidence (`registry/evidence.json`)
+is recorded separately.
 
-**Status after ES6:** 25 external skills reviewed. **4 approved and pilot-verified**: `grilling`,
-`writing-plans`, `verification-before-completion` and `frontend-design`. `grill-me` was classified redundant and not
-approved. Installs exist only on the machine that ran the pilot. **No project or global activation exists.**
+`registry/skills.json` remains the single source of truth for metadata. Installation state is deliberately not
+published. For the step-by-step path through these states, and which steps need the owner, see
+[consumers.md](consumers.md#onboarding-from-discovery-to-verified-use).
+
+**Historical, status after ES6 (2026-10-26):** 25 external skills reviewed. **4 approved and pilot-verified**:
+`grilling`, `writing-plans`, `verification-before-completion` and `frontend-design`. `grill-me` was classified
+redundant and not approved. Installs existed only on the machine that ran the pilot, and at that point no project or
+global activation existed. Activations made since then (ES7, ES9.3) are listed below and in `registry/consumers.json`.
+
+**Current status (since ES11.2):** 27 external skills; **6 approved** (the four above plus `caveman` and `ponytail`). Only
+the four ES6 skills are installed. `caveman` and `ponytail` are approved but **not installed, assigned, activated or
+verified** (section 13). Current activations are listed in [consumers.md](consumers.md) and `registry/consumers.json`.
 
 Agent evidence lives in `registry/evidence.json` and is published in the catalog. One record per
 skill × agent run, with the agent version, pinned revision, content hash, and a pass/fail for discovery,
@@ -245,12 +257,13 @@ and one run each cannot show the skills _caused_ an improvement. In the verifica
 agent also proved its tests could fail via a temporary mutation; this may reflect the skill's presence, but is not
 established.
 
-Agent differences: Codex was not run, so no comparison exists. Its explicit-invocation results are in section 9.
+Agent differences: Codex was not run in ES7, so no comparison existed then. Its explicit-invocation results are in
+section 9; its natural-trigger results came later, in ES8.9 (section 11).
 
 Evidence records `es7-*` carry `trigger: "natural"` (absent means explicit) and a `control` note. They are additions;
 the ES6 records are unchanged. `verification-before-completion` is recorded `partial` (discovery passed, natural
-invocation failed in this run). The consumer assignments stay `unverified` because verification is per assignment and
-Codex is untested here.
+invocation failed in this run). The consumer assignments stayed `unverified` because verification is per assignment and
+Codex was untested in ES7; they remain `unverified` after ES8.9 because natural triggering proved unreliable.
 
 Limitations: one Claude Code run per prompt; control runs used different repository contexts (an empty repo for the
 grilling control); Codex deferred. Note that Codex may change its bundled `~/.codex/skills/.system` set on startup
@@ -308,13 +321,25 @@ environment. This evaluation does not prove a general improvement from either sk
 Totals: `grilling` loaded 0/6, behavior passed 4/6 vs 2/6 in controls. `verification-before-completion` loaded 2/6
 (both on the "confirm this is ready" prompt), behavior passed 4/6 vs 4/6 in controls.
 
-### Results — Codex 0.164.0
+### Results — Codex 0.164.0 (ES8.9, 24 runs: 12 treatment, 12 control; 2 per cell)
 
-**Deferred; not tested.** The account was still over its usage limit (reset 2026-10-27 01:53 local). One availability
-check failed with the limit error and was not retried. No Codex records were written, and none of the ES8 evidence
-says anything about Codex natural triggering. Run the harness once the quota resets. During the check Codex swapped
-its own bundled skill (`plugin-creator` ↔ `review-agent`) at startup, as it had in ES7; this was observed, not
-modified.
+Run sequentially from a normal terminal on 2026-10-27, after the quota reset (the first attempt, from a restricted
+agent environment, produced unusable runs and is not evidence). Every trace was re-analysed: 24/24 valid, no
+contamination. Codex traces do not list available skills, so discovery is only demonstrated when a run loaded
+the skill.
+
+| Scenario | Loaded the skill (treatment) | Behavior pass/partial/fail (treatment) | Same (control) |
+| -------- | ---------------------------- | -------------------------------------- | -------------- |
+| G1       | 0/2                          | 0 / 2 / 0                              | 1 / 1 / 0      |
+| G2       | 0/2                          | 0 / 2 / 0                              | 0 / 1 / 1      |
+| G3       | 0/2                          | 0 / 0 / 2                              | 0 / 0 / 2      |
+| V1       | **2/2**                      | 2 / 0 / 0                              | 2 / 0 / 0      |
+| V2       | 0/2                          | 2 / 0 / 0                              | 2 / 0 / 0      |
+| V3       | **2/2**                      | 2 / 0 / 0                              | 2 / 0 / 0      |
+
+Totals: `grilling` loaded 0/6; `verification-before-completion` loaded 4/6 (fix and confirm-ready prompts, not the
+"is it complete?" prompt). Controls passed as often as treatment on every V scenario, so no behavioral improvement
+is shown. Records: `es8-*-codex-*`.
 
 ### Observations
 
@@ -335,10 +360,10 @@ modified.
 
 ### Recommendations (interpretation)
 
-| Skill                            | Recommendation                | Why                                                                                                                                            |
-| -------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `grilling`                       | **Keep active provisionally** | Instruction-only, no side effects, explicit use works on both agents (ES6). Natural triggering is unreliable here (0/6) and Codex is untested. |
-| `verification-before-completion` | **Keep active provisionally** | Same safety profile; it triggers on confirmation requests (2/2) but not on the other two prompt styles; no harm seen; Codex untested.          |
+| Skill                            | Recommendation                | Why                                                                                                                                                                                                                                                                                    |
+| -------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `grilling`                       | **Keep active provisionally** | Instruction-only, no side effects, explicit use works on both agents (ES6). Natural triggering is unreliable: loaded in 0/6 Claude Code runs (ES8) and 0/6 Codex runs (ES8.9).                                                                                                         |
+| `verification-before-completion` | **Keep active provisionally** | Same safety profile. Claude Code loaded it on confirmation requests (2/2) but not on the other two prompts (0/4); Codex loaded it in 4/6 (fix and confirm-ready, not "is it complete?"). Controls passed as often on both agents, so no behavioral improvement is shown; no harm seen. |
 
 Do not edit the skills' descriptions to raise invocation rates. If a change looks useful (for example a description that
 names "is it complete" or "check whether"), propose it as a separate, reviewed revision of the pinned skill.
@@ -346,7 +371,7 @@ names "is it complete" or "check whether"), propose it as a separate, reviewed r
 ### Limitations
 
 Small samples (counts only, no percentages), one machine, one Claude model, a heuristic rubric, control and treatment
-differing in whether the skill is listed in context, and Codex not run. Evidence records `es8-*` use the `trials` field
+differing in whether the skill is listed in context, and Codex run separately in ES8.9. Evidence records `es8-*` use the `trials` field
 (`treatment` and `control` counts); older records have none.
 
 ### Rollback
@@ -354,3 +379,103 @@ differing in whether the skill is listed in context, and Codex not run. Evidence
 `unlink .claude/skills/<id> .agents/skills/<id>` (symlinks only) for each of the two skills, then remove their two
 assignments from `registry/consumers.json`. Nothing else depends on them. The installs in `external/skills` and the
 evidence records remain.
+
+## 12. ES11.1: Caveman and Ponytail review (2026-10-27)
+
+Two repositories were reviewed as candidates: [`JuliusBrussee/caveman`](https://github.com/JuliusBrussee/caveman) and
+[`DietrichGebert/ponytail`](https://github.com/DietrichGebert/ponytail). Each was downloaded as a tarball at its pinned
+SHA into an untrusted directory and read as data. No upstream script, hook or installer was run, and no agent was run.
+Popularity and third-party security scores were not taken as evidence.
+
+| Repository | Pinned revision                            | License                                              | Registered                     |
+| ---------- | ------------------------------------------ | ---------------------------------------------------- | ------------------------------ |
+| caveman    | `9b68f7ed12b05e7efaff18e65c5a3fc2849fd0a4` | Apache-2.0 (from 3.0.0; `LICENSE-MIT` is historical) | `caveman` (`skills/caveman`)   |
+| ponytail   | `09c434ab73ca43761c5d8b0c5d341926c2fba710` | MIT                                                  | `ponytail` (`skills/ponytail`) |
+
+Both are registered as **`reviewed`**: not approved, not installed, not assigned. Content hashes cover the skill folder
+only. The full findings are in `registry/skills.json`.
+
+**What each skill changes:**
+
+- **Caveman changes communication style only.** It makes replies terse and drops pleasantries. It does not change which
+  tools the agent uses or what code it writes. Code, commands, errors and technical terms stay verbatim, and it keeps
+  full prose for security warnings, irreversible actions, ordered steps, questions to the user, and anything persisted
+  (code, comments, commits, docs, PRs). Once triggered it lasts the whole session until "stop caveman".
+- **Ponytail changes execution behaviour.** It aims for the smallest complete change: reuse before new code, no new
+  dependencies or speculative abstractions. It writes `shortcut:` comments into code and ends each reply with what it
+  skipped. Its guardrails are explicit. It never cuts validation at trust boundaries, data-loss error handling,
+  security, accessibility, or anything the user asked for. It finishes the callers and tests a change breaks, and new
+  non-trivial logic gets a small test or assert. It does **not** say to run the tests, and trivial changes need none.
+  It describes itself as "use on any coding task" and lasts the whole session.
+
+**Excluded upstream layers.** These belong to the plugin and installer layers, not to a skill folder:
+
+- Caveman: SessionStart/SubagentStart hooks that run Node (Claude plugin and `.codex/hooks.json`), `curl | bash` and
+  `irm | iex` installers, an unpinned `npx` CLI, and the Caveman Cloud gateway skills.
+- Ponytail: session hooks, a default-on per-turn ledger in `~/.config/ponytail/band/<project>.csv`, an optional webhook,
+  statusline scripts, and always-on rules files for about ten agents.
+
+**Other upstream skills were not registered:**
+
+- Caveman's `ultracave`/`megacave` levels; `/caveman ultra|wenyan` stay inert without them.
+- `caveman-compress`, which sends file text to a model.
+- `ponytail-review`/`ponytail-audit`, which overlap `requesting-code-review` and the security skills.
+
+**Overlap with active skills:**
+
+| Skill                            | Caveman                                       | Ponytail                                                                      |
+| -------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------- |
+| `verification-before-completion` | Compatible; evidence and errors stay verbatim | Complementary: Ponytail reports what it skipped, VBC requires fresh evidence  |
+| `grilling`                       | Compatible; questions stay in full sentences  | Partial overlap: `ultra` pushes back on scope, as grilling challenges a plan  |
+| `writing-plans`                  | Compatible; saved plans are full prose        | Tension: its minimal-documentation stance pulls against the detailed template |
+
+**Recommendation.**
+
+- **Caveman** is low risk. It is reasonable to approve for an explicit-invocation pilot where terse replies are wanted,
+  because it may conflict with a project's writing-style instructions.
+- **Ponytail** should not be approved before an ES8-style evaluation: treatment against control on real coding tasks,
+  checking that tests, validation, accessibility and verification are not skipped. If adopted, pair it with
+  `verification-before-completion`.
+
+Neither skill was tested with an agent in ES11.1.
+
+## 13. ES11.2: Caveman and Ponytail approved (2026-10-27)
+
+The owner approved `caveman` and `ponytail` (`approvedBy`: owner, ES11.2 approval authorization). The approvals keep the
+ES11.1 revisions, content hashes, licenses and findings unchanged.
+
+| Skill      | Reviewed | Approved | Installed | Assigned | Activated | Verified |
+| ---------- | -------- | -------- | --------- | -------- | --------- | -------- |
+| `caveman`  | yes      | yes      | no        | no       | no        | no       |
+| `ponytail` | yes      | yes      | no        | no       | no        | no       |
+
+**Scope.** Only the core skill folders (`skills/caveman`, `skills/ponytail`) at the pinned revisions are approved. Not
+approved:
+
+- **Caveman:** the `ultracave`/`megacave` modes, Caveman Cloud, `caveman-compress`, the installers, the hooks and the CLI.
+- **Ponytail:** `ponytail-review`/`ponytail-audit`, the hooks, the ledger and telemetry, the webhook, the statusline
+  scripts and the always-on rules files.
+
+The installer copies only the registered `source.path`, so none of these can be installed through this registry.
+
+**Known limitations: Caveman**
+
+- Explicit agent loading has not been verified on either agent.
+- The session-wide change in communication style has not been tested.
+- Only the core skill is approved: `/caveman ultra` and `/caveman wenyan` stay inert, and `/caveman status` reports
+  "not tracked" without the plugin hooks.
+
+**Known limitations: Ponytail**
+
+- Its effect on coding behaviour has not been evaluated. ES11.1 recommended an ES8-style treatment-vs-control
+  evaluation first. Approval was an owner decision, and that evaluation is still the recommended gate before
+  activating it in a real project.
+- It does not explicitly require running tests, and trivial changes need none. Pair it with
+  `verification-before-completion`.
+- Its broad "use on any coding task" trigger and session-wide persistence may be undesirable in some projects.
+  Activate it per project only.
+
+**Also in ES11.2: corrected consumer notes.** The `ecosystem-skills` assignment notes for `grilling` and
+`verification-before-completion` now include the ES8.9 Codex results (section 11): `grilling` loaded 0/6,
+`verification-before-completion` loaded 4/6, and no behavioural improvement over the controls. Assignments, agents and
+verification statuses are unchanged.
