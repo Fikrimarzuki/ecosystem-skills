@@ -7,6 +7,7 @@ import {
   releaseInstallBlocker,
   verifyLibrary,
 } from '../src/index.ts';
+import { outOfFolderReferences } from '../src/library.ts';
 
 /* Invariants of the real registry after the ES16 discovery milestone. */
 const root = resolve(__dirname, '../../..');
@@ -251,6 +252,7 @@ describe('ES16 registry', () => {
       'gsap-react@1.0.0',
       'gsap-timeline@1.0.0',
       'web-quality-accessibility@1.0.0',
+      'web-quality-accessibility@1.0.1',
     ]);
     expect(verifyLibrary(root, c)).toEqual([]);
     for (const r of c.releases) {
@@ -280,12 +282,41 @@ describe('ES16 registry', () => {
     ]);
   });
 
+  it('ES23: web-quality-accessibility@1.0.1 corrects 1.0.0 as a new, separately reviewed, unapproved release', () => {
+    const v = (x: string) =>
+      c.releases.find((r) => r.skill === 'web-quality-accessibility' && r.version === x)!;
+    const [old, next] = [v('1.0.0'), v('1.0.1')];
+    // 1.0.0 is untouched; 1.0.1 has the same provenance, new content and its own review
+    expect(old.review.outcome).toBe('requires-changes');
+    expect(next.upstream).toEqual(old.upstream);
+    expect(next.curatedHash).not.toBe(old.curatedHash);
+    expect(next.review.contentHash).toBe(next.curatedHash);
+    expect(next.review.outcome).toBe('no-blocking-issues');
+    expect(next.review.reviewer).toMatch(/ES23 .*not an approval/);
+    expect(next.approval).toEqual({ status: 'unapproved' });
+    expect(next.references).toEqual([]);
+    expect(next.modifications.map((m) => `${m.kind}:${m.path}`).sort()).toEqual([
+      'added:ATTRIBUTION.md',
+      'added:LICENSE',
+      'changed:SKILL.md',
+    ]);
+    const skill = readFileSync(join(root, next.path, 'SKILL.md'), 'utf8');
+    expect(skill).not.toMatch(/npm install[^\n]* -g\b|npx lighthouse|\.\.\/web-quality-audit/);
+    expect(skill).toMatch(/≥ 18pt \/ ≥ 14pt bold/);
+    expect(skill).toMatch(/npx --no -- lighthouse/);
+    expect(outOfFolderReferences(join(root, next.path))).toEqual([]);
+    expect(readFileSync(join(root, next.path, 'LICENSE'), 'utf8')).toBe(
+      readFileSync(join(root, old.path, 'LICENSE'), 'utf8'),
+    );
+  });
+
   it('ES17: every other skill is a source reference, keeping its record and approval state', () => {
     const states = c.skills.map((s) => contentAvailability(s, c.releases).state);
-    expect(states.filter((x) => x === 'curated-unapproved')).toHaveLength(5);
+    expect(states.filter((x) => x === 'curated-unapproved')).toHaveLength(5); // 5 skills, 6 releases
     expect(states.filter((x) => x === 'curated-approved')).toHaveLength(0);
-    expect(states.filter((x) => x === 'first-party')).toHaveLength(2);
-    expect(c.skills).toHaveLength(245);
+    // ES24 added two first-party integration skills (ecosystem-assets, ecosystem-config)
+    expect(states.filter((x) => x === 'first-party')).toHaveLength(4);
+    expect(c.skills).toHaveLength(247);
     // unknown-licence and root-level candidates are blocked from curation, with the reasons stated
     for (const id of ['remotion-render', 'design-dna', 'oil-ui', 'video-shotcraft'])
       expect(

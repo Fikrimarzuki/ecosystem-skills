@@ -214,6 +214,20 @@ export function Overview({ catalog }: { catalog: Catalog }) {
           </ul>
         )}
       </Section>
+
+      <Section
+        title={t('Private skills')}
+        id="private"
+        hint={t('Supported on the owner’s machine; never part of this site.')}
+      >
+        <Card>
+          <p className="text-sm">
+            {t(
+              'Ecosystem Skills also manages private skills. They live in a separate private location, not in this public registry, so this site contains no trace of them: no names, descriptions, sources or counts. A private skill still needs a security review of its exact content, an owner approval, and an explicit authorization for each project, version and agent before it can be installed.',
+            )}
+          </p>
+        </Card>
+      </Section>
     </>
   );
 }

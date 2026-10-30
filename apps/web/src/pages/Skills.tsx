@@ -6,6 +6,8 @@ import {
   availabilityOf,
   CONTENT_LABEL,
   consumersOf,
+  DISTRIBUTION_LABEL,
+  OWNERSHIP_LABEL,
   contentFilterStates,
   explainEmpty,
   FILTER_KEYS,
@@ -13,6 +15,7 @@ import {
   groupOf,
   groupsInUse,
   hasDiscoveryWarnings,
+  isRestricted,
   ORIGIN_LABEL,
   skillHref,
   skillsPath,
@@ -28,7 +31,7 @@ import {
 } from '../lib.ts';
 import { navigate } from '../router.ts';
 import { Badge, CheckIcon, Empty, PageHeader, SearchIcon } from '../ui.tsx';
-import { SourceBadge, StageBadge } from './shared.tsx';
+import { DistributionBadge, OwnershipBadge, SourceBadge, StageBadge } from './shared.tsx';
 
 const control =
   'h-10 w-full min-w-0 rounded-xl border border-zinc-300 bg-white/90 px-3 text-sm text-zinc-900 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100';
@@ -68,6 +71,8 @@ export function SkillCard({ catalog, skill }: { catalog: Catalog; skill: Skill }
         </h2>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <SourceBadge skill={skill} />
+          <OwnershipBadge skill={skill} />
+          <DistributionBadge skill={skill} />
           <StageBadge skill={skill} />
           <Badge>{t(groupOf(skill))}</Badge>
           {hasDiscoveryWarnings(skill) && <Badge tone="amber">{t('Has warnings')}</Badge>}
@@ -90,11 +95,13 @@ export function SkillCard({ catalog, skill }: { catalog: Catalog; skill: Skill }
             <p className="text-xs text-zinc-500 dark:text-zinc-400">{t('No verified agent run')}</p>
           )}
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            {assigned
-              ? assigned === 1
-                ? t('Assigned to {n} consumer', { n: assigned })
-                : t('Assigned to {n} consumers', { n: assigned })
-              : t('Not assigned')}
+            {isRestricted(skill)
+              ? t('Authorizations are not published')
+              : assigned
+                ? assigned === 1
+                  ? t('Assigned to {n} consumer', { n: assigned })
+                  : t('Assigned to {n} consumers', { n: assigned })
+                : t('Not assigned')}
           </p>
           <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
             {skill.origin === 'external'
@@ -146,10 +153,10 @@ export function SkillsExplorer({ catalog, query }: { catalog: Catalog; query?: Q
           <form
             role="search"
             aria-label={t('Filter skills')}
-            className="mb-4 grid grid-cols-2 gap-2 lg:grid-cols-[minmax(0,2fr)_repeat(5,minmax(0,1fr))]"
+            className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4"
             onSubmit={(e) => e.preventDefault()}
           >
-            <label className="relative col-span-2 lg:col-span-1">
+            <label className="relative col-span-2 sm:col-span-3 lg:col-span-1">
               <span className="sr-only">{t('Search skills')}</span>
               <SearchIcon className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-zinc-500 dark:text-zinc-400" />
               <input
@@ -185,6 +192,21 @@ export function SkillsExplorer({ catalog, query }: { catalog: Catalog; query?: Q
                 <option value="">{t('All sources')}</option>
                 <option value="first-party">{t(ORIGIN_LABEL['first-party']!)}</option>
                 <option value="external">{t(ORIGIN_LABEL.external!)}</option>
+              </select>
+            </label>
+            <label>
+              <span className="sr-only">{t('Owner')}</span>
+              <select
+                value={f.owner ?? ''}
+                onChange={(e) => set('owner')(e.target.value)}
+                className={control}
+              >
+                <option value="">{t('All owners')}</option>
+                {Object.entries(OWNERSHIP_LABEL).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {t(v)}
+                  </option>
+                ))}
               </select>
             </label>
             <label>
@@ -234,6 +256,21 @@ export function SkillsExplorer({ catalog, query }: { catalog: Catalog; query?: Q
                   </option>
                 ))}
                 <option value="none">{AGENT_OPTION_LABEL('none', t)}</option>
+              </select>
+            </label>
+            <label>
+              <span className="sr-only">{t('Distribution')}</span>
+              <select
+                value={f.distribution ?? ''}
+                onChange={(e) => set('distribution')(e.target.value)}
+                className={control}
+              >
+                <option value="">{t('Any distribution')}</option>
+                {Object.entries(DISTRIBUTION_LABEL).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {t(v)}
+                  </option>
+                ))}
               </select>
             </label>
           </form>

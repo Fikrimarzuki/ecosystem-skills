@@ -3,6 +3,7 @@ import { I18nProvider, LanguageSwitch, useT } from './i18n.tsx';
 import { homeHref, pageHref, useCatalog, useRoute, type Catalog, type Route } from './lib.ts';
 import { GATEWAY_URL, REPO_URL, SUPPORT_URL } from './links.ts';
 import { Consumers } from './pages/Consumers.tsx';
+import { Ecosystem } from './pages/Ecosystem.tsx';
 import { Home } from './pages/Home.tsx';
 import { Integrations } from './pages/Integrations.tsx';
 import { Sources } from './pages/Sources.tsx';
@@ -24,6 +25,7 @@ export const NAV = [
   { path: '/', label: 'Home', page: 'home' },
   { path: '/overview', label: 'Overview', page: 'dashboard' },
   { path: '/skills', label: 'Skills', page: 'skills' },
+  { path: '/ecosystem', label: 'FM Ecosystem', short: 'FM', page: 'ecosystem' },
   { path: '/sources', label: 'Sources', page: 'sources' },
   { path: '/consumers', label: 'Consumers', page: 'consumers' },
   { path: '/integrations', label: 'Agents & tools', short: 'Agents', page: 'integrations' },
@@ -45,6 +47,8 @@ export function Page({ route, catalog }: { route: Route; catalog: Catalog }) {
       return <Sources catalog={catalog} />;
     case 'dashboard':
       return <Overview catalog={catalog} />;
+    case 'ecosystem':
+      return <Ecosystem catalog={catalog} />;
     case 'notfound':
       return <NotFound path={route.path} />;
     default:
@@ -89,6 +93,8 @@ function pageTitle(route: Route, catalog: Catalog | undefined, t: ReturnType<typ
       return `${t('Agents & tools')} · ${base}`;
     case 'sources':
       return `${t('Sources')} · ${base}`;
+    case 'ecosystem':
+      return `${t('FM Ecosystem skills')} · ${base}`;
     default:
       return `${t('Page not found')} · ${base}`;
   }
@@ -216,6 +222,11 @@ function Footer() {
             <li>
               <a href={pageHref('skills')} className="underline-offset-2 hover:underline">
                 {t('Skills')}
+              </a>
+            </li>
+            <li>
+              <a href={pageHref('ecosystem')} className="underline-offset-2 hover:underline">
+                {t('FM Ecosystem')}
               </a>
             </li>
             <li>

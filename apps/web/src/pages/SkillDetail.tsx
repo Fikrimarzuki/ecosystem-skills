@@ -1,5 +1,7 @@
 import { useT } from '../i18n.tsx';
 import { ContentAvailability } from './ContentAvailability.tsx';
+import { Distribution } from './Distribution.tsx';
+import { EcosystemIntegration } from './EcosystemIntegration.tsx';
 import { Evaluations } from './Evaluations.tsx';
 import { Upstream } from './Upstream.tsx';
 import {
@@ -36,6 +38,8 @@ import {
 import {
   Behavior,
   Discovery,
+  DistributionBadge,
+  OwnershipBadge,
   Explicit,
   Natural,
   none,
@@ -130,6 +134,8 @@ export function SkillDetail({ catalog, id }: { catalog: Catalog; id: string }) {
         <PageHeader title={skill.name} subtitle={skill.description}>
           <div className="mt-4 flex flex-wrap items-center gap-1.5">
             <SourceBadge skill={skill} />
+            <OwnershipBadge skill={skill} />
+            <DistributionBadge skill={skill} />
             <StageBadge skill={skill} />
             <Badge>{t(groupOf(skill))}</Badge>
             <Badge>{skill.category}</Badge>
@@ -174,7 +180,11 @@ export function SkillDetail({ catalog, id }: { catalog: Catalog; id: string }) {
         </p>
       </Section>
 
+      <Distribution catalog={catalog} skill={skill} />
+
       <ContentAvailability catalog={catalog} skill={skill} />
+
+      <EcosystemIntegration catalog={catalog} skill={skill} />
 
       <Upstream catalog={catalog} skill={skill} />
 

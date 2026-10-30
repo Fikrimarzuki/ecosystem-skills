@@ -194,7 +194,7 @@ not modified.
 
 1. No agent run: scanner and policy tests say nothing about how an agent behaves when following any skill, or resists injection.
 2. Agent reviews are recorded on the owner's behalf in a stated scope; they are not a second human reader.
-3. Archive path safety relies on the system `tar` defaults; a platform whose `tar` allows `..` members would need its own test run.
+3. Archive path safety relies on the system `tar` defaults; a platform whose `tar` allows `..` members would need its own test run. (Resolved in ES23: extraction no longer uses `tar`; see [es23-pilot.md](es23-pilot.md).)
 4. Recommended packages (`gsap`, `@gsap/react`, axe, Lighthouse) and runtime downloads are outside every folder hash.
 5. The legacy store is missing on this machine, so legacy consumers currently have dangling links.
 6. Reference detection covers Markdown links and `src`/`href`; a path mentioned in plain prose (not a link) is not detected.

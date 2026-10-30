@@ -8509,5 +8509,69 @@
       "dependencies": [],
       "audit": "ES16 discovery scan (not a security audit): SKILL.md frontmatter and the folder inventory were read; the repository's heuristic scanner (review.ts rules) ran over all 2 files; flagged locations in SKILL.md and scripts were read by hand where noted. It is not a line-by-line review, nothing was executed, installed or rendered, and compatibility is as documented upstream, not tested."
     }
+  },
+  {
+    "id": "ecosystem-assets",
+    "name": "Ecosystem Assets",
+    "description": "Find and reuse existing ecosystem assets (icons, illustrations, 3D models, animations, other media) before creating new ones, through the documented, read-only Ecosystem Assets catalog: roles, rights, publication state and variants. Never edits or copies assets on its own.",
+    "category": "ecosystem-integration",
+    "tags": ["assets", "catalog", "reuse"],
+    "origin": "first-party",
+    "source": {
+      "type": "first-party",
+      "path": "skills/shared/ecosystem-assets"
+    },
+    "author": "Ecosystem Skills",
+    "requires": ["ecosystem-assets"],
+    "docs": [
+      {
+        "label": "Skill instructions (the catalog contract itself is documented in the private repository)",
+        "href": "skills/shared/ecosystem-assets/SKILL.md"
+      }
+    ],
+    "review": {
+      "status": "unreviewed",
+      "findings": []
+    },
+    "ownership": "fm-ecosystem",
+    "distribution": {
+      "policy": "restricted",
+      "access": "owner-only",
+      "note": "Developed for FM Ecosystem projects. The instructions are public; managed installation is limited to owner-controlled consumers with an explicit private authorization."
+    }
+  },
+  {
+    "id": "ecosystem-config",
+    "name": "Ecosystem Config",
+    "description": "Use the shared ecosystem configuration (projects, repositories, deployments, domains, approved asset references) through its documented consumer contract instead of hardcoding it, and follow each project's own tooling setup. Recommends and explains; never edits the configuration, installs dependencies or rewrites project config.",
+    "category": "ecosystem-integration",
+    "tags": ["configuration", "consumer-sync", "conventions"],
+    "origin": "first-party",
+    "source": {
+      "type": "first-party",
+      "path": "skills/shared/ecosystem-config"
+    },
+    "author": "Ecosystem Skills",
+    "requires": ["ecosystem-config"],
+    "docs": [
+      {
+        "label": "Consumer contract summary",
+        "href": "skills/shared/ecosystem-config/references/consumer-contract.md"
+      },
+      {
+        "label": "Configuration profiles",
+        "href": "skills/shared/ecosystem-config/references/profiles.md"
+      }
+    ],
+    "review": {
+      "status": "unreviewed",
+      "findings": []
+    },
+    "ownership": "fm-ecosystem",
+    "distribution": {
+      "policy": "restricted",
+      "access": "owner-only",
+      "note": "Developed for FM Ecosystem projects. The instructions are public; managed installation is limited to owner-controlled consumers with an explicit private authorization."
+    }
   }
 ]

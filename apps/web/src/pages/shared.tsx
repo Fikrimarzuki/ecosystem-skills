@@ -1,5 +1,15 @@
 import type { AgentStatus, Skill } from '../lib.ts';
-import { agentName, ORIGIN_LABEL, stage, STAGE_LABEL, type Stage } from '../lib.ts';
+import {
+  agentName,
+  distributionLabel,
+  distributionOf,
+  ORIGIN_LABEL,
+  ownershipLabel,
+  ownershipOf,
+  stage,
+  STAGE_LABEL,
+  type Stage,
+} from '../lib.ts';
 import { tEn, useT, type T } from '../i18n.tsx';
 import { Badge, Status, type Tone } from '../ui.tsx';
 
@@ -19,6 +29,20 @@ export function StageBadge({ skill }: { skill: Skill }) {
 export function SourceBadge({ skill }: { skill: Skill }) {
   const t = useT();
   return <Badge tone="neutral">{t(ORIGIN_LABEL[skill.origin]!)}</Badge>;
+}
+
+/** Shown only for FM Ecosystem skills: other ownership is already said by the source badge. */
+export function OwnershipBadge({ skill }: { skill: Skill }) {
+  const t = useT();
+  if (ownershipOf(skill) !== 'fm-ecosystem') return null;
+  return <Badge tone="indigo">{ownershipLabel(skill, t)}</Badge>;
+}
+
+/** Shown only when managed installation is not open. */
+export function DistributionBadge({ skill }: { skill: Skill }) {
+  const t = useT();
+  if (distributionOf(skill).policy === 'open') return null;
+  return <Badge tone="amber">{distributionLabel(skill, t)}</Badge>;
 }
 
 export function StaleBadge() {

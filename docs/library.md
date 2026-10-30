@@ -1,4 +1,4 @@
-# Curated skill library (ES17–ES22)
+# Curated skill library (ES17–ES25)
 
 Ecosystem Skills keeps two kinds of knowledge about a third-party skill, deliberately apart:
 
@@ -33,8 +33,10 @@ Four questions are answered separately and never inferred from one another:
 | Which version does a consumer use? | `consumers.json` → `assignment.release` (desired state)                    |
 | What is installed on this machine? | `external/releases.lock.json` (machine-local, never published)             |
 
-Content availability states: `source-only` (222), `curation-blocked` (16: unknown licence or repository-root skill), `curated-unapproved` (5),
-`curated-approved` (0), `curation-pending` (supported, unused), `first-party` (2). A source-only page explains why and links the original.
+Content availability states: `source-only` (222), `curation-blocked` (16: unknown licence or repository-root skill), `curated-unapproved` (5 skills, 6 releases),
+`curated-approved` (0), `curation-pending` (supported, unused), `first-party` (4: `skill-discovery-smoke-test`, `momee-character-art`, and since
+ES24 `ecosystem-assets` and `ecosystem-config`). Counts as of the ES25 audit remediation (247 skills). A first-party skill that gets a curated
+release is shown by that release (`curated-*`), like any other. A source-only page explains why and links the original.
 
 ## 2. Security review workflow (ES18)
 
@@ -59,7 +61,9 @@ _Blocked_, _Not evaluated_.
 ES22 staged four more releases with `prepare` and recorded agent reviews the same way (details in [es22-audit.md](es22-audit.md)):
 `gsap-react`, `gsap-timeline` and `gsap-performance@1.0.0` are `no-blocking-issues` after reading every file; `web-quality-accessibility@1.0.0`
 is `requires-changes` (a global `npm install -g`, an unpinned `npx`, and an unresolved link to a sibling skill), with a partial scope stating
-which categories were not evaluated. All five releases are **unapproved**.
+which categories were not evaluated. ES23 published `web-quality-accessibility@1.0.1` with those changes (and the WCAG large-text definition)
+as declared modifications, and recorded a full review of the new content: `no-blocking-issues` ([es23-pilot.md](es23-pilot.md)). All six
+releases are **unapproved**.
 
 ## 3. Curated installation (ES18)
 
@@ -141,6 +145,13 @@ or non-increasing version and curation-blocked skills, stages it immutably and a
 the archive (a `LICENSE` or `SKILL.md` that is a symlink is ignored or flagged), accepts only `https://github.com/<owner>/<repo>` sources, and
 records every out-of-folder link as an `unresolved` reference.
 
+**Archive extraction (ES23).** Every download (prepare, update checks, review, the legacy installer) goes through
+`src/archive.ts`: the archive is parsed in memory and checked against an explicit policy before anything is written (no absolute or `..`
+paths, no entries outside the `<repo>-<sha>/` folder, no hard links, devices, FIFOs or unexpected types, no duplicates or case/Unicode
+collisions, no symlinks in the skill folder, limits on entries, files and sizes, and the pax commit id must match). Files are created
+exclusively without following links; the result is re-walked; any failure removes everything. The system `tar` is no longer used. All 240
+non-root registry skills extract to their recorded hashes.
+
 ## 7a. Out-of-folder references (ES22)
 
 Some skills link to files outside their own folder, typically a sibling skill (`../web-quality-audit/SKILL.md`). Copying a folder on its own
@@ -188,12 +199,22 @@ assignment. Suggested order (each step an owner decision): review and approve on
 change), install it for one disposable consumer, verify with an agent run, then migrate a real consumer with a preview first. No consumer
 repository was changed in ES18–ES21.
 
+## 10a. Private releases (ES24)
+
+Private skills and their releases live in a configured private root, never in this repository; the same engine installs, upgrades and
+rolls them back with every safeguard above, plus explicit per-consumer, per-version, per-agent authorization. See
+[private-skills.md](private-skills.md). Restricted public skills (ES25) use the same engine: content from `library/`, store, lock and
+desired state in the private root, and an explicit authorization checked at preview and again at apply; see
+[es25-ownership-distribution.md](es25-ownership-distribution.md).
+
 ## 11. Remaining limitations and planned work
 
 - No curated release is approved, so no real consumer can use the curated path yet (by design).
 - Releases list no `supportedAgents`: compatibility with Claude Code and Codex is structural only (standard `SKILL.md` frontmatter, no tool
   grants, no agent-specific features) until an agent run is authorized.
-- No live agent evaluation has been run (_planned_, after approval and an isolated environment are authorized).
+- No live agent evaluation has been run for a curated release. ES23 built and verified an isolated environment (`packages/catalog/evals/es23`,
+  Docker, model-API-only egress with every attempt logged, no host paths, no personal credentials); runs wait for dedicated evaluation keys
+  and the owner's authorization ([es23-pilot.md](es23-pilot.md)).
 - Reviews are human or agent readings of the stated scope; automated signals cannot establish safety, and binaries fetched at run time by a skill
   (e.g. Impeccable's engine) are outside any folder hash.
 - `check-upstream` compares folder content; it does not follow a skill that moved to a new path (reported as `source-unavailable`).

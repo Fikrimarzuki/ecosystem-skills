@@ -57,7 +57,11 @@
   {
     "id": "fm-studios",
     "name": "FM Studios",
-    "kind": "project"
+    "kind": "project",
+    "ecosystem": {
+      "project": "fmStudios",
+      "sources": ["ecosystem-config"]
+    }
   },
   {
     "id": "gateway",
@@ -72,22 +76,38 @@
           "status": "unverified"
         }
       }
-    ]
+    ],
+    "ecosystem": {
+      "project": "gateway",
+      "sources": ["ecosystem-config", "ecosystem-assets"]
+    }
   },
   {
     "id": "hearthside",
     "name": "Hearthside",
-    "kind": "project"
+    "kind": "project",
+    "ecosystem": {
+      "sources": ["ecosystem-config"],
+      "note": "Ecosystem Config documents app-hearthside as a build-time link consumer, but has no Hearthside project record yet."
+    }
   },
   {
     "id": "momee",
     "name": "Momee",
-    "kind": "project"
+    "kind": "project",
+    "ecosystem": {
+      "sources": ["ecosystem-assets"],
+      "note": "No Ecosystem Config record yet; Momee assets sit under the intake label momee in Ecosystem Assets, with the registry id still pending."
+    }
   },
   {
     "id": "playdeck",
     "name": "Playdeck",
-    "kind": "project"
+    "kind": "project",
+    "ecosystem": {
+      "project": "playdeck",
+      "sources": ["ecosystem-config"]
+    }
   },
   {
     "id": "playnest",
@@ -106,7 +126,11 @@
           "method": "ES9.3: activated with skills:sync (relative symlinks in .claude/skills and .agents/skills); skills:verify 0 errors. Real agent runs from the Playnest root: Claude Code 2.1.310 listed and loaded it via the Skill tool from the project path; Codex 0.164.0 (read-only sandbox) read the linked SKILL.md. Verifies discovery and explicit invocation on macOS only; natural triggering and behavioral improvement are not established. See registry/evidence.json (es93-* records)."
         }
       }
-    ]
+    ],
+    "ecosystem": {
+      "project": "playnest",
+      "sources": ["ecosystem-config"]
+    }
   },
   {
     "id": "ecosystem-assets",

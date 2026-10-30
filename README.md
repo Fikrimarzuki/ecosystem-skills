@@ -12,7 +12,10 @@ A static, read-only website in `apps/web` browses the generated catalog.
 
 ## Setup
 
-Requires Node ≥ 20 and pnpm (`corepack enable` picks up the pinned version).
+Requires Node ≥ 20 and **pnpm 12.11.2**, the version pinned in `package.json` (`packageManager`). Check with `pnpm --version` in this
+folder: pnpm 11 and later switch to the pinned version on their own when they can download it or find it cached; `corepack enable` is
+the other route (not tried on the development machine). `pnpm check` starts by refusing to run under any other version, so its results
+are always a reproduction of this repository's checks; run it as `pnpm check` from the repository root.
 
 ```sh
 pnpm install
@@ -68,6 +71,9 @@ docs/                registry reference, deployment
 - [Curated library](docs/library.md) (hybrid architecture, security review workflow, curated install/upgrade/rollback, evaluations, upstream checks, release preparation, legacy migration)
 - [ES16 discovery report](docs/es16-discovery.md) (29 requested sources, 216 registered candidates, audit findings)
 - [ES22 security audit](docs/es22-audit.md) (trust boundaries, fixes, staged candidates, legacy recovery plan, owner decisions)
+- [ES23 adoption pilot](docs/es23-pilot.md) (archive hardening, accessibility 1.0.1, isolated evaluation environment, approval decision sheet)
+- [Private skills and ecosystem integrations](docs/private-skills.md) (ES24: visibility, private storage, access, Ecosystem Assets and Config, project mappings)
+- [Ownership, distribution and FM Ecosystem](docs/es25-ownership-distribution.md) (ES25: ownership, open/restricted/not-distributable, owner-only installs, the `/ecosystem` page, the Ecosystem Config rename)
 - [Agent compatibility](docs/agent-compatibility.md) (verified discovery conventions)
 - [ES3 Momee migration record](docs/migrations/es3-momee-character-art.md)
 - [Deployment](docs/deployment.md) (GitHub Pages with `BASE_PATH`, Vercel)

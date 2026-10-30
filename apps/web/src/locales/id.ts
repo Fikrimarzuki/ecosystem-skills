@@ -591,4 +591,147 @@ export const ID: Record<string, string> = {
     'Belum terselesaikan: menghambat persetujuan dan instalasi.',
   'Requires {skill}@{version} installed alongside.':
     'Membutuhkan {skill}@{version} terinstal bersamanya.',
+  'Evidence by type': 'Bukti menurut jenis',
+  'Static review': 'Tinjauan statis',
+  'Simulated fixture test': 'Uji fixture simulasi',
+  'General fixtures only': 'Hanya fixture umum',
+  'Install, upgrade, rollback, archive-extraction and adversarial tests run with synthetic releases on every check. No fixture simulates this skill’s own task.':
+    'Uji instalasi, peningkatan, rollback, ekstraksi arsip, dan uji adversarial dijalankan dengan rilis sintetis pada setiap pemeriksaan. Tidak ada fixture yang menyimulasikan tugas skill ini sendiri.',
+  'Live agent evaluation': 'Evaluasi agen langsung',
+  '{n} recorded agent run(s)': '{n} eksekusi agen tercatat',
+  'Not run': 'Tidak dijalankan',
+  'Runs used this exact release content. See Agent status below.':
+    'Eksekusi memakai konten rilis yang persis ini. Lihat Status agen di bawah.',
+  'Runs used the same upstream content in an earlier pilot, not this release folder, and under weaker isolation than ES23 requires. See Agent status below.':
+    'Eksekusi memakai konten upstream yang sama dalam pilot sebelumnya, bukan folder rilis ini, dan dengan isolasi yang lebih lemah daripada yang disyaratkan ES23. Lihat Status agen di bawah.',
+  'Human-reviewed outcome': 'Hasil tinjauan manusia',
+  'Approved by {by} on {date}': 'Disetujui oleh {by} pada {date}',
+  'Pending: no owner decision recorded': 'Tertunda: belum ada keputusan pemilik yang tercatat',
+  'Ecosystem integration': 'Integrasi ekosistem',
+  'The shared source this skill reads, through its documented interface only. A project mapping is a reference: it grants no permission to read, edit or install anything.':
+    'Sumber bersama yang dibaca skill ini, hanya melalui antarmuka yang terdokumentasi. Pemetaan proyek hanyalah rujukan: tidak memberi izin untuk membaca, mengubah, atau memasang apa pun.',
+  'Integration type': 'Jenis integrasi',
+  'Asset catalog': 'Katalog aset',
+  'Configuration registry': 'Registri konfigurasi',
+  'Source repository': 'Repositori sumber',
+  '(private repository; not linked)': '(repositori privat; tidak ditautkan)',
+  'Formerly: {names}': 'Sebelumnya: {names}',
+  'Source documentation': 'Dokumentasi sumber',
+  'Read-only interface': 'Antarmuka hanya-baca',
+  'Permissions required': 'Izin yang dibutuhkan',
+  'Read access to a local checkout of the source. The skill never writes to it, installs dependencies or runs its scripts on its own.':
+    'Akses baca ke salinan lokal sumber. Skill ini tidak pernah menulis ke sana, memasang dependensi, atau menjalankan skripnya sendiri.',
+  'Standard SKILL.md; not yet tested with an agent.': 'SKILL.md standar; belum diuji dengan agen.',
+  'Mapped projects': 'Proyek yang dipetakan',
+  'Private skills': 'Skill privat',
+  'Supported on the owner’s machine; never part of this site.':
+    'Didukung di mesin pemilik; tidak pernah menjadi bagian dari situs ini.',
+  'Ecosystem Skills also manages private skills. They live in a separate private location, not in this public registry, so this site contains no trace of them: no names, descriptions, sources or counts. A private skill still needs a security review of its exact content, an owner approval, and an explicit authorization for each project, version and agent before it can be installed.':
+    'Ecosystem Skills juga mengelola skill privat. Skill tersebut disimpan di lokasi privat terpisah, bukan di registri publik ini, sehingga situs ini tidak memuat jejaknya sama sekali: tanpa nama, deskripsi, sumber, atau jumlah. Skill privat tetap memerlukan tinjauan keamanan atas kontennya yang persis, persetujuan pemilik, dan otorisasi eksplisit untuk setiap proyek, versi, dan agen sebelum dapat dipasang.',
+  'FM Ecosystem skills': 'Skill FM Ecosystem',
+  'FM Ecosystem': 'FM Ecosystem',
+  FM: 'FM',
+  'Owner {value}': 'Pemilik {value}',
+  'Distribution {value}': 'Distribusi {value}',
+  'Release {version} approved': 'Rilis {version} disetujui',
+  'Restricted skills are installed only as an approved, security-reviewed curated release. Approval does not authorize any project.':
+    'Skill terbatas hanya dipasang sebagai rilis kurasi yang disetujui dan telah ditinjau keamanannya. Persetujuan tidak mengotorisasi proyek mana pun.',
+  'No approved release': 'Tidak ada rilis yang disetujui',
+  'Restricted skills are installed only as an approved, security-reviewed curated release, and none is approved yet.':
+    'Skill terbatas hanya dipasang sebagai rilis kurasi yang disetujui dan telah ditinjau keamanannya, dan belum ada yang disetujui.',
+  'Not published': 'Tidak dipublikasikan',
+  'Not distributable': 'Tidak dapat didistribusikan',
+  'Restricted skills are never assigned in the public registry. Authorizations and installs are recorded on the owner’s machine and never appear on this site.':
+    'Skill terbatas tidak pernah ditugaskan di registri publik. Otorisasi dan pemasangan dicatat di mesin pemilik dan tidak pernah tampil di situs ini.',
+  'This skill is published for discovery and documentation only; it is never installed.':
+    'Skill ini dipublikasikan hanya untuk penemuan dan dokumentasi; skill ini tidak pernah dipasang.',
+  'None possible: it is never installed.': 'Tidak mungkin: skill ini tidak pernah dipasang.',
+  'An explicit private authorization for the project, version and agent, for projects the owner controls only.':
+    'Otorisasi privat yang eksplisit untuk proyek, versi, dan agen, khusus untuk proyek yang dikendalikan pemilik.',
+  'An explicit private authorization for the project, version and agent.':
+    'Otorisasi privat yang eksplisit untuk proyek, versi, dan agen.',
+  'None beyond the owner’s approval of the release or revision.':
+    'Tidak ada selain persetujuan pemilik atas rilis atau revisinya.',
+  'None: first-party skills are linked from this repository.':
+    'Tidak ada: skill pihak pertama ditautkan dari repositori ini.',
+  'Ownership and distribution': 'Kepemilikan dan distribusi',
+  'Separate facts: who maintains a skill, who can see it, and how it may be installed. None of them implies the others.':
+    'Fakta yang terpisah: siapa yang memelihara skill, siapa yang dapat melihatnya, dan bagaimana skill boleh dipasang. Tidak satu pun menyiratkan yang lain.',
+  'This skill is developed for FM Ecosystem projects. Managed installation is restricted to authorized consumers.':
+    'Skill ini dikembangkan untuk proyek FM Ecosystem. Pemasangan terkelola dibatasi untuk konsumer yang diotorisasi.',
+  'Its instructions are public: anyone can read or copy them. The restriction applies to installation through the Ecosystem Skills command line, which checks a private authorization. This site has no install action and enforces nothing.':
+    'Instruksinya publik: siapa pun dapat membaca atau menyalinnya. Pembatasan berlaku untuk pemasangan melalui baris perintah Ecosystem Skills, yang memeriksa otorisasi privat. Situs ini tidak memiliki tombol pasang dan tidak menegakkan apa pun.',
+  'Maintained by': 'Dipelihara oleh',
+  'Not declared; derived from the source.': 'Tidak dinyatakan; diturunkan dari sumbernya.',
+  Visibility: 'Visibilitas',
+  Public: 'Publik',
+  Distribution: 'Distribusi',
+  'Required authorization': 'Otorisasi yang dibutuhkan',
+  'Curated releases': 'Rilis kurasi',
+  'No curated release yet.': 'Belum ada rilis kurasi.',
+  'Installation status': 'Status pemasangan',
+  'Not published: restricted installs are recorded on the owner’s machine only.':
+    'Tidak dipublikasikan: pemasangan skill terbatas hanya dicatat di mesin pemilik.',
+  'Never installed.': 'Tidak pernah dipasang.',
+  'Not tracked here: installs are per machine.':
+    'Tidak dilacak di sini: pemasangan bersifat per mesin.',
+  'Not declared; not yet tested with an agent.': 'Tidak dinyatakan; belum diuji dengan agen.',
+  'Ecosystem projects': 'Proyek ekosistem',
+  'Skills developed specifically for FM Ecosystem projects: the owner’s own applications, sites and the shared sources behind them.':
+    'Skill yang dikembangkan khusus untuk proyek FM Ecosystem: aplikasi dan situs milik pemilik sendiri, serta sumber bersama di baliknya.',
+  'What this means': 'Artinya',
+  'Public to read': 'Publik untuk dibaca',
+  'Their instructions are published like every other skill here. Anyone can read or copy them; they contain no secrets, private paths or private asset data.':
+    'Instruksinya dipublikasikan seperti skill lain di sini. Siapa pun dapat membaca atau menyalinnya; isinya tidak memuat rahasia, path privat, atau data aset privat.',
+  'Restricted to install': 'Terbatas untuk dipasang',
+  'Managed installation is limited to projects the owner controls, through the Ecosystem Skills command line, which checks a private authorization for each project, version and agent.':
+    'Pemasangan terkelola terbatas pada proyek yang dikendalikan pemilik, melalui baris perintah Ecosystem Skills, yang memeriksa otorisasi privat untuk setiap proyek, versi, dan agen.',
+  'Not approved by default': 'Tidak disetujui secara bawaan',
+  'Being first-party grants nothing: each release still needs a security review and an owner approval before anything can be installed.':
+    'Status pihak pertama tidak memberikan apa pun: setiap rilis tetap memerlukan tinjauan keamanan dan persetujuan pemilik sebelum apa pun dapat dipasang.',
+  'From the same catalog as the Skills page. Open a skill for its full record.':
+    'Dari katalog yang sama dengan halaman Skill. Buka sebuah skill untuk catatan lengkapnya.',
+  'No FM Ecosystem skills are registered.': 'Belum ada skill FM Ecosystem yang terdaftar.',
+  'Show them in the skill library': 'Tampilkan di pustaka skill',
+  Integrations: 'Integrasi',
+  'Related projects': 'Proyek terkait',
+  Installation: 'Pemasangan',
+  'Owner-only, through the managed command line.':
+    'Khusus pemilik, melalui baris perintah terkelola.',
+  'Authorized projects only, through the managed command line.':
+    'Hanya proyek yang diotorisasi, melalui baris perintah terkelola.',
+  'Open, under the approval and security rules.':
+    'Terbuka, sesuai aturan persetujuan dan keamanan.',
+  'Releases and review': 'Rilis dan tinjauan',
+  '{n} release(s), {approved} approved': '{n} rilis, {approved} disetujui',
+  'No curated release yet; nothing can be installed.':
+    'Belum ada rilis kurasi; belum ada yang dapat dipasang.',
+  'Details for {name}': 'Detail untuk {name}',
+  Owner: 'Pemilik',
+  'All owners': 'Semua pemilik',
+  'Any distribution': 'Distribusi apa saja',
+  'Other first-party': 'Pihak pertama lainnya',
+  Open: 'Terbuka',
+  Restricted: 'Terbatas',
+  'Owner-only': 'Khusus pemilik',
+  'Authorized consumers': 'Konsumer yang diotorisasi',
+  Unknown: 'Tidak diketahui',
+  'Review and approval': 'Tinjauan dan persetujuan',
+  'Not reviewed; no curated release': 'Belum ditinjau; belum ada rilis kurasi',
+  'Authorizations are not published': 'Otorisasi tidak dipublikasikan',
+  Provenance: 'Asal-usul',
+  'First-party: made from content authored in this repository; there is no upstream.':
+    'Pihak pertama: dibuat dari konten yang ditulis di repositori ini; tidak ada upstream.',
+  'Recorded modifications': 'Perubahan yang dicatat',
+  'None recorded.': 'Tidak ada yang dicatat.',
+  'Not available: this skill is published for discovery and documentation only.':
+    'Tidak tersedia: skill ini dipublikasikan hanya untuk penemuan dan dokumentasi.',
+  'This skill is restricted: installing also needs an explicit private authorization for the project, version and agent, which this site never sees or checks.':
+    'Skill ini terbatas: pemasangan juga memerlukan otorisasi privat yang eksplisit untuk proyek, versi, dan agen, yang tidak pernah dilihat atau diperiksa oleh situs ini.',
+  'Security review of curated release {version}. A review is not a decision.':
+    'Tinjauan keamanan untuk rilis kurasi {version}. Tinjauan bukan keputusan.',
+  'Approval withdrawn by the owner': 'Persetujuan ditarik oleh pemilik',
+  'The owner withdrew the approval of this release; it cannot be installed.':
+    'Pemilik menarik persetujuan rilis ini; rilis ini tidak dapat dipasang.',
+  'The release’s approval was withdrawn.': 'Persetujuan rilis ini telah ditarik.',
 };

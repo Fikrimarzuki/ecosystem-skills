@@ -12,7 +12,7 @@ import { readCuratedLock } from '../src/store.ts';
 import { verifyConsumer } from '../src/sync.ts';
 import { applyPrepare, cleanupPlan, networkRemote, preparePlan } from '../src/upstream.ts';
 import { review } from './curatedfix.ts';
-import { makeRepo, SHA, tmp, write } from './fixtures.ts';
+import { makeRepo, SHA, tmp, write, NO_APPLEDOUBLE } from './fixtures.ts';
 
 /*
  * ES22 full lifecycle in a disposable repository: discovery record → curation (prepare) → review → approval → install →
@@ -40,7 +40,7 @@ function archive(sha: string, body: string) {
   write(join(d, top, 'skills/ext/scripts/run.sh'), `#!/bin/sh\ntouch "${join(d, 'EXECUTED')}"\n`);
   write(join(d, top, 'LICENSE'), MIT);
   execFileSync('chmod', ['+x', join(d, top, 'skills/ext/scripts/run.sh')]);
-  execFileSync('tar', ['-czf', join(d, 'a.tgz'), '-C', d, top]);
+  execFileSync('tar', ['-czf', join(d, 'a.tgz'), '-C', d, top], NO_APPLEDOUBLE);
   return { buf: readFileSync(join(d, 'a.tgz')), marker: join(d, 'EXECUTED') };
 }
 

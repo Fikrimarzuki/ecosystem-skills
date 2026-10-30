@@ -23,7 +23,7 @@ import { readCuratedLock } from '../src/store.ts';
 import { scanTree } from '../src/tree.ts';
 import { classifyChanges, networkRemote, preparePlan } from '../src/upstream.ts';
 import { curatedRepo, readText, review, setRelease } from './curatedfix.ts';
-import { SHA, tmp, write } from './fixtures.ts';
+import { SHA, tmp, write, NO_APPLEDOUBLE } from './fixtures.ts';
 import { formatJson } from '../src/fsguard.ts';
 
 /*
@@ -48,7 +48,7 @@ function archive(
     mkdirSync(join(d, top, f, '..'), { recursive: true });
     symlinkSync(target, join(d, top, f));
   }
-  execFileSync('tar', ['-czf', join(d, 'a.tgz'), '-C', d, top]);
+  execFileSync('tar', ['-czf', join(d, 'a.tgz'), '-C', d, top], NO_APPLEDOUBLE);
   return readFileSync(join(d, 'a.tgz'));
 }
 /** A hand-built ustar archive, for member names and links that tar itself refuses to create (`..`, absolute). */
@@ -289,23 +289,14 @@ describe('malicious archives and downloads', () => {
     expect(scanTree(control.dir).files.map((f) => f.path)).toEqual(['SKILL.md']);
     rmSync(control.work, { recursive: true, force: true });
 
-    let got: Awaited<ReturnType<typeof fetchSkill>> | undefined;
-    try {
-      got = await fetchSkill(source, join(parent, 'staging'), fetchImpl);
-    } catch (e) {
-      // refusing the whole archive is also acceptable
-      expect(String(e)).toMatch(/archive has no skills\/ext/);
-    }
+    // ES23: the whole archive is refused by the extraction policy (archive.ts), no longer by tar defaults.
+    await expect(fetchSkill(source, join(parent, 'staging'), fetchImpl)).rejects.toThrow(
+      /archive rejected: unsafe entry path/,
+    );
     expect(existsSync(join(parent, 'escaped.txt'))).toBe(false);
     expect(readdirSync(outside)).toEqual([]);
     expect(existsSync('/tmp/es22-absolute-member.txt')).toBe(false);
-    if (got) {
-      // a symlink member, if extracted at all, is reported as special, so verification refuses the folder
-      const scan = scanTree(got.dir);
-      expect(scan.files.map((f) => f.path)).toEqual(['SKILL.md']);
-      expect(scan.special.every((x) => x.startsWith('sl'))).toBe(true);
-      rmSync(got.work, { recursive: true, force: true });
-    }
+    expect(readdirSync(join(parent, 'staging'))).toEqual([]);
   });
 
   it('an archive whose top folder does not match the requested commit is refused', async () => {
@@ -410,8 +401,19 @@ describe('filesystem attacks on the library and the store', () => {
     });
     expect(p.blockers).toEqual([]);
     const outside = tmp('es22-out-');
+    // swapped in after the preview: the pre-apply decision (ES25) refuses it
     symlinkSync(outside, join(root, 'external/releases'));
     expect(() => applyCurated(p)).toThrow(
+      /refused: [\s\S]*nothing was changed[\s\S]*not a plain directory tree/,
+    );
+    expect(readdirSync(outside)).toEqual([]);
+    // swapped in after that decision too (a race): the write-time check still refuses it
+    rmSync(join(root, 'external/releases'));
+    expect(() =>
+      applyCurated(p, {
+        afterRecheck: () => symlinkSync(outside, join(root, 'external/releases')),
+      }),
+    ).toThrow(
       /unsafe: external\/releases is a symlink; refusing to write[\s\S]*nothing had been changed/,
     );
     expect(readdirSync(outside)).toEqual([]);
@@ -439,7 +441,14 @@ describe('transaction failures from real filesystem errors (not simulated)', () 
     const before = snapshot(root, project);
     chmodSync(join(root, 'library/ext/1.0.0/LICENSE'), 0o000);
     try {
-      expect(() => applyCurated(p)).toThrow(/install failed/);
+      // unreadable before apply: the pre-apply decision (ES25) refuses; unreadable only after it: the copy fails
+      expect(() => applyCurated(p)).toThrow(/refused: [\s\S]*nothing was changed/);
+      chmodSync(join(root, 'library/ext/1.0.0/LICENSE'), 0o644);
+      expect(() =>
+        applyCurated(p, {
+          afterRecheck: () => chmodSync(join(root, 'library/ext/1.0.0/LICENSE'), 0o000),
+        }),
+      ).toThrow(/install failed/);
     } finally {
       chmodSync(join(root, 'library/ext/1.0.0/LICENSE'), 0o644);
     }
@@ -497,11 +506,17 @@ describe('transaction failures from real filesystem errors (not simulated)', () 
       version: '1.0.0',
       project,
     });
-    mkdirSync(join(root, 'external/releases.lock.json'), { recursive: true });
+    const lock = join(root, 'external/releases.lock.json');
+    mkdirSync(lock, { recursive: true });
     const before = snapshot(root, project);
-    expect(() => applyCurated(p)).toThrow(
-      /releases.lock.json is not a regular file[\s\S]*nothing had been changed/,
-    );
+    // before apply: refused by the pre-apply decision (ES25), with the same reason
+    expect(() => applyCurated(p)).toThrow(/releases.lock.json is not a regular file/);
+    expect(snapshot(root, project)).toEqual(before);
+    // only after that decision (a race): refused by the engine before anything changes
+    rmSync(lock, { recursive: true });
+    expect(() =>
+      applyCurated(p, { afterRecheck: () => mkdirSync(lock, { recursive: true }) }),
+    ).toThrow(/releases.lock.json is not a regular file[\s\S]*nothing had been changed/);
     expect(snapshot(root, project)).toEqual(before);
   });
 

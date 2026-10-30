@@ -9,6 +9,7 @@ import {
   REVIEW_OUTCOME_LABEL,
   CONTENT_LABEL,
   upstreamLinks,
+  distributionOf,
   type Catalog,
   type Release,
   type Skill,
@@ -54,6 +55,86 @@ function SourceLinks({ skill, pin }: { skill: Skill; pin?: { revision: string; p
   );
 }
 
+/**
+ * What kind of evidence exists for this release (ES23), kept apart: a static review reads files, a fixture test runs
+ * code on synthetic data, a live evaluation runs an agent, and the owner's decision is the human-reviewed outcome.
+ * No score is shown: nothing has been measured that would support one.
+ */
+function EvidenceByType({ catalog, release }: { catalog: Catalog; release: Release }) {
+  const t = useT();
+  const runs = catalog.evidence.filter(
+    (e) =>
+      e.skill === release.skill &&
+      (e.contentHash === release.curatedHash || e.contentHash === release.upstream?.contentHash),
+  );
+  const exact = runs.some((e) => e.contentHash === release.curatedHash);
+  const pilot = catalog.evaluations.find(
+    (e) => e.skill === release.skill && e.contentHash === release.curatedHash,
+  );
+  const rows: { label: string; value: string; detail?: string }[] = [
+    {
+      label: t('Static review'),
+      value: t(REVIEW_OUTCOME_LABEL[release.review.outcome]),
+      detail: release.review.reviewer,
+    },
+    {
+      label: t('Simulated fixture test'),
+      value: t('General fixtures only'),
+      detail: t(
+        'Install, upgrade, rollback, archive-extraction and adversarial tests run with synthetic releases on every check. No fixture simulates this skill’s own task.',
+      ),
+    },
+    {
+      label: t('Live agent evaluation'),
+      value: runs.length ? t('{n} recorded agent run(s)', { n: runs.length }) : t('Not run'),
+      detail: runs.length
+        ? exact
+          ? t('Runs used this exact release content. See Agent status below.')
+          : t(
+              'Runs used the same upstream content in an earlier pilot, not this release folder, and under weaker isolation than ES23 requires. See Agent status below.',
+            )
+        : pilot?.blockers[0],
+    },
+    {
+      label: t('Human-reviewed outcome'),
+      value:
+        release.approval.status === 'approved'
+          ? t('Approved by {by} on {date}', {
+              by: release.approval.approvedBy ?? '',
+              date: release.approval.approvedAt ?? '',
+            })
+          : release.approval.status === 'withdrawn'
+            ? t('Approval withdrawn by the owner')
+            : t('Pending: no owner decision recorded'),
+      detail:
+        release.approval.status === 'withdrawn'
+          ? t('The owner withdrew the approval of this release; it cannot be installed.')
+          : undefined,
+    },
+  ];
+  return (
+    <div className="mt-4">
+      <h3 className="text-sm font-medium">{t('Evidence by type')}</h3>
+      <dl className="mt-2 grid gap-3 sm:grid-cols-2">
+        {rows.map((r) => (
+          <div
+            key={r.label}
+            className="min-w-0 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800"
+          >
+            <dt className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{r.label}</dt>
+            <dd className="mt-1 text-sm [overflow-wrap:anywhere]">
+              <span className="font-medium">{r.value}</span>
+              {r.detail && (
+                <span className="mt-0.5 block text-zinc-600 dark:text-zinc-400">{r.detail}</span>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
 function ReleaseDetail({
   catalog,
   skill,
@@ -65,6 +146,7 @@ function ReleaseDetail({
 }) {
   const t = useT();
   const problems = releaseInstallProblemsOf(skill, release);
+  const distribution = distributionOf(skill).policy;
   const moved =
     skill.source.type === 'external' &&
     release.upstream &&
@@ -104,9 +186,13 @@ function ReleaseDetail({
         <Field label={t('Curated content hash')}>
           <code className="break-all">{release.curatedHash}</code>
         </Field>
-        {release.upstream && (
+        {release.upstream ? (
           <Field label={t('Upstream content hash')}>
             <code className="break-all">{release.upstream.contentHash}</code>
+          </Field>
+        ) : (
+          <Field label={t('Provenance')}>
+            {t('First-party: made from content authored in this repository; there is no upstream.')}
           </Field>
         )}
         <Field label={t('Attribution')}>{release.attribution}</Field>
@@ -121,9 +207,14 @@ function ReleaseDetail({
           )}
         </p>
       )}
+      <EvidenceByType catalog={catalog} release={release} />
       <div className="mt-4">
-        <h3 className="text-sm font-medium">{t('Modifications from upstream')}</h3>
-        {release.modifications.length === 0 ? (
+        <h3 className="text-sm font-medium">
+          {release.upstream ? t('Modifications from upstream') : t('Recorded modifications')}
+        </h3>
+        {release.modifications.length === 0 && !release.upstream ? (
+          <p className="mt-1 text-sm">{t('None recorded.')}</p>
+        ) : release.modifications.length === 0 ? (
           <p className="mt-1 text-sm">{t('None: the curated folder is identical to upstream.')}</p>
         ) : (
           <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
@@ -195,11 +286,17 @@ function ReleaseDetail({
       )}
       <div className="mt-4 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
         <h3 className="text-sm font-medium">{t('Installation from the curated library')}</h3>
-        {problems.length === 0 ? (
+        {distribution === 'not-distributable' ? (
+          <p className="mt-1 text-sm">
+            {t('Not available: this skill is published for discovery and documentation only.')}
+          </p>
+        ) : problems.length === 0 ? (
           <p className="mt-1 text-sm">
             {t(
               'Eligible: the release is approved and its review recorded no blocking issues. Installing is still an explicit, separate step, and nothing is installed automatically.',
             )}
+            {distribution === 'restricted' &&
+              ` ${t('This skill is restricted: installing also needs an explicit private authorization for the project, version and agent, which this site never sees or checks.')}`}
           </p>
         ) : (
           <>
@@ -248,7 +345,7 @@ export function ContentAvailability({ catalog, skill }: { catalog: Catalog; skil
         <p className="font-medium">
           {t('Content availability')}: {t(CONTENT_LABEL[a.state])}
         </p>
-        {a.state === 'first-party' && skill.source.type === 'first-party' && (
+        {skill.source.type === 'first-party' && (
           <p className="mt-2 text-sm">
             {t('This skill is authored in this repository, at {path}.', {
               path: skill.source.path,

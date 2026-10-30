@@ -11,6 +11,7 @@ import {
 import { PROJECT_SKILL_DIRS } from './links.ts';
 import type { Agent, Catalog, Consumer, Release, Skill } from './schema.ts';
 import { releaseInstallBlocker } from './availability.ts';
+import { decide } from './policy.ts';
 import { buildCatalog } from './validate.ts';
 
 const NAMES = [
@@ -94,6 +95,9 @@ export function findSkill(reg: LoadedRegistry, id: string): Skill {
  */
 export function assignmentPolicy(skill: Skill, release?: Release): string | undefined {
   if (skill.review.status === 'rejected') return `${skill.id} is rejected`;
+  // ES25: restricted and not-distributable skills never take this path (one decision for every path; see policy.ts)
+  const d = decide({ skill, path: 'assignment' });
+  if (d.denials.length) return d.denials.map((x) => x.message).join('; ');
   // A curated release has its own gate: approved release, complete security review, no blockers.
   if (release) return releaseInstallBlocker(skill, release);
   if (skill.origin === 'external' && skill.review.status !== 'approved')

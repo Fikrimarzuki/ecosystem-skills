@@ -1065,5 +1065,235 @@
     "restrictions": [
       "Prepared from upstream afa8da942115. It does not inherit the review or approval of any earlier version or of the discovery record."
     ]
+  },
+  {
+    "skill": "web-quality-accessibility",
+    "version": "1.0.1",
+    "createdAt": "2026-10-30",
+    "path": "library/web-quality-accessibility/1.0.1",
+    "upstream": {
+      "url": "https://github.com/addyosmani/web-quality-skills",
+      "path": "skills/accessibility",
+      "revision": "afa8da942115f2961fdbfa80807ea0b232ff6c00",
+      "contentHash": "sha256-3903ee59a525e80b469d846660c76d5a95628779b3c344a342e2c1799f100588"
+    },
+    "curatedHash": "sha256-5d7134bd8e0af9a1c6a3abbbf0ce76ff7a4b315ae638cb85ac043655ba0ff478",
+    "license": "MIT",
+    "attribution": "Addy Osmani (addyosmani/web-quality-skills), MIT.",
+    "modifications": [
+      {
+        "kind": "added",
+        "path": "LICENSE",
+        "summary": "Added the upstream licence text, copied unchanged from the repository root at this revision.",
+        "why": "The licence notice must accompany copies; the upstream skill folder does not contain it.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      },
+      {
+        "kind": "added",
+        "path": "ATTRIBUTION.md",
+        "summary": "Added an attribution file naming the author, upstream repository, folder, commit, folder hash and licence.",
+        "why": "Keeps provenance next to the content.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      },
+      {
+        "kind": "changed",
+        "path": "SKILL.md",
+        "summary": "Four corrections: (1) the testing commands no longer install @axe-core/cli globally (npm install -g removed); (2) Lighthouse and axe run only from the project's own installed copies with `npx --no --`, which refuses to download, instead of an unpinned `npx lighthouse`; adding them needs the user's consent and exact versions (lighthouse@13.5.0, @axe-core/cli@4.14.0 given as the example); (3) the link to ../web-quality-audit/SKILL.md, a sibling skill not in this release, is replaced by plain text naming it; (4) the large-text threshold in the contrast table is corrected from 18px / 14px bold to 18pt / 14pt bold, with a sentence giving the CSS-pixel equivalents (about 24px and 18.66px).",
+        "why": "Changes requested by the ES22 review of 1.0.0: no global installs or unpinned package downloads, no broken out-of-folder link when installed alone, and the WCAG large-text definition (WCAG 2.2, 'large scale' text: at least 18 point, or 14 point bold).",
+        "affectsBehavior": true,
+        "affectsDependencies": true,
+        "affectsPermissions": false
+      }
+    ],
+    "references": [],
+    "review": {
+      "outcome": "no-blocking-issues",
+      "reviewedAt": "2026-10-30",
+      "reviewer": "Claude (ES23 agent review, recorded for the owner; not an approval)",
+      "scope": "All 5 files of library/web-quality-accessibility/1.0.1, read in full: SKILL.md (467 lines), references/WCAG.md (191), references/A11Y-PATTERNS.md (233), LICENSE (MIT text) and ATTRIBUTION.md, plus the diff against 1.0.0. Checked against all 13 categories for the instructions and the supporting files. Not covered: agent behaviour when following the skill (no agent run), full WCAG accuracy of every statement, and the npm packages it mentions.",
+      "contentHash": "sha256-5d7134bd8e0af9a1c6a3abbbf0ce76ff7a4b315ae638cb85ac043655ba0ff478",
+      "checks": [
+        {
+          "category": "prompt-injection",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No hidden or concealed text. 28 HTML comments in SKILL.md, all visible example comments inside closed code fences (checked by script and by reading). Non-ASCII limited to typographic punctuation, arrows and the check/cross markers; no invisible or bidi characters."
+        },
+        {
+          "category": "prompt-injection",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "references/WCAG.md (6 HTML comments) and references/A11Y-PATTERNS.md (16) were read in full; every comment is a visible example inside a closed code fence. LICENSE is the standard MIT text; ATTRIBUTION.md is provenance text."
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No wording that overrides the user, system or other skills; the workflow tells the agent to use tools \"when that capability is available\"."
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "references/WCAG.md, references/A11Y-PATTERNS.md, LICENSE and ATTRIBUTION.md read in full: reference tables and HTML/CSS/JS examples only, no commands, scripts, hooks or permission grants."
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No request for secrets. SKILL.md:370 (\"Allow paste in password fields\") is an HTML example about password inputs, a false positive of the secrets rule."
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "No secrets requested; the password examples in A11Y-PATTERNS.md are form-label markup."
+        },
+        {
+          "category": "network-requests",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Lighthouse and axe audit the page under test (example URL https://example.com). `npx --no` does not download a missing package, though npm may still query registry metadata to resolve the name. Other URLs are W3C/Deque/vendor documentation links; the skill does not tell the agent to fetch instructions from them."
+        },
+        {
+          "category": "network-requests",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "Links in WCAG.md to w3.org, deque.com, webaim.org, nvaccess.org and tpgi.com are references for a reader; no fetch instructions."
+        },
+        {
+          "category": "shell-execution",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Only the two audit commands at SKILL.md:417 and :420, run from the project's installed copies, plus one consent-gated example install (see install-scripts). No pipes to a shell, no eval."
+        },
+        {
+          "category": "shell-execution",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "references/WCAG.md, references/A11Y-PATTERNS.md, LICENSE and ATTRIBUTION.md read in full: reference tables and HTML/CSS/JS examples only, no commands, scripts, hooks or permission grants."
+        },
+        {
+          "category": "hooks",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No hooks, frontmatter hook declarations or load-time shell injection."
+        },
+        {
+          "category": "hooks",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "references/WCAG.md, references/A11Y-PATTERNS.md, LICENSE and ATTRIBUTION.md read in full: reference tables and HTML/CSS/JS examples only, no commands, scripts, hooks or permission grants."
+        },
+        {
+          "category": "install-scripts",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "The global install and the unpinned npx download of 1.0.0 are removed. SKILL.md:413 says to ask the user before adding the tools to the project, as exact-version dev dependencies (lighthouse@13.5.0, @axe-core/cli@4.14.0). That is a visible, consent-gated, project-local change; recorded as a restriction."
+        },
+        {
+          "category": "install-scripts",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "references/WCAG.md, references/A11Y-PATTERNS.md, LICENSE and ATTRIBUTION.md read in full: reference tables and HTML/CSS/JS examples only, no commands, scripts, hooks or permission grants."
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No binaries in the folder. Lighthouse drives a locally installed Chrome; nothing tells the agent to download a binary."
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "references/WCAG.md, references/A11Y-PATTERNS.md, LICENSE and ATTRIBUTION.md read in full: reference tables and HTML/CSS/JS examples only, no commands, scripts, hooks or permission grants."
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Only the edits an agent would make to the user's code; no writes outside the project."
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "references/WCAG.md, references/A11Y-PATTERNS.md, LICENSE and ATTRIBUTION.md read in full: reference tables and HTML/CSS/JS examples only, no commands, scripts, hooks or permission grants."
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "None: SKILL.md:413 now says never to install the tools globally."
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "references/WCAG.md, references/A11Y-PATTERNS.md, LICENSE and ATTRIBUTION.md read in full: reference tables and HTML/CSS/JS examples only, no commands, scripts, hooks or permission grants."
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Works standalone. The sibling link is now plain text (SKILL.md:465); out-of-folder reference detection finds nothing. Relative links go to references/*.md inside the release. Optional tools: Chrome DevTools MCP, Lighthouse, axe."
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "A11Y-PATTERNS.md:3 links ../SKILL.md, which resolves inside the release folder."
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Documentation links only (WCAG Quick Reference, ARIA APG, Deque rules); none is presented as instructions to fetch and follow."
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "references/WCAG.md, references/A11Y-PATTERNS.md, LICENSE and ATTRIBUTION.md read in full: reference tables and HTML/CSS/JS examples only, no commands, scripts, hooks or permission grants."
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Frontmatter has name, description, license and metadata only: no allowed-tools or permission grants. Note: name is \"accessibility\", which differs from the install folder name web-quality-accessibility (compatibility, not security)."
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "references/WCAG.md, references/A11Y-PATTERNS.md, LICENSE and ATTRIBUTION.md read in full: reference tables and HTML/CSS/JS examples only, no commands, scripts, hooks or permission grants."
+        }
+      ],
+      "evidence": [
+        {
+          "method": "static-scan",
+          "summary": "pnpm skills:library review web-quality-accessibility --version 1.0.1: content hash matches the release record; 54 automated signals: 50 HTML comments (all inside closed code fences, checked by script), SKILL.md:370 (secrets-rule false positive on \"Allow paste in password fields\") and SKILL.md:413 (the consent-gated, exact-version, project-local install example). No scripts, binaries, symlinks, tool grants or out-of-folder links."
+        },
+        {
+          "method": "manual-read",
+          "summary": "Every file read in full; the diff against 1.0.0 is limited to the declared SKILL.md changes and the ATTRIBUTION.md sentence. Non-ASCII characters enumerated: U+00D7, U+2014, U+2190-2193, U+2265, U+2318, U+2705, U+274C only."
+        }
+      ],
+      "notes": "Accuracy observations that are not security issues and were not changed: the contrast examples say #999 on #fff is 2.5:1 (about 2.8:1) and #333 on #fff is 7:1 (about 12.6:1); the error-handling example in A11Y-PATTERNS.md uses an undefined `errors` variable and an absent #error-summary element, and moves focus twice. A clean review in the stated scope is not an approval and says nothing about behaviour. The release stays unapproved."
+    },
+    "approval": {
+      "status": "unapproved"
+    },
+    "supportedAgents": [],
+    "dependencies": [],
+    "restrictions": [
+      "Prepared from upstream afa8da942115 with the declared SKILL.md changes. It does not inherit the review or approval of 1.0.0, of any other version, or of the discovery record.",
+      "If the project lacks Lighthouse or axe, following the skill means asking the user to add lighthouse@13.5.0 and @axe-core/cli@4.14.0 as exact-version dev dependencies; the user decides."
+    ]
   }
 ]

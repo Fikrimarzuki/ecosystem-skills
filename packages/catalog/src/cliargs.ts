@@ -170,6 +170,44 @@ export const SPECS: Record<string, Spec> = {
     notes: ['Read-only. "Installed" says nothing about assignment, activation or agent behavior.'],
     examples: [],
   },
+  visibility: {
+    script: 'pnpm skills:visibility',
+    maxArgs: 1,
+    summary:
+      'Show the skills available in this local context: visibility, ownership, distribution, review, releases and which consumers may use each; or explain whether one consumer may install one skill. Read-only.',
+    usage: [
+      'pnpm skills:visibility',
+      'pnpm skills:visibility <skill-id>',
+      'pnpm skills:visibility <skill-id> --consumer <consumer-id> [--version <x.y.z>] [--agents a,b]',
+    ],
+    flags: [],
+    valueFlags: ['--consumer', '--version', '--agents'],
+    notes: [
+      '--consumer explains the managed-install decision for that consumer: distribution, authorization, consumer ownership and the release gate, with the exact reason for every refusal. It is the same decision the installer makes; there is no flag that overrides it.',
+      'Private skills appear only when a private root is configured (ECOSYSTEM_SKILLS_PRIVATE_ROOT, or "root" in the git-ignored private.local.json). Its path is never printed.',
+      'With a private root, also checks the private records, access records and private library folders.',
+      'Visibility, approval and consumer authorization are separate: a private skill is not approved, and an approved one is not available to every consumer.',
+    ],
+    examples: [
+      'pnpm skills:visibility ecosystem-config',
+      'pnpm skills:visibility ecosystem-config --consumer gateway',
+    ],
+  },
+  map: {
+    script: 'pnpm skills:map',
+    maxArgs: 1,
+    summary:
+      'Show each project with its skills, its Ecosystem Config project and its asset and config sources. Read-only.',
+    usage: ['pnpm skills:map [<consumer-id>]', 'pnpm skills:map [<consumer-id>] --validate'],
+    flags: ['--validate'],
+    valueFlags: [],
+    notes: [
+      CONSUMER_NOTE,
+      '--validate looks for local checkouts of the sources (next to this repository under their current or former name, or in the git-ignored sources.local.json) and checks their documented files and project ids. Nothing is cloned or changed.',
+      'A mapping is a reference only: it grants no permission to read, edit or install anything.',
+    ],
+    examples: ['pnpm skills:map gateway --validate'],
+  },
   list: {
     script: 'pnpm skills:list',
     maxArgs: 0,

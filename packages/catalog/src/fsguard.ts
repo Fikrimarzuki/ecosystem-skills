@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import {
   closeSync,
   existsSync,
+  fchmodSync,
   fsyncSync,
   lstatSync,
   openSync,
@@ -134,6 +135,11 @@ export interface AtomicWriteOptions {
   expectedCurrent?: string;
   /** Test hook, called after the temp file is durable and before the rename. */
   beforeRename?: (tmpPath: string) => void;
+  /**
+   * Exact permission bits of the written file (set on the temp file before it is renamed into place, so the file is
+   * never visible with wider permissions). Absent: 0644 under the process umask, as before.
+   */
+  mode?: number;
 }
 
 /** Write via a fsynced temp file in the same directory and an atomic rename; never leaves a partial file. */
@@ -148,7 +154,8 @@ export function writeFileAtomic(
   );
   let fd: number | undefined;
   try {
-    fd = openSync(tmp, 'wx', 0o644);
+    fd = openSync(tmp, 'wx', opts.mode ?? 0o644);
+    if (opts.mode !== undefined) fchmodSync(fd, opts.mode); // independent of the umask
     writeSync(fd, content);
     fsyncSync(fd);
     closeSync(fd);

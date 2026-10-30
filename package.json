@@ -25,12 +25,14 @@
     "skills:unassign": "pnpm --filter @ecosystem-skills/catalog ext unassign",
     "skills:sync": "pnpm --filter @ecosystem-skills/catalog ext sync",
     "skills:verify": "pnpm --filter @ecosystem-skills/catalog ext verify",
+    "skills:visibility": "pnpm --filter @ecosystem-skills/catalog ext visibility",
+    "skills:map": "pnpm --filter @ecosystem-skills/catalog ext map",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "pnpm -r test",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm catalog:validate && pnpm test && pnpm build"
+    "check": "node scripts/check-pnpm.mjs && pnpm typecheck && pnpm lint && pnpm format:check && pnpm catalog:validate && pnpm test && pnpm build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

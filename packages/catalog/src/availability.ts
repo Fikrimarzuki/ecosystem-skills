@@ -85,11 +85,12 @@ export function sourceOnlyReasons(skill: Skill): Reason[] {
 
 export function contentAvailability(skill: Skill, allReleases: Release[]): Availability {
   const releases = releasesOf(allReleases, skill.id);
-  if (skill.source.type === 'first-party') return { state: 'first-party', reasons: [], releases };
+  // a curated release decides first, for first-party skills too (restricted ones are installed only as releases)
   const approved = releases.find((r) => r.approval.status === 'approved');
   if (approved) return { state: 'curated-approved', reasons: [], releases, release: approved };
   if (releases.length)
     return { state: 'curated-unapproved', reasons: [], releases, release: releases[0] };
+  if (skill.source.type === 'first-party') return { state: 'first-party', reasons: [], releases };
   const reasons = sourceOnlyReasons(skill);
   if (curationBlockers(skill).length) return { state: 'curation-blocked', reasons, releases };
   if (skill.curation?.state === 'pending') return { state: 'curation-pending', reasons, releases };

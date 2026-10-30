@@ -4,7 +4,49 @@ export const AGENTS = ['claude-code', 'codex', 'cursor'] as const;
 /** unreviewed = discovered only; reviewed = findings recorded, no decision; approved/rejected = owner decision. */
 export const REVIEW_STATUSES = ['unreviewed', 'reviewed', 'approved', 'rejected'] as const;
 export const VERIFICATION_STATUSES = ['unverified', 'verified', 'failed'] as const;
-export const INTEGRATION_TYPES = ['mcp-server', 'cli-tool', 'dependency'] as const;
+export const INTEGRATION_TYPES = [
+  'mcp-server',
+  'cli-tool',
+  'dependency',
+  'asset-catalog',
+  'config-registry',
+] as const;
+/**
+ * Where a record may appear (ES24). public: the public registry and website. private: only in the configured private
+ * root (see private.ts), never in this repository or its build output. local: private metadata that stays on this
+ * machine (the private root's local/ folder). Absent means public in the public registry and private in the private
+ * root, so an unlabelled private input is never treated as public. Visibility is independent of discovery, review,
+ * approval, content availability and installation.
+ */
+export const VISIBILITIES = ['public', 'private', 'local'] as const;
+export type Visibility = (typeof VISIBILITIES)[number];
+/**
+ * Who maintains a skill (ES25). fm-ecosystem: built and maintained for FM Ecosystem projects by their owner;
+ * first-party: other skills maintained here; third-party: maintained upstream by someone else. Explicit metadata only,
+ * never inferred from an id or a name. Ownership describes; it grants no permission. Absent = derived from `origin`.
+ */
+export const OWNERSHIPS = ['fm-ecosystem', 'first-party', 'third-party'] as const;
+export type Ownership = (typeof OWNERSHIPS)[number];
+/** Consumer ownership: fm-ecosystem marks a project the owner controls (needed by owner-only skills). */
+export const CONSUMER_OWNERSHIPS = ['fm-ecosystem', 'third-party'] as const;
+/**
+ * Managed distribution (ES25), independent of visibility. open: installable under the approval and security rules;
+ * restricted: additionally needs an explicit private authorization; not-distributable: discovery and documentation
+ * only. Absent = open, so existing skills keep their eligibility.
+ */
+export const DISTRIBUTIONS = ['open', 'restricted', 'not-distributable'] as const;
+/**
+ * Who a restricted skill may be authorized for. authorized-consumers: any project consumer named by an access record
+ * (ES24 behaviour); owner-only: additionally, only consumers declared owner-controlled.
+ */
+export const ACCESS_POLICIES = ['owner-only', 'authorized-consumers'] as const;
+const distributionSchema = z.strictObject({
+  policy: z.enum(DISTRIBUTIONS),
+  /** Required for restricted; not allowed otherwise. */
+  access: z.enum(ACCESS_POLICIES).optional(),
+  note: z.string().trim().min(1).optional(),
+});
+export type Distribution = z.infer<typeof distributionSchema>;
 
 const id = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'must be kebab-case (a-z, 0-9, "-")');
 const text = z.string().trim().min(1);
@@ -136,6 +178,12 @@ export const skillSchema = z.strictObject({
   discovery: discoverySchema.optional(),
   /** Curation intent while the skill has no curated release (ES17). A release makes this field invalid. */
   curation: curationSchema.optional(),
+  /** ES24: absent = public (public registry) or private (private root). */
+  visibility: z.enum(VISIBILITIES).optional(),
+  /** ES25: absent = derived from origin (third-party for external, first-party otherwise). */
+  ownership: z.enum(OWNERSHIPS).optional(),
+  /** ES25: absent = open (public registry) or restricted (private root). */
+  distribution: distributionSchema.optional(),
 });
 
 const verificationSchema = z.strictObject({
@@ -166,6 +214,23 @@ const assignmentSchema = z.strictObject({
   verification: verificationSchema.default({ status: 'unverified' }),
 });
 
+/** Project id in Ecosystem Config (`config/projects/<id>.json`), e.g. `fmStudios`. */
+const configProjectId = z
+  .string()
+  .regex(/^[a-z][A-Za-z0-9]*$/, 'must be an Ecosystem Config project id');
+
+/**
+ * How a project relates to the ecosystem's shared sources (ES24). References only: a mapping grants no permission
+ * to read, edit or install anything, and it is never inferred. `project` is the stable identity shared by Ecosystem
+ * Config and Ecosystem Assets; `sources` are integration ids (type asset-catalog or config-registry), never paths.
+ */
+const ecosystemMappingSchema = z.strictObject({
+  /** The project's record in Ecosystem Config, when one exists. Absent = no record (say why in `note`). */
+  project: configProjectId.optional(),
+  sources: z.array(id).default([]),
+  note: text.optional(),
+});
+
 export const consumerSchema = z.strictObject({
   id,
   name: text,
@@ -175,6 +240,33 @@ export const consumerSchema = z.strictObject({
   agents: z.array(agentSchema).default([]),
   /** Desired skills. An assignment is intent, not evidence of installation. */
   assignments: z.array(assignmentSchema).default([]),
+  /** Ecosystem source references (ES24). */
+  ecosystem: ecosystemMappingSchema.optional(),
+  /** ES25: fm-ecosystem = a project the owner controls. Absent = not declared (never owner-controlled). */
+  ownership: z.enum(CONSUMER_OWNERSHIPS).optional(),
+});
+
+/**
+ * The repository behind an integration, by stable integration id rather than by name (ES24). `name` is the current
+ * repository name; `formerNames` keeps old names resolvable after a rename, so renaming a repository is a one-record
+ * change here and nothing else refers to the name.
+ */
+const repositoryIdentitySchema = z.strictObject({
+  name: z.string().regex(/^[A-Za-z0-9_.-]+$/, 'must be a repository name'),
+  formerNames: z.array(z.string().regex(/^[A-Za-z0-9_.-]+$/)).default([]),
+  /** Public repositories may be linked; private ones are named only. */
+  visibility: z.enum(['public', 'private']),
+  url: url.optional(),
+});
+
+/** A documented, read-only interface of an integration: what an agent may read, and where it is documented. */
+const contractSchema = z.strictObject({
+  /** Repository-relative documentation of the interface. */
+  docs: z.array(relPath).min(1),
+  /** Repository-relative files the interface exposes, read-only. */
+  reads: z.array(relPath).default([]),
+  /** Commands the source documents for producing or validating those files (run in that repository, by its owner). */
+  commands: z.array(text).default([]),
 });
 
 export const integrationSchema = z.strictObject({
@@ -186,6 +278,9 @@ export const integrationSchema = z.strictObject({
   license: text.optional(),
   /** Only meaningful for `mcp-server`. */
   transport: z.enum(['stdio', 'http', 'sse']).optional(),
+  /** asset-catalog and config-registry: the repository and its read-only contract (ES24). */
+  repository: repositoryIdentitySchema.optional(),
+  contract: contractSchema.optional(),
 });
 
 export const SOURCE_KINDS = [
@@ -239,6 +334,8 @@ export const sourceSchema = z.strictObject({
   /** For ambiguous or unresolved sources: what information would settle it. */
   needs: text.optional(),
   discoveredAt: date,
+  /** ES24: absent = public (public registry) or private (private root). */
+  visibility: z.enum(VISIBILITIES).optional(),
 });
 
 /* ------------------------------------------------------------------ curated releases (ES17) */
@@ -366,6 +463,8 @@ export const releaseSchema = z.strictObject({
   dependencies: z.array(text).default([]),
   restrictions: z.array(text).default([]),
   notes: text.optional(),
+  /** ES24: absent = public (public registry) or private (private root). A private skill's releases are never public. */
+  visibility: z.enum(VISIBILITIES).optional(),
 });
 
 /* ------------------------------------------------------------------ evaluations (ES19) */
@@ -551,3 +650,28 @@ export interface Catalog {
   evaluations: Evaluation[];
   updates: UpstreamCheck[];
 }
+
+/* ------------------------------------------------------------------ private access (ES24) */
+
+/**
+ * Explicit authorization of one consumer for one private skill (private root only, `registry/access.json`). It names
+ * the exact versions and agents allowed; there are no wildcards and nothing is inherited from repository membership,
+ * project mappings or approval. `release` is the desired version (the private counterpart of `assignment.release`)
+ * and must be one of `releases`.
+ */
+export const accessSchema = z.strictObject({
+  consumer: id,
+  skill: id,
+  agents: z.array(agentSchema).min(1),
+  releases: z.array(z.string().regex(SEMVER, 'must be a semantic version')).min(1),
+  release: z.string().regex(SEMVER, 'must be a semantic version').optional(),
+  /**
+   * The agents this consumer actually has linked for `release` (ES25 audit F5): written by install, upgrade and
+   * rollback from the agents requested, never inferred from `agents`. Present exactly when `release` is.
+   */
+  activeAgents: z.array(agentSchema).min(1).optional(),
+  authorizedBy: text,
+  authorizedAt: date,
+  note: text.optional(),
+});
+export type Access = z.infer<typeof accessSchema>;

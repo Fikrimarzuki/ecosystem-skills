@@ -11,16 +11,19 @@ import type {
 import {
   contentAvailability,
   releaseInstallProblems,
+  releasesOf,
   type Availability,
   type ContentState,
   type InstallProblem,
   type Reason,
 } from '@ecosystem-skills/catalog/availability';
+import { distributionOf, isRestricted, ownershipOf } from '@ecosystem-skills/catalog/ownership';
 import { tEn, type T } from './i18n.tsx';
 import { currentUrl, href as routerHref, subscribe } from './router.ts';
 
 export type { Catalog, Consumer, Evaluation, Evidence, Release, Skill, Source };
 export type { Availability, ContentState, InstallProblem, Reason };
+export { distributionOf, isRestricted, ownershipOf, releasesOf };
 type Assignment = Consumer['assignments'][number];
 
 /**
@@ -74,6 +77,7 @@ export const GROUP_OF_CATEGORY: Record<string, (typeof GROUPS)[number]> = {
   debugging: 'Coding',
   documentation: 'Communication',
   devops: 'Coding',
+  'ecosystem-integration': 'Coding',
   'frontend-design': 'Design',
   'game-dev': 'Coding',
   'graphics-3d': 'Coding',
@@ -229,6 +233,7 @@ export type Route =
   | { page: 'consumers' }
   | { page: 'integrations' }
   | { page: 'sources' }
+  | { page: 'ecosystem' }
   | { page: 'notfound'; path: string };
 
 /**
@@ -261,14 +266,16 @@ export function parseRoute(url: string): Route {
     if (a === 'consumers') return { page: 'consumers' };
     if (a === 'integrations') return { page: 'integrations' };
     if (a === 'sources') return { page: 'sources' };
+    if (a === 'ecosystem') return { page: 'ecosystem' };
   }
   return notfound;
 }
 
 /** Clean URLs for internal links; the deployment base path (if any) is added. */
 export const homeHref = () => routerHref('/');
-export const pageHref = (page: 'overview' | 'skills' | 'consumers' | 'integrations' | 'sources') =>
-  routerHref(`/${page}`);
+export const pageHref = (
+  page: 'overview' | 'skills' | 'consumers' | 'integrations' | 'sources' | 'ecosystem',
+) => routerHref(`/${page}`);
 export const skillHref = (id: string) => routerHref(`/skills/${encodeURIComponent(id)}`);
 export const skillsHref = (q: Query) => {
   const s = new URLSearchParams(q).toString();
@@ -395,8 +402,21 @@ export interface SkillFilter {
   agent?: string;
   /** A content availability state (ES17): source-only, curated-unapproved, curated-approved, curation-blocked, curation-pending. */
   content?: string;
+  /** Ownership (ES25): fm-ecosystem, first-party or third-party; absent records are derived from their origin. */
+  owner?: string;
+  /** Distribution policy (ES25): open, restricted or not-distributable. */
+  distribution?: string;
 }
-export const FILTER_KEYS = ['q', 'group', 'origin', 'status', 'agent', 'content'] as const;
+export const FILTER_KEYS = [
+  'q',
+  'group',
+  'origin',
+  'owner',
+  'status',
+  'agent',
+  'content',
+  'distribution',
+] as const;
 
 export function filterSkills(c: Catalog, f: SkillFilter): Skill[] {
   const q = (f.q ?? '').trim().toLowerCase();
@@ -406,6 +426,8 @@ export function filterSkills(c: Catalog, f: SkillFilter): Skill[] {
       return (
         (!f.group || groupOf(s) === f.group) &&
         (!f.origin || s.origin === f.origin) &&
+        (!f.owner || ownershipOf(s) === f.owner) &&
+        (!f.distribution || distributionOf(s).policy === f.distribution) &&
         (!f.status || stage(s) === f.status) &&
         (!f.content || availabilityOf(c, s).state === f.content) &&
         (!f.agent ||
@@ -424,6 +446,7 @@ export function filterSkills(c: Catalog, f: SkillFilter): Skill[] {
             ...s.tags,
             s.author ?? '',
             sourceLabel(s),
+            OWNERSHIP_LABEL[ownershipOf(s)] ?? '',
           ].some((t) => t.toLowerCase().includes(q)))
       );
     })
@@ -434,6 +457,47 @@ export const ORIGIN_LABEL: Record<string, string> = {
   'first-party': 'First-party',
   external: 'Third-party',
 };
+/** Who maintains a skill (ES25). Unknown values (never valid in the registry) are shown as "Unknown". */
+export const OWNERSHIP_LABEL: Record<string, string> = {
+  'fm-ecosystem': 'FM Ecosystem',
+  'first-party': 'Other first-party',
+  'third-party': 'Third-party',
+};
+export const DISTRIBUTION_LABEL: Record<string, string> = {
+  open: 'Open',
+  restricted: 'Restricted',
+  'not-distributable': 'Not distributable',
+};
+export const ACCESS_LABEL: Record<string, string> = {
+  'owner-only': 'Owner-only',
+  'authorized-consumers': 'Authorized consumers',
+};
+export const ownershipLabel = (s: Skill, t: T = tEn) =>
+  t(OWNERSHIP_LABEL[ownershipOf(s)] ?? 'Unknown');
+export const distributionLabel = (s: Skill, t: T = tEn) => {
+  const d = distributionOf(s);
+  const p = t(DISTRIBUTION_LABEL[d.policy] ?? 'Unknown');
+  return d.access ? `${p} · ${t(ACCESS_LABEL[d.access] ?? 'Unknown')}` : p;
+};
+/**
+ * Review and approval in one phrase, from the registry. A restricted skill is installed only as an approved curated
+ * release, so its state is that of its releases; an open first-party skill has no review stage.
+ */
+export function reviewSummary(c: Catalog, s: Skill, t: T = tEn): string {
+  if (!isRestricted(s)) return t(STAGE_LABEL[stage(s)]);
+  const rels = releasesOf(c.releases, s.id);
+  const ok = rels.find((r) => r.approval.status === 'approved');
+  if (ok) return t('Release {version} approved', { version: ok.version });
+  return rels.length ? t('No approved release') : t('Not reviewed; no curated release');
+}
+/** FM Ecosystem skills: explicit ownership only, from the same catalog as every other page. */
+export const ecosystemSkills = (c: Catalog): Skill[] =>
+  c.skills
+    .filter((s) => s.ownership === 'fm-ecosystem')
+    .sort((a, b) => a.name.localeCompare(b.name));
+/** Projects mapped to the shared sources a skill reads (ES24 mappings; a reference, never a permission). */
+export const relatedProjects = (c: Catalog, s: Skill): Consumer[] =>
+  c.consumers.filter((x) => x.ecosystem?.sources.some((src) => s.requires.includes(src)));
 /** Short form for the dropdown, which must fit a 320px-wide screen once an option is selected. */
 export const AGENT_OPTION_LABEL = (v: string, t: T = tEn) =>
   v === 'any'
@@ -461,6 +525,10 @@ export function describeFilter(
       return t('Category {value}', { value: t(value) });
     case 'origin':
       return t('Source {value}', { value: t(ORIGIN_LABEL[value] ?? value) });
+    case 'owner':
+      return t('Owner {value}', { value: t(OWNERSHIP_LABEL[value] ?? value) });
+    case 'distribution':
+      return t('Distribution {value}', { value: t(DISTRIBUTION_LABEL[value] ?? value) });
     case 'status':
       return t('Status {value}', { value: t(STAGE_LABEL[value as Stage] ?? value) });
     case 'agent':
@@ -581,66 +649,108 @@ export function lifecycle(c: Catalog, s: Skill, t: T = tEn): LifecycleRow[] {
       ),
     );
   };
-  const reviewed = !external
-    ? row(
-        'reviewed',
-        'Reviewed',
-        'none',
-        t('Not applicable'),
-        t('First-party skills are authored here and need no third-party review.'),
-      )
-    : st === 'discovered'
-      ? row(
+  const latestRelease = releasesOf(c.releases, s.id)[0];
+  const reviewed =
+    !external && latestRelease
+      ? // a first-party skill with a curated release: that release's security review is the review (audit F6)
+        row(
           'reviewed',
           'Reviewed',
-          'none',
-          t('No'),
-          s.discovery
-            ? t(
-                'Discovered with a metadata and file scan (see Discovery scan). No review has been done and no decision made.',
-              )
-            : t('Discovered only. Its content has not been read or scanned.'),
+          latestRelease.review.outcome === 'no-blocking-issues'
+            ? 'ok'
+            : latestRelease.review.outcome === 'not-evaluated'
+              ? 'none'
+              : 'warn',
+          t(REVIEW_OUTCOME_LABEL[latestRelease.review.outcome]),
+          t('Security review of curated release {version}. A review is not a decision.', {
+            version: latestRelease.version,
+          }),
         )
-      : row(
-          'reviewed',
-          'Reviewed',
-          'ok',
-          `${t('Yes')}${s.review.reviewedAt ? `, ${s.review.reviewedAt}` : ''}`,
-          t('Findings are recorded for the pinned revision. A review is not a decision.'),
-        );
-  const approved = !external
-    ? row(
-        'approved',
-        'Approved',
-        'none',
-        t('Not applicable'),
-        t('No third-party approval is needed for first-party skills.'),
-      )
-    : st === 'approved'
-      ? row(
-          'approved',
-          'Approved',
-          'ok',
-          t('Yes'),
-          t(
-            'The owner allows installing this exact revision. Approval does not install, assign or activate it.',
-          ),
-        )
-      : st === 'rejected'
+      : !external
+        ? row(
+            'reviewed',
+            'Reviewed',
+            'none',
+            t('Not applicable'),
+            t('First-party skills are authored here and need no third-party review.'),
+          )
+        : st === 'discovered'
+          ? row(
+              'reviewed',
+              'Reviewed',
+              'none',
+              t('No'),
+              s.discovery
+                ? t(
+                    'Discovered with a metadata and file scan (see Discovery scan). No review has been done and no decision made.',
+                  )
+                : t('Discovered only. Its content has not been read or scanned.'),
+            )
+          : row(
+              'reviewed',
+              'Reviewed',
+              'ok',
+              `${t('Yes')}${s.review.reviewedAt ? `, ${s.review.reviewedAt}` : ''}`,
+              t('Findings are recorded for the pinned revision. A review is not a decision.'),
+            );
+  const policy = distributionOf(s).policy;
+  const approvedRelease = releasesOf(c.releases, s.id).find(
+    (r) => r.approval.status === 'approved',
+  );
+  const approved =
+    policy === 'restricted'
+      ? approvedRelease
         ? row(
             'approved',
             'Approved',
-            'bad',
-            t('Rejected'),
-            t('The owner decided against it. It cannot be installed or assigned.'),
+            'ok',
+            t('Release {version} approved', { version: approvedRelease.version }),
+            t(
+              'Restricted skills are installed only as an approved, security-reviewed curated release. Approval does not authorize any project.',
+            ),
           )
         : row(
             'approved',
             'Approved',
             'none',
-            t('No'),
-            t('Needs an owner decision before it can be installed or assigned.'),
-          );
+            t('No approved release'),
+            t(
+              'Restricted skills are installed only as an approved, security-reviewed curated release, and none is approved yet.',
+            ),
+          )
+      : !external
+        ? row(
+            'approved',
+            'Approved',
+            'none',
+            t('Not applicable'),
+            t('No third-party approval is needed for first-party skills.'),
+          )
+        : st === 'approved'
+          ? row(
+              'approved',
+              'Approved',
+              'ok',
+              t('Yes'),
+              t(
+                'The owner allows installing this exact revision. Approval does not install, assign or activate it.',
+              ),
+            )
+          : st === 'rejected'
+            ? row(
+                'approved',
+                'Approved',
+                'bad',
+                t('Rejected'),
+                t('The owner decided against it. It cannot be installed or assigned.'),
+              )
+            : row(
+                'approved',
+                'Approved',
+                'none',
+                t('No'),
+                t('Needs an owner decision before it can be installed or assigned.'),
+              );
   const rows: LifecycleRow[] = [
     row(
       'registered',
@@ -706,6 +816,20 @@ export function lifecycle(c: Catalog, s: Skill, t: T = tEn): LifecycleRow[] {
         ),
     verifiedRow(),
   ];
+  // ES25: restricted installs are authorized privately and never published; not-distributable skills are never installed
+  if (policy !== 'open') {
+    const hidden = policy === 'restricted';
+    const value = hidden ? t('Not published') : t('Not distributable');
+    const detail = hidden
+      ? t(
+          'Restricted skills are never assigned in the public registry. Authorizations and installs are recorded on the owner’s machine and never appear on this site.',
+        )
+      : t('This skill is published for discovery and documentation only; it is never installed.');
+    for (const k of ['installed', 'assigned', 'activated'] as const) {
+      const i = rows.findIndex((r) => r.key === k);
+      rows[i] = { ...rows[i]!, kind: hidden ? 'unknown' : 'none', value, detail };
+    }
+  }
   return rows;
 }
 
@@ -844,7 +968,9 @@ export function reasonText(r: Reason, t: T = tEn): string {
 export function installProblemText(p: InstallProblem, t: T = tEn): string {
   switch (p.code) {
     case 'release-not-approved':
-      return t('The release is not approved.');
+      return p.detail === 'withdrawn'
+        ? t('The release’s approval was withdrawn.')
+        : t('The release is not approved.');
     case 'review-incomplete':
       return t('Its security review has not recorded “no blocking issues” for a stated scope.');
     case 'skill-rejected':

@@ -173,7 +173,7 @@ describe('catalog: telling the states apart without badge clutter', () => {
         n('curated-approved').length +
         n('curation-blocked').length +
         n('source-only').length +
-        2,
+        4, // first-party skills (two since ES24 are ecosystem integrations)
     ).toBe(catalog.skills.length);
     expect(contentFilterStates(catalog)).toEqual([
       'source-only',
@@ -198,7 +198,7 @@ describe('catalog: telling the states apart without badge clutter', () => {
       query: { content: 'curated-unapproved' },
     });
     const out = text(html({ page: 'skills', query: { content: 'curated-unapproved' } }));
-    expect(out).toContain('5 of 245 skills');
+    expect(out).toContain('5 of 247 skills');
     expect(out).toContain('Any content availability');
     expect(out).toContain('Curated, approved');
     const e = explainEmpty(catalog, { content: 'curated-approved' });
@@ -334,5 +334,45 @@ describe('consumer versions (ES21)', () => {
     );
     expect(out).toContain('pnpm skills:library upgrade gateway frontend-design'.slice(0, 0)); // nothing else implied
     void g;
+  });
+});
+
+describe('ES23: evidence by type on release pages', () => {
+  const block = (p: string) =>
+    p.slice(p.indexOf('Evidence by type'), p.indexOf('Modifications from upstream'));
+
+  it('keeps static review, fixture tests, live runs and the owner decision apart, with no score', () => {
+    const g = block(page('grilling'));
+    expect(g).toMatch(/Static review No blocking issues/i);
+    expect(g).toContain('Simulated fixture test General fixtures only');
+    // grilling has earlier ES6-ES8 runs on the same upstream content, labelled as such
+    const runs = catalog.evidence.filter((e) => e.skill === 'grilling').length;
+    expect(g).toContain(`Live agent evaluation ${runs} recorded agent run(s)`);
+    expect(g).toContain('earlier pilot, not this release folder');
+    expect(g).toContain('Human-reviewed outcome Pending: no owner decision recorded');
+    const r = block(page('gsap-react'));
+    expect(r).toContain('Live agent evaluation Not run');
+    expect(r).toContain('no dedicated, revocable evaluation API key');
+    for (const p of [g, r]) expect(p).not.toMatch(/score|\d+\s*%|\d+\s*\/\s*10/i);
+  });
+
+  it('shows the newest release of web-quality-accessibility (1.0.1) and lists 1.0.0 as another version', () => {
+    const p = page('web-quality-accessibility');
+    expect(p).toContain('v1.0.1');
+    expect(p).toContain('Other versions: v1.0.0');
+    expect(p).not.toContain('Links outside the release');
+    expect(block(p)).toContain('Live agent evaluation Not run');
+  });
+
+  it('is translated into Indonesian', () => {
+    const p = page('gsap-timeline', 'id');
+    for (const s of [
+      'Bukti menurut jenis',
+      'Tinjauan statis',
+      'Uji fixture simulasi',
+      'Evaluasi agen langsung',
+      'Hasil tinjauan manusia',
+    ])
+      expect(p).toContain(s);
   });
 });
