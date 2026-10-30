@@ -13,6 +13,7 @@ import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { isSafeRelPath, type Skill } from './schema.ts';
 import { scanTree } from './tree.ts';
+import { kindOf } from './fsguard.ts';
 
 const run = promisify(execFile);
 
@@ -85,12 +86,22 @@ function backup(
  * Nothing from the archive is executed; `tar` (a system tool) only extracts the requested member.
  * The caller owns the returned staging directory.
  */
-export async function fetchSkill(source: ExternalSource, stagingRoot: string, fetchImpl: Fetch) {
+export async function fetchSkill(
+  source: ExternalSource,
+  stagingRoot: string,
+  fetchImpl: Fetch,
+  /** Also extract top-level repository files whose names match (e.g. LICENSE); data only. */
+  rootFiles?: RegExp,
+): Promise<{ work: string; dir: string; root: string[] }> {
   const from = source.fork?.url ?? source.upstream.url;
   const gh = parseGitHub(from);
   if (!gh) throw new InstallError(`unsupported source (GitHub https URLs only): ${from}`);
   if (!SHA_RE.test(source.revision))
     throw new InstallError(`revision must be a full 40-character commit SHA`);
+  if (source.path === '.')
+    throw new InstallError(
+      'SKILL.md sits at the repository root; downloading a whole repository for review or install is not supported. Inspect it with: pnpm skills:review --dir <folder>, and define a subset install before approving',
+    );
   if (!isSafeRelPath(source.path)) throw new InstallError(`unsafe source path: ${source.path}`);
 
   mkdirSync(stagingRoot, { recursive: true });
@@ -123,7 +134,20 @@ export async function fetchSkill(source: ExternalSource, stagingRoot: string, fe
     const dir = join(out, top, source.path);
     if (!existsSync(dir))
       throw new InstallError(`archive has no ${source.path} at revision ${source.revision}`);
-    return { work, dir };
+    const root: string[] = [];
+    if (rootFiles) {
+      const { stdout } = await run('tar', ['-tzf', archive]);
+      const names = stdout
+        .split('\n')
+        .filter((m) => m.startsWith(`${top}/`) && !m.slice(top.length + 1).includes('/'))
+        .map((m) => m.slice(top.length + 1))
+        .filter((n) => n && rootFiles.test(n));
+      if (names.length)
+        await run('tar', ['-xzf', archive, '-C', out, ...names.map((n) => `${top}/${n}`)]);
+      // Only regular files: an archive member that is a symlink (e.g. LICENSE -> /etc/passwd) must never be read.
+      for (const n of names) if (kindOf(join(out, top, n)) === 'file') root.push(join(out, top, n));
+    }
+    return { work, dir, root };
   } catch (e) {
     rmSync(work, { recursive: true, force: true });
     throw e;
@@ -151,6 +175,26 @@ export async function fetchForReview(
   return target;
 }
 
+/**
+ * Why a skill cannot be installed, or undefined when nothing in the registry record stands in the way.
+ * Pure: touches no file and no network. Checked before anything else so a refusal never leaves a trace.
+ */
+export function installBlocker(skill: Skill): string | undefined {
+  const src = skill.source;
+  if (src.type !== 'external') return `${skill.id} is not an external skill`;
+  const { review } = skill;
+  if (review.status !== 'approved')
+    return `${skill.id} is not approved (review status: ${review.status}); installation needs an owner approval for the pinned revision`;
+  if (review.revision !== src.revision || !review.contentHash)
+    return `${skill.id}: approval does not cover the pinned revision`;
+  if (src.path === '.')
+    return `${skill.id}: SKILL.md sits at the repository root, and installing a whole repository (docs, tests, media) is not supported. Review it and define a subset install first`;
+  const blockers = skill.discovery?.approvalBlockers ?? [];
+  if (blockers.length)
+    return `${skill.id}: discovery lists unresolved approval blockers: ${blockers.join('; ')}`;
+  return undefined;
+}
+
 export interface InstallResult {
   status: 'installed' | 'replaced' | 'unchanged';
   backup?: string;
@@ -167,13 +211,12 @@ export async function installSkill(
   fetchImpl: Fetch,
   { replace = false, now = () => new Date() }: { replace?: boolean; now?: () => Date } = {},
 ): Promise<InstallResult> {
+  const blocked = installBlocker(skill);
+  if (blocked) throw new InstallError(blocked);
   const src = skill.source;
   if (src.type !== 'external') throw new InstallError(`${skill.id} is not an external skill`);
   const { review } = skill;
-  if (review.status !== 'approved')
-    throw new InstallError(`${skill.id} is not approved (review status: ${review.status})`);
-  if (review.revision !== src.revision || !review.contentHash)
-    throw new InstallError(`${skill.id}: approval does not cover the pinned revision`);
+  if (!review.contentHash) throw new InstallError(`${skill.id}: approval has no content hash`);
 
   const l = layout(repoRoot);
   const d = dirs(l);

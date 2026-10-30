@@ -4,3 +4,5 @@ pnpm-lock.yaml
 apps/web/public/catalog.json
 # skill content is canonical and kept byte-stable; never auto-format it
 skills
+# curated library content is hashed and kept byte-stable; never auto-format it
+library

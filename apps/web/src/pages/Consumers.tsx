@@ -1,12 +1,29 @@
 import { useT } from '../i18n.tsx';
-import { agentName, agentStatus, isStale, skillHref, type Catalog, type Consumer } from '../lib.ts';
+import {
+  agentName,
+  agentStatus,
+  approvedUpgrade,
+  isStale,
+  skillHref,
+  type Catalog,
+  type Consumer,
+} from '../lib.ts';
 import { Badge, Card, Empty, PageHeader, Section, VerificationBadge } from '../ui.tsx';
 import { AgentLine, StaleBadge } from './shared.tsx';
 
-function Assignment({ catalog, a }: { catalog: Catalog; a: Consumer['assignments'][number] }) {
+function Assignment({
+  catalog,
+  a,
+  consumer,
+}: {
+  catalog: Catalog;
+  a: Consumer['assignments'][number];
+  consumer: string;
+}) {
   const t = useT();
   const skill = catalog.skills.find((s) => s.id === a.skill);
   const hasEvidence = skill ? catalog.evidence.some((e) => e.skill === skill.id) : false;
+  const upgrade = skill ? approvedUpgrade(catalog, skill, a.release) : undefined;
   return (
     <li className="py-3 first:pt-0 last:pb-0">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -26,6 +43,13 @@ function Assignment({ catalog, a }: { catalog: Catalog; a: Consumer['assignments
           {t('Verification')}
           <VerificationBadge status={a.verification.status} />
           {isStale(a, skill) && <StaleBadge />}
+          {skill?.origin === 'external' && (
+            <Badge tone={a.release ? 'indigo' : 'neutral'}>
+              {a.release
+                ? t('Curated release v{version}', { version: a.release })
+                : t('Legacy upstream install')}
+            </Badge>
+          )}
         </span>
       </div>
       {hasEvidence ? (
@@ -39,6 +63,19 @@ function Assignment({ catalog, a }: { catalog: Catalog; a: Consumer['assignments
       ) : (
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
           {t('No per-agent evidence records; see the verification notes.')}
+        </p>
+      )}
+      {skill?.origin === 'external' && (
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 [overflow-wrap:anywhere]">
+          {upgrade
+            ? t('Approved curated v{version} is available. Preview (changes nothing): {command}', {
+                version: upgrade,
+                command: `pnpm skills:library upgrade ${consumer} ${a.skill} --to ${upgrade}${a.release ? '' : ' --migrate'}`,
+              })
+            : t('No approved curated upgrade.')}{' '}
+          {t('The installed version is machine-local: pnpm skills:library status {consumer}', {
+            consumer,
+          })}
         </p>
       )}
       {a.verification.method && (
@@ -106,7 +143,7 @@ export function Consumers({ catalog }: { catalog: Catalog }) {
                       )}
                       <ul className="mt-4 divide-y divide-zinc-200 dark:divide-zinc-800">
                         {c.assignments.map((a) => (
-                          <Assignment key={a.skill} catalog={catalog} a={a} />
+                          <Assignment key={a.skill} catalog={catalog} a={a} consumer={c.id} />
                         ))}
                       </ul>
                     </Card>

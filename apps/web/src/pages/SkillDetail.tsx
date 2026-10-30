@@ -1,10 +1,14 @@
 import { useT } from '../i18n.tsx';
+import { ContentAvailability } from './ContentAvailability.tsx';
+import { Evaluations } from './Evaluations.tsx';
+import { Upstream } from './Upstream.tsx';
 import {
   agentName,
   agentStatus,
   consumersOf,
   evidenceFor,
   groupOf,
+  hasDiscoveryWarnings,
   isEvidenceStale,
   isStale,
   lifecycle,
@@ -129,6 +133,7 @@ export function SkillDetail({ catalog, id }: { catalog: Catalog; id: string }) {
             <StageBadge skill={skill} />
             <Badge>{t(groupOf(skill))}</Badge>
             <Badge>{skill.category}</Badge>
+            {hasDiscoveryWarnings(skill) && <Badge tone="amber">{t('Has warnings')}</Badge>}
             {skill.license && <Badge>{skill.license}</Badge>}
             {skill.tags.map((tag) => (
               <Badge key={tag}>#{tag}</Badge>
@@ -168,6 +173,12 @@ export function SkillDetail({ catalog, id }: { catalog: Catalog; id: string }) {
           )}
         </p>
       </Section>
+
+      <ContentAvailability catalog={catalog} skill={skill} />
+
+      <Upstream catalog={catalog} skill={skill} />
+
+      <Evaluations catalog={catalog} skill={skill} />
 
       <Section
         id="status"
@@ -249,6 +260,76 @@ export function SkillDetail({ catalog, id }: { catalog: Catalog; id: string }) {
           </li>
         </ul>
       </Section>
+
+      {skill.discovery && (
+        <Section
+          id="discovery"
+          title={t('Discovery scan')}
+          hint={t(
+            'How this candidate was found. It is a metadata and file scan, not a review: nothing was executed, and being listed here is not approval, installation or activation.',
+          )}
+        >
+          <Card>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone={hasDiscoveryWarnings(skill) ? 'amber' : 'indigo'}>
+                {hasDiscoveryWarnings(skill)
+                  ? t('Registered with warnings')
+                  : t('Registered for review')}
+              </Badge>
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                {skill.discovery.discoveredAt}
+              </span>
+            </div>
+            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+              <Field label={t('Source')}>
+                <a href={`${pageHref('sources')}#${skill.discovery.source}`} className="underline">
+                  {catalog.sources.find((x) => x.id === skill.discovery!.source)?.name ??
+                    skill.discovery.source}
+                </a>
+              </Field>
+              <Field label={t('Discovered content hash')}>
+                <code className="break-all">{skill.discovery.contentHash}</code>
+              </Field>
+            </dl>
+            {skill.discovery.approvalBlockers.length > 0 && (
+              <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50/70 p-3 dark:border-amber-800 dark:bg-amber-950/40">
+                <h3 className="text-sm font-medium">{t('Must be resolved before approval')}</h3>
+                <p className="mt-1 text-sm">
+                  {t(
+                    'Approval and installation are refused while any of these remain. This skill cannot be installed as registered.',
+                  )}
+                </p>
+                <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
+                  {skill.discovery.approvalBlockers.map((b) => (
+                    <li key={b}>{b}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {skill.discovery.warnings.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-medium">{t('Warnings')}</h3>
+                <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
+                  {skill.discovery.warnings.map((w) => (
+                    <li key={w}>{w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {skill.discovery.dependencies.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-medium">{t('Runtime dependencies')}</h3>
+                <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
+                  {skill.discovery.dependencies.map((d) => (
+                    <li key={d}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">{skill.discovery.audit}</p>
+          </Card>
+        </Section>
+      )}
 
       <Section id="provenance" title={t('Source and provenance')}>
         <Card>

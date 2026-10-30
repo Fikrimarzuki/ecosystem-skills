@@ -8,6 +8,7 @@ export const INTEGRATION_TYPES = ['mcp-server', 'cli-tool', 'dependency'] as con
 
 const id = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'must be kebab-case (a-z, 0-9, "-")');
 const text = z.string().trim().min(1);
+const count0 = z.number().int().min(0);
 const url = z.url({ protocol: /^https?$/ });
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be YYYY-MM-DD');
 const sha = z.string().regex(/^[0-9a-f]{40}$/, 'must be a full 40-character lowercase commit SHA');
@@ -26,6 +27,13 @@ export function isSafeRelPath(p: string): boolean {
 const relPath = z
   .string()
   .refine(isSafeRelPath, 'must be a relative path without "..", "." or empty segments');
+/** External skill folder: a safe relative path, or "." when the repository root itself is the skill. */
+const skillFolderPath = z
+  .string()
+  .refine(
+    (p) => p === '.' || isSafeRelPath(p),
+    'must be "." (repository root) or a relative path without "..", "." or empty segments',
+  );
 
 export const agentSchema = z.enum(AGENTS);
 
@@ -61,10 +69,47 @@ const externalSourceSchema = z.strictObject({
   upstream: z.strictObject({ url }),
   /** Optional fork we may install from; tracked separately from upstream. */
   fork: z.strictObject({ url }).optional(),
-  /** Skill folder inside the repository, e.g. `skills/grill-me`. */
-  path: relPath,
+  /** Skill folder inside the repository, e.g. `skills/grill-me`; "." when SKILL.md sits at the repository root. */
+  path: skillFolderPath,
   /** Pinned commit (full SHA). Tags and branches move, so they are not accepted. */
   revision: sha,
+});
+
+export const DISCOVERY_OUTCOMES = ['register-for-review', 'register-with-warnings'] as const;
+/**
+ * How an external candidate entered the registry (ES16). It is a discovery record, not a review: the scan covered
+ * metadata, file inventory and automated pattern hits, and it implies no approval, installation or activation.
+ */
+const discoverySchema = z.strictObject({
+  discoveredAt: date,
+  outcome: z.enum(DISCOVERY_OUTCOMES),
+  /** Id in `sources.json` of the repository this skill was found in. */
+  source: id,
+  /** `sha256-…` of the skill folder at the pinned revision (see tree.ts), for the later review to start from. */
+  contentHash,
+  /** Operational risks found by the discovery scan. Required for `register-with-warnings`. */
+  warnings: z.array(text).default([]),
+  /** Runtime dependencies and services the skill needs (tools, services, keys, licences). */
+  dependencies: z.array(text).default([]),
+  /**
+   * Conditions that must be resolved before this skill may be approved or installed as registered (for example a
+   * repository-root SKILL.md, missing sibling skills, an unreviewed downloaded binary, an unconfirmed licence).
+   * Approval is refused while any remain; removing them is a deliberate registry edit with findings that say why.
+   */
+  approvalBlockers: z.array(text).default([]),
+  /** What the discovery scan covered and what it did not. It is not a security audit. */
+  audit: text,
+});
+
+export const CURATION_STATES = ['pending', 'blocked'] as const;
+/**
+ * Owner-set curation intent for a skill that has no curated release. Content availability is otherwise derived
+ * (see availability.ts); only "selected for curation" and "blocked, and why" cannot be derived, so they are recorded.
+ */
+const curationSchema = z.strictObject({
+  state: z.enum(CURATION_STATES),
+  reason: text,
+  updatedAt: date,
 });
 
 export const skillSchema = z.strictObject({
@@ -87,6 +132,10 @@ export const skillSchema = z.strictObject({
   requiresSkills: z.array(id).default([]),
   docs: z.array(docRefSchema).default([]),
   review: reviewSchema.default({ status: 'unreviewed', findings: [] }),
+  /** External candidates registered by discovery (ES16). Absent for skills registered earlier. */
+  discovery: discoverySchema.optional(),
+  /** Curation intent while the skill has no curated release (ES17). A release makes this field invalid. */
+  curation: curationSchema.optional(),
 });
 
 const verificationSchema = z.strictObject({
@@ -105,6 +154,15 @@ const assignmentSchema = z.strictObject({
   agents: z.array(agentSchema).min(1),
   /** How the skill is exposed to the consumer. Symlinks keep one canonical copy. */
   install: z.enum(['symlink', 'copy']).default('symlink'),
+  /**
+   * Curated release version this consumer uses (ES18). Absent = legacy: the skill installed from its pinned upstream
+   * revision into external/skills. Present = the approved release library/<skill>/<release>, activated from the
+   * machine-local store external/releases/<skill>/<release>.
+   */
+  release: z
+    .string()
+    .regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/, 'must be a semantic version')
+    .optional(),
   verification: verificationSchema.default({ status: 'unverified' }),
 });
 
@@ -129,6 +187,285 @@ export const integrationSchema = z.strictObject({
   /** Only meaningful for `mcp-server`. */
   transport: z.enum(['stdio', 'http', 'sse']).optional(),
 });
+
+export const SOURCE_KINDS = [
+  'skill',
+  'skill-collection',
+  'framework',
+  'application',
+  'design-reference',
+  'standard',
+  'lead',
+] as const;
+export const SOURCE_RESOLUTIONS = ['verified', 'ambiguous', 'unresolved'] as const;
+export const SOURCE_DECISIONS = [
+  'register-for-review',
+  'register-with-warnings',
+  'reference-only',
+  'unresolved',
+  'reject',
+] as const;
+export const SOURCE_BATCHES = ['original', 'design-ui', 'video-animation', 'discovered'] as const;
+
+/**
+ * A repository, application, standard or lead that was examined. Separate from skills: a source can be a
+ * reference collection, an application or an unresolved name without being, or containing, an installable skill.
+ */
+export const sourceSchema = z.strictObject({
+  id,
+  name: text,
+  /** The name as the owner asked for it, when it differs from the resolved name. */
+  requestedAs: text.optional(),
+  batch: z.enum(SOURCE_BATCHES),
+  kind: z.enum(SOURCE_KINDS),
+  /** verified = ownership established by evidence; ambiguous = several plausible upstreams; unresolved = none. */
+  resolution: z.enum(SOURCE_RESOLUTIONS),
+  decision: z.enum(SOURCE_DECISIONS),
+  upstream: z.strictObject({ url }).optional(),
+  /** Commit examined by the discovery audit. Skills may be pinned to an older revision. */
+  revision: sha.optional(),
+  publisher: text.optional(),
+  license: text.optional(),
+  /** Date of the newest commit seen at `revision`. */
+  lastCommit: date.optional(),
+  /** Distinct installable skills found at `revision` (copies for other agents and test fixtures are not counted). */
+  skillsFound: count0.default(0),
+  /** Registered skills from this source (including skills registered before ES16). */
+  skills: z.array(id).default([]),
+  summary: text,
+  warnings: z.array(text).default([]),
+  /** Other candidates considered, with why they were not chosen. */
+  alternatives: z.array(z.strictObject({ url, note: text })).default([]),
+  /** For ambiguous or unresolved sources: what information would settle it. */
+  needs: text.optional(),
+  discoveredAt: date,
+});
+
+/* ------------------------------------------------------------------ curated releases (ES17) */
+
+export const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+export const RELEASE_APPROVALS = ['unapproved', 'approved', 'withdrawn'] as const;
+/** Security review outcomes. None of them means "safe": the scope and evidence say what was actually looked at. */
+export const REVIEW_OUTCOMES = [
+  'not-evaluated',
+  'no-blocking-issues',
+  'requires-changes',
+  'requires-manual-review',
+  'blocked',
+] as const;
+/** Every category a review must address, once for the instructions and once for the supporting files. */
+export const REVIEW_CATEGORIES = [
+  'prompt-injection',
+  'instruction-hierarchy',
+  'credential-exfiltration',
+  'network-requests',
+  'shell-execution',
+  'hooks',
+  'install-scripts',
+  'downloaded-binaries',
+  'filesystem-writes',
+  'global-config-changes',
+  'hidden-dependencies',
+  'unpinned-remote-instructions',
+  'tool-permissions',
+] as const;
+export const REVIEW_SCOPES = ['instructions', 'supporting-files'] as const;
+export const CHECK_RESULTS = [
+  'not-evaluated',
+  'no-issue-found',
+  'issue-found',
+  'needs-manual-review',
+] as const;
+export const EVIDENCE_METHODS = ['static-scan', 'manual-read', 'behavioral-eval', 'other'] as const;
+
+const reviewCheckSchema = z.strictObject({
+  category: z.enum(REVIEW_CATEGORIES),
+  scope: z.enum(REVIEW_SCOPES),
+  result: z.enum(CHECK_RESULTS),
+  note: text.optional(),
+});
+const reviewEvidenceSchema = z.strictObject({
+  method: z.enum(EVIDENCE_METHODS),
+  summary: text,
+});
+const releaseReviewSchema = z.strictObject({
+  outcome: z.enum(REVIEW_OUTCOMES).default('not-evaluated'),
+  reviewedAt: date.optional(),
+  reviewer: text.optional(),
+  /** What was and was not examined (files, categories). Required once anything was evaluated. */
+  scope: text.optional(),
+  /** Hash of the folder the review covered; must equal the release's curatedHash once anything was evaluated. */
+  contentHash: contentHash.optional(),
+  checks: z.array(reviewCheckSchema).default([]),
+  evidence: z.array(reviewEvidenceSchema).default([]),
+  notes: text.optional(),
+});
+const modificationSchema = z.strictObject({
+  kind: z.enum(['added', 'changed', 'removed']),
+  path: relPath,
+  summary: text,
+  why: text,
+  affectsBehavior: z.boolean(),
+  affectsDependencies: z.boolean(),
+  affectsPermissions: z.boolean(),
+});
+
+/**
+ * A link in a release file that leaves the release folder (e.g. `../web-quality-audit/SKILL.md`). Installed alone, such
+ * a link is broken, so every one must be declared: `unresolved` blocks approval and installation; `requires-release`
+ * names the sibling release that must be installed for the same consumer, under the folder name the link expects.
+ */
+const referenceSchema = z.strictObject({
+  path: relPath,
+  target: text,
+  resolution: z.enum(['unresolved', 'requires-release']),
+  requires: z
+    .strictObject({ skill: id, version: z.string().regex(SEMVER, 'must be a semantic version') })
+    .optional(),
+  note: text,
+});
+
+/**
+ * A locally stored, versioned copy of a skill under library/<skill>/<version>/. The folder holds content only (it is
+ * hashed); everything about it lives here, so the registry stays the single source of truth. A release is not an
+ * approval: `approval` is separate from the skill's own review status and from any installation.
+ */
+export const releaseSchema = z.strictObject({
+  skill: id,
+  /** Local curated version (semantic), independent of the upstream version and commit. */
+  version: z.string().regex(SEMVER, 'must be a semantic version such as 1.0.0'),
+  createdAt: date,
+  /** Content location, always library/<skill>/<version>. */
+  path: relPath,
+  /** The upstream folder this release was made from. Absent only for first-party skills. */
+  upstream: z
+    .strictObject({
+      url,
+      path: skillFolderPath,
+      revision: sha,
+      /** Hash of the upstream folder at `revision`, so the comparison with the curated copy is reproducible. */
+      contentHash,
+    })
+    .optional(),
+  /** Hash of the curated folder (tree.ts); equals upstream.contentHash only for an unmodified copy. */
+  curatedHash: contentHash,
+  license: text,
+  attribution: text,
+  modifications: z.array(modificationSchema).default([]),
+  /** Out-of-folder links found in the content (ES22). */
+  references: z.array(referenceSchema).default([]),
+  review: releaseReviewSchema.default({ outcome: 'not-evaluated', checks: [], evidence: [] }),
+  approval: z
+    .strictObject({
+      status: z.enum(RELEASE_APPROVALS),
+      approvedAt: date.optional(),
+      approvedBy: text.optional(),
+    })
+    .default({ status: 'unapproved' }),
+  supportedAgents: z.array(agentSchema).default([]),
+  dependencies: z.array(text).default([]),
+  restrictions: z.array(text).default([]),
+  notes: text.optional(),
+});
+
+/* ------------------------------------------------------------------ evaluations (ES19) */
+
+export const EVALUATION_KINDS = ['static-assessment', 'agent-run'] as const;
+export const RECOMMENDATIONS = [
+  'prioritize-review',
+  'review',
+  'static-only',
+  'not-recommended',
+  'keep-approved',
+] as const;
+/**
+ * A comparative evaluation record. A static assessment reads files and measures sizes; it never claims what an agent
+ * does. An agent-run evaluation must point at recorded runs in evidence.json. A recommendation is never an approval.
+ */
+export const evaluationSchema = z.strictObject({
+  id,
+  skill: id,
+  kind: z.enum(EVALUATION_KINDS),
+  date,
+  assessor: text,
+  /** The pinned revision and folder hash the assessment covers. */
+  revision: sha.optional(),
+  contentHash: contentHash.optional(),
+  scope: text,
+  security: z.array(text).default([]),
+  compatibility: z.array(text).default([]),
+  strengths: z.array(text).default([]),
+  weaknesses: z.array(text).default([]),
+  measurements: z
+    .array(z.strictObject({ name: text, value: z.number(), unit: text, method: text }))
+    .default([]),
+  comparison: z.strictObject({
+    status: z.enum(['not-run', 'run']),
+    /** A: same task without the skill; B: with it; C: an approved alternative. */
+    alternative: id.optional(),
+    summary: text,
+  }),
+  /** Ids in evidence.json; required for agent runs, forbidden for static assessments. */
+  evidence: z.array(id).default([]),
+  recommendation: z.enum(RECOMMENDATIONS),
+  blockers: z.array(text).default([]),
+  notes: text.optional(),
+});
+export type Evaluation = z.infer<typeof evaluationSchema>;
+
+/* ------------------------------------------------------------------ upstream checks (ES20) */
+
+export const UPDATE_STATUSES = [
+  'up-to-date',
+  'update-available',
+  'review-required',
+  'source-unavailable',
+  'check-failed',
+] as const;
+export type UpdateStatus = (typeof UPDATE_STATUSES)[number] | 'never-checked';
+
+export const changeSummarySchema = z.strictObject({
+  added: z.array(z.string()),
+  removed: z.array(z.string()),
+  changed: z.array(z.string()),
+  /** Changed paths grouped by kind. */
+  kinds: z.strictObject({
+    instructions: z.boolean(),
+    references: z.array(z.string()),
+    scripts: z.array(z.string()),
+    hooks: z.array(z.string()),
+    dependencies: z.array(z.string()),
+    licenses: z.array(z.string()),
+    assets: z.array(z.string()),
+    permissions: z.boolean(),
+  }),
+  securitySensitive: z.array(z.string()),
+});
+export type ChangeSummary = z.infer<typeof changeSummarySchema>;
+
+export const upstreamCheckSchema = z.strictObject({
+  skill: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
+  /** When this repository looked (ISO date-time). Not the date of any upstream change. */
+  checkedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/),
+  pinnedRevision: z.string().regex(/^[0-9a-f]{40}$/),
+  latestRevision: z
+    .string()
+    .regex(/^[0-9a-f]{40}$/)
+    .optional(),
+  /** Commit date of latestRevision, when it could be read. */
+  latestCommitDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  status: z.enum(UPDATE_STATUSES),
+  latestContentHash: z
+    .string()
+    .regex(/^sha256-[0-9a-f]{64}$/)
+    .optional(),
+  changes: changeSummarySchema.optional(),
+  detail: z.string().min(1),
+});
+export type UpstreamCheck = z.infer<typeof upstreamCheckSchema>;
 
 export const EVIDENCE_RESULTS = ['verified', 'partial', 'failed'] as const;
 const count = z.number().int().min(0);
@@ -188,8 +525,14 @@ export const registrySchema = z.strictObject({
   consumers: z.array(consumerSchema),
   integrations: z.array(integrationSchema),
   evidence: z.array(evidenceSchema).default([]),
+  sources: z.array(sourceSchema).default([]),
+  releases: z.array(releaseSchema).default([]),
+  evaluations: z.array(evaluationSchema).default([]),
+  updates: z.array(upstreamCheckSchema).default([]),
 });
 
+export type Release = z.infer<typeof releaseSchema>;
+export type Source = z.infer<typeof sourceSchema>;
 export type Agent = z.infer<typeof agentSchema>;
 export type Skill = z.infer<typeof skillSchema>;
 export type Consumer = z.infer<typeof consumerSchema>;
@@ -203,4 +546,8 @@ export interface Catalog {
   consumers: Consumer[];
   integrations: Integration[];
   evidence: Evidence[];
+  sources: Source[];
+  releases: Release[];
+  evaluations: Evaluation[];
+  updates: UpstreamCheck[];
 }

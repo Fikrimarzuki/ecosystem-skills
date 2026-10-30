@@ -23,6 +23,7 @@ Routing is a small module, `apps/web/src/router.ts`, on the browser History API.
 | `/overview`                   | Dashboard                                            |
 | `/skills`                     | Skills catalog, with optional filter query (below)   |
 | `/skills/<id>`                | One skill (`/skills/caveman`); an unknown id says so |
+| `/sources`                    | Sources examined during discovery (ES16)             |
 | `/consumers`, `/integrations` | Consumers, Agents & tools                            |
 | anything else                 | "Page not found", with links home and to Skills      |
 
@@ -82,9 +83,14 @@ Statuses are derived from `registry/*.json` only (`apps/web/src/lib.ts`). They a
 - **Source:** First-party or Third-party (`origin: external` in the registry).
 - **Review status** (third-party only): Candidate · discovered / reviewed, Approved, Rejected. First-party skills have no
   third-party review; choose them with the Source filter.
+- **Discovered candidates (ES16)** are third-party skills with status _Candidate · discovered_, the same as any other
+  unreviewed skill, so they are never mixed up with _Approved_. A card shows **Has warnings** when discovery recorded
+  operational risks, and the skill page has a **Discovery scan** block (warnings, runtime dependencies, content hash, what
+  the scan did and did not cover) with a link to its source; unresolved conditions are listed under "Must be resolved before approval". The lifecycle row says the scan was a metadata and file scan,
+  not a review.
 - **Installed / activated:** never shown as yes or no. Installs and project links are per machine and not in the
   catalog, so the skill page says "Not tracked here" and names the command that checks it.
-- **Category** is a browsing group (Coding, Design, Planning, Communication, Verification, Project-specific). It is
+- **Category** is a browsing group (Coding, Design, Planning, Communication, Verification, Project-specific); ES16 added the categories `motion-design`, `video` (Design), `game-dev`, `mobile`, `devops` (Coding) and `performance` (Verification). It is
   derived from the registry `category` through an explicit table in `apps/web/src/lib.ts`, and a skill under
   `skills/projects/` is always Project-specific. A test fails if a category is not placed, so nothing is guessed from
   keywords. The finer registry category stays on the skill page and in search.
@@ -140,6 +146,35 @@ Seven separate facts, shown as a list (not a progress bar) because each can be t
 
 The site never infers installation or activation from the registry. "Verified" on a card means an explicit run
 (the prompt named the skill) passed at the pinned revision; natural triggering and behavior are separate columns.
+
+## Content availability (ES17)
+
+Every skill page has a **Content availability** section. A skill without a local curated copy shows
+"Content availability: Source reference only", says it is registered for discovery but not yet curated, lists why (awaiting
+security review, reviewed but not approved, approved for install from upstream, each approval blocker, unknown licence,
+repository-root skill), and links to the original: repository, the folder and the commit at the pinned revision, with the
+upstream licence and author. It never shows a local version number. A curated skill shows the curated version, release
+status (approved or not, separately from the skill's own approval), security review outcome and scope, upstream revision
+and hashes, modifications with their effects, dependencies, restrictions, and why it can or cannot be installed from the
+library. The Skills page has a Content filter (`?content=source-only|curated-unapproved|curated-approved|curation-blocked`);
+cards carry a badge only for curated or blocked skills, so plain source references stay quiet.
+
+## Evaluation, upstream status and consumer versions (ES19–ES21)
+
+Skill pages show **Upstream updates** (status, last check time in UTC, tracked and available revisions, upstream commit date, current curated
+version, change summary; "Never checked" makes no claim) and **Evaluation** records, labelled "Static assessment: no agent was run" or "Agent
+run", with measurements and their method, findings, comparison status, the recommendation labelled "not an approval", and blockers. No scores
+are shown. The Consumers page labels each third-party assignment "Legacy upstream install" or "Curated release vX", shows an approved curated
+upgrade only as a preview command, and points to `pnpm skills:library status` for installed state, which the site cannot see.
+
+## Sources page
+
+`/sources` lists the repositories, applications, standards and leads examined during discovery, grouped by batch, with
+filters for decision (chips), kind and text. Each card shows the decision (registered for review / with warnings,
+reference only, unresolved), whether the upstream identity is verified, the pinned commit, skills found versus registered
+(linked to their pages), warnings, other candidates considered, and for unresolved names what would resolve them. The
+filters are local to the page; a source can be linked directly as `/sources#<source-id>`. A source is never presented as a
+skill: reference-only and unresolved sources register nothing.
 
 ## Filters
 

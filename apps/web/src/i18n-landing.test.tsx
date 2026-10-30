@@ -6,6 +6,15 @@ import { buildCatalog, type Catalog } from '@ecosystem-skills/catalog';
 import { App, NAV, Page } from './App.tsx';
 import { I18nProvider, LanguageSwitch, detectLang, tEn, translate } from './i18n.tsx';
 import {
+  CONTENT_LABEL,
+  UPDATE_STATUS_LABEL,
+  RECOMMENDATION_LABEL,
+  RELEASE_APPROVAL_LABEL,
+  REVIEW_OUTCOME_LABEL,
+  SOURCE_BATCH_LABEL,
+  SOURCE_DECISION_LABEL,
+  SOURCE_KIND_LABEL,
+  SOURCE_RESOLUTION_LABEL,
   GROUPS,
   GROUP_OF_CATEGORY,
   STAGE_LABEL,
@@ -26,6 +35,10 @@ const built = buildCatalog({
   consumers: read('consumers'),
   integrations: read('integrations'),
   evidence: read('evidence'),
+  sources: read('sources'),
+  releases: read('releases'),
+  evaluations: read('evaluations'),
+  updates: read('updates'),
 });
 if (!built.ok) throw new Error(built.errors.join('\n'));
 const catalog: Catalog = built.catalog;
@@ -93,6 +106,15 @@ function interfaceStrings(): Set<string> {
   for (const v of [
     ...Object.values(STAGE_LABEL),
     ...Object.values(ORIGIN_LABEL),
+    ...Object.values(CONTENT_LABEL),
+    ...Object.values(UPDATE_STATUS_LABEL),
+    ...Object.values(RECOMMENDATION_LABEL),
+    ...Object.values(RELEASE_APPROVAL_LABEL),
+    ...Object.values(REVIEW_OUTCOME_LABEL),
+    ...Object.values(SOURCE_BATCH_LABEL),
+    ...Object.values(SOURCE_DECISION_LABEL),
+    ...Object.values(SOURCE_KIND_LABEL),
+    ...Object.values(SOURCE_RESOLUTION_LABEL),
     ...GROUPS,
     'Other',
   ])
@@ -155,7 +177,7 @@ describe('translation', () => {
   it('renders the same pages in Indonesian, with registry content left as written', () => {
     const skills = page({ page: 'skills' }, 'id');
     expect(skills).toContain('Kemampuan agen yang dapat dipakai ulang'); // page subtitle
-    expect(skills).toContain('29 dari 29 skill');
+    expect(skills).toContain(`${catalog.skills.length} dari ${catalog.skills.length} skill`);
     expect(skills).toContain('Semua kategori');
     expect(skills).toContain('Pihak ketiga');
     expect(skills).not.toContain('All categories');
@@ -244,6 +266,7 @@ describe('landing page', () => {
       ['home', '/'],
       ['dashboard', '/overview'],
       ['skills', '/skills'],
+      ['sources', '/sources'],
       ['consumers', '/consumers'],
       ['integrations', '/integrations'],
     ]);

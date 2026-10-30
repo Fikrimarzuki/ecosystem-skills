@@ -4,7 +4,15 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/node_modules/**', 'apps/web/public/catalog.json', 'skills/**'] },
+  {
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      'apps/web/public/catalog.json',
+      'skills/**',
+      'library/**',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

@@ -21,31 +21,34 @@ pnpm dev        # generates the catalog, starts the site at http://localhost:517
 
 ## Commands
 
-| Command                                          | Purpose                                                              |
-| ------------------------------------------------ | -------------------------------------------------------------------- |
-| `pnpm dev`                                       | Run the Vite dev server (serves a freshly generated catalog)         |
-| `pnpm build`                                     | Production build: validates the registry, emits `dist/catalog.json`  |
-| `pnpm preview`                                   | Serve the production build                                           |
-| `pnpm catalog:validate`                          | Validate `registry/*.json` only                                      |
-| `pnpm catalog:build`                             | Validate and write `apps/web/public/catalog.json` (inspection only)  |
-| `pnpm typecheck`                                 | TypeScript across workspaces                                         |
-| `pnpm lint`                                      | ESLint                                                               |
-| `pnpm format[:check]`                            | Prettier                                                             |
-| `pnpm skills:<command> --help`                   | Usage, notes and examples for any skills command                     |
-| `pnpm skills:links <dir> [id…]`                  | Read-only check of how skills are linked into a project              |
-| `pnpm skills:review <id>`                        | Download an external skill at its pin and scan it                    |
-| `pnpm skills:install <id>`                       | Install an **approved** external skill (local, ignored)              |
-| `pnpm skills:status`                             | Local install state; `skills:rollback`, `:uninstall`                 |
-| `pnpm --filter @ecosystem-skills/catalog eval …` | Natural-trigger evaluation harness (see docs/external-skills.md §11) |
-| `pnpm skills:list` / `:assign` / `:unassign`     | Inspect and change consumer assignments (registry only)              |
-| `pnpm skills:sync <consumer>` / `:verify`        | Reconcile and check a consumer's project-local links                 |
-| `pnpm test`                                      | Vitest (validation, install, review, page rendering)                 |
-| `pnpm check`                                     | Everything above, in order                                           |
+| Command                                             | Purpose                                                                                                                                                       |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                          | Run the Vite dev server (serves a freshly generated catalog)                                                                                                  |
+| `pnpm build`                                        | Production build: validates the registry, emits `dist/catalog.json`                                                                                           |
+| `pnpm preview`                                      | Serve the production build                                                                                                                                    |
+| `pnpm catalog:validate`                             | Validate `registry/*.json` only                                                                                                                               |
+| `pnpm catalog:build`                                | Validate and write `apps/web/public/catalog.json` (inspection only)                                                                                           |
+| `pnpm typecheck`                                    | TypeScript across workspaces                                                                                                                                  |
+| `pnpm lint`                                         | ESLint                                                                                                                                                        |
+| `pnpm format[:check]`                               | Prettier                                                                                                                                                      |
+| `pnpm skills:<command> --help`                      | Usage, notes and examples for any skills command                                                                                                              |
+| `pnpm skills:links <dir> [id…]`                     | Read-only check of how skills are linked into a project                                                                                                       |
+| `pnpm skills:review <id>`                           | Download an external skill at its pin and scan it                                                                                                             |
+| `pnpm skills:install <id>`                          | Install an **approved** external skill (local, ignored)                                                                                                       |
+| `pnpm skills:status`                                | Local install state; `skills:rollback`, `:uninstall`                                                                                                          |
+| `pnpm --filter @ecosystem-skills/catalog eval …`    | Natural-trigger evaluation harness (see docs/external-skills.md §11)                                                                                          |
+| `pnpm skills:list` / `:assign` / `:unassign`        | Inspect and change consumer assignments (registry only)                                                                                                       |
+| `pnpm skills:sync <consumer>` / `:verify`           | Reconcile and check a consumer's project-local links                                                                                                          |
+| `pnpm skills:library <command>`                     | Curated library: list, verify, review, install, upgrade, rollback, status, check-upstream, prepare (previews unless `--apply`/`--write`; see docs/library.md) |
+| `pnpm --filter @ecosystem-skills/catalog eval:es19` | Comparative evaluation planner (no agent is run)                                                                                                              |
+| `pnpm test`                                         | Vitest (validation, install, review, page rendering)                                                                                                          |
+| `pnpm check`                                        | Everything above, in order                                                                                                                                    |
 
 ## Layout
 
 ```
-registry/            skills.json, consumers.json, integrations.json, evidence.json  (source of truth)
+registry/            skills.json, sources.json, releases.json, evaluations.json, updates.json, consumers.json, integrations.json, evidence.json  (source of truth)
+library/             curated, versioned local copies (content only; see docs/library.md)
 skills/              first-party skill content (shared/, projects/<project>/)
 external/            git-ignored installs, backups and review downloads of external skills
 packages/catalog/    schema, validation, catalog generator, review scanner, installer + tests
@@ -62,6 +65,9 @@ docs/                registry reference, deployment
 - [Onboarding: find a skill and get it working](docs/consumers.md#onboarding-from-discovery-to-verified-use) (who approves what)
 - [Registry reference](docs/registry.md)
 - [External skills](docs/external-skills.md) (discovery, review, install, update, rollback, licensing)
+- [Curated library](docs/library.md) (hybrid architecture, security review workflow, curated install/upgrade/rollback, evaluations, upstream checks, release preparation, legacy migration)
+- [ES16 discovery report](docs/es16-discovery.md) (29 requested sources, 216 registered candidates, audit findings)
+- [ES22 security audit](docs/es22-audit.md) (trust boundaries, fixes, staged candidates, legacy recovery plan, owner decisions)
 - [Agent compatibility](docs/agent-compatibility.md) (verified discovery conventions)
 - [ES3 Momee migration record](docs/migrations/es3-momee-character-art.md)
 - [Deployment](docs/deployment.md) (GitHub Pages with `BASE_PATH`, Vercel)

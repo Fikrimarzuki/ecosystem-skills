@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./availability": "./src/availability.ts"
   },
   "scripts": {
     "validate": "tsx src/cli.ts validate",
@@ -13,7 +14,8 @@
     "ext": "tsx src/cli.ts",
     "eval": "tsx evals/run.ts",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "eval:es19": "tsx evals/es19/plan.ts"
   },
   "dependencies": {
     "zod": "^4.6.7"

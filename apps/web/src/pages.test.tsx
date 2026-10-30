@@ -29,6 +29,10 @@ const empty: Catalog = {
   consumers: [],
   integrations: [],
   evidence: [],
+  sources: [],
+  releases: [],
+  evaluations: [],
+  updates: [],
 };
 
 const skill = (over: object) => ({
@@ -455,6 +459,10 @@ describe('public data boundaries', () => {
     consumers: read('consumers'),
     integrations: read('integrations'),
     evidence: read('evidence'),
+    sources: read('sources'),
+    releases: read('releases'),
+    evaluations: read('evaluations'),
+    updates: read('updates'),
   });
   if (!real.ok) throw new Error(real.errors.join('\n'));
   const leaks =

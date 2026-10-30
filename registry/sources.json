@@ -1,0 +1,1454 @@
+[
+  {
+    "id": "addyosmani-agent-skills",
+    "name": "addyosmani/agent-skills",
+    "requestedAs": "addyosmani/agent-skills",
+    "batch": "original",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/addyosmani/agent-skills"
+    },
+    "revision": "eb07f19f52c2669f2364897aaa293e2aaddd7b1c",
+    "lastCommit": "2026-10-29",
+    "publisher": "Addy Osmani",
+    "license": "MIT",
+    "skillsFound": 25,
+    "skills": [
+      "addy-test-driven-development",
+      "api-and-interface-design",
+      "browser-testing-with-devtools",
+      "ci-cd-and-automation",
+      "code-review-and-quality",
+      "code-simplification",
+      "constraint-driven-development",
+      "context-engineering",
+      "debugging-and-error-recovery",
+      "deprecation-and-migration",
+      "documentation-and-adrs",
+      "doubt-driven-development",
+      "frontend-ui-engineering",
+      "git-workflow-and-versioning",
+      "idea-refine",
+      "incremental-implementation",
+      "interview-me",
+      "observability-and-instrumentation",
+      "performance-optimization",
+      "planning-and-task-breakdown",
+      "security-and-hardening",
+      "shipping-and-launch",
+      "source-driven-development",
+      "spec-driven-development",
+      "using-agent-skills"
+    ],
+    "summary": "Engineering-workflow skills (spec, plan, TDD, review, debugging, performance, security, CI/CD, shipping). 25 skills under skills/; the repository also ships hooks, agent personas, slash commands and per-agent plugin manifests, which are outside the skill folders and were not registered.",
+    "warnings": [
+      "Repo-level hooks/ and plugin manifests exist outside the skill folders and were not inspected for registration; only skill folders are registered."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "mattpocock-skills",
+    "name": "mattpocock/skills",
+    "requestedAs": "mattpocock/skills",
+    "batch": "original",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/mattpocock/skills"
+    },
+    "revision": "a496f5513d4a4cf889bc48e189e579f4b0bdf6aa",
+    "lastCommit": "2026-10-29",
+    "publisher": "Matt Pocock",
+    "license": "MIT",
+    "skillsFound": 38,
+    "skills": [
+      "ask-matt",
+      "codebase-design",
+      "diagnosing-bugs",
+      "domain-modeling",
+      "grill-me",
+      "grill-with-docs",
+      "grilling",
+      "implement-spec",
+      "improve-codebase-architecture",
+      "mattpocock-code-review",
+      "mattpocock-handoff",
+      "mattpocock-implement",
+      "mattpocock-pr",
+      "mattpocock-prototype",
+      "mattpocock-research",
+      "mattpocock-retro",
+      "mattpocock-teach",
+      "mattpocock-triage",
+      "mattpocock-wizard",
+      "setup-matt-pocock-skills",
+      "tdd",
+      "to-questionnaire",
+      "to-spec",
+      "to-tickets",
+      "wait-what",
+      "wayfinder",
+      "writing-for-agents"
+    ],
+    "summary": "38 skills in four buckets. The 27 \"promoted\" skills in engineering/ and productivity/ are registered (5 of them were registered in ES4/ES6 at an older revision and keep their older pin and review). The 7 in-progress skills (\"beta, not shipped in the plugin\" per upstream AGENTS.md) and the 4 misc/ skills are discovered but not registered.",
+    "warnings": [
+      "Previously registered skills from this repository stay pinned to the ES4 revision; new entries pin the ES16 revision."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "obra-superpowers",
+    "name": "obra/superpowers",
+    "requestedAs": "obra/superpowers",
+    "batch": "original",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/obra/superpowers"
+    },
+    "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+    "lastCommit": "2026-10-21",
+    "publisher": "Jesse Vincent (obra)",
+    "license": "MIT",
+    "skillsFound": 15,
+    "skills": [
+      "brainstorming",
+      "dispatching-parallel-agents",
+      "executing-plans",
+      "finishing-a-development-branch",
+      "receiving-code-review",
+      "requesting-code-review",
+      "subagent-driven-development",
+      "systematic-debugging",
+      "test-driven-development",
+      "using-git-worktrees",
+      "using-superpowers",
+      "verification-before-completion",
+      "writing-plans",
+      "writing-skills"
+    ],
+    "summary": "Development-workflow skills. 15 skills; 14 are registered (6 earlier at an older revision). diagnosing-superpowers, a self-diagnosis tool for the superpowers plugin itself, is not registered. The repository also ships plugin manifests for many agents, session hooks and an index.js; none of that is registered.",
+    "warnings": [
+      "Plugin layers (session-start hooks, per-agent manifests) are outside the skill folders and were not registered or inspected for installation."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "cloudflare-security-audit-skill",
+    "name": "cloudflare/security-audit-skill",
+    "requestedAs": "cloudflare/security-audit-skill",
+    "batch": "original",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/cloudflare/security-audit-skill"
+    },
+    "revision": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+    "lastCommit": "2026-09-14",
+    "publisher": "Cloudflare",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["cloudflare-security-audit"],
+    "summary": "One source-first security audit skill (20 files: references and local Node validators for coverage ledgers and findings). Official Cloudflare organisation repository.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "agentskills-standard",
+    "name": "agentskills/agentskills",
+    "requestedAs": "agentskills/agentskills",
+    "batch": "original",
+    "kind": "standard",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/agentskills/agentskills"
+    },
+    "revision": "69ef37e9424c0a7ea9dd2293b559e43ec8176379",
+    "lastCommit": "2026-08-09",
+    "publisher": "Agent Skills project",
+    "license": "Apache-2.0",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "The Agent Skills specification, documentation and the skills-ref validation library. It contains no installable skill (0 SKILL.md folders at the audited revision), so it is a standards reference, not a skill. Useful as the authority for SKILL.md frontmatter rules (name must match the folder name).",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "oil-ui",
+    "name": "oil-oil/oil-ui",
+    "requestedAs": "oil-oil/oil-ui",
+    "batch": "original",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/oil-oil/oil-ui"
+    },
+    "revision": "e3334bd5f6e700d21ac275b169ceee6495db9391",
+    "lastCommit": "2026-10-28",
+    "publisher": "oil-oil",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["oil-ui"],
+    "summary": "One UI-design skill (instructions in Chinese) that generates multi-style comparison pages, with Python and Node scripts and a self-update check. SKILL.md sits at the repository root, so the \"skill folder\" is the whole repository (51 files incl. tests and READMEs).",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "krillinai-opencreator",
+    "name": "krillinai/OpenCreator",
+    "requestedAs": "krillinai/OpenCreator",
+    "batch": "original",
+    "kind": "application",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/krillinai/OpenCreator"
+    },
+    "revision": "d17bdc16d431db7a45b138c3180bdae533df003a",
+    "lastCommit": "2026-10-26",
+    "publisher": "KrillinAI (OpenCreator, formerly KrillinAI)",
+    "license": "Apache-2.0",
+    "skillsFound": 15,
+    "skills": [],
+    "summary": "An open-source AI creator workspace (desktop/web app with an embedded Go runtime) that contains 15 SKILL.md files: 7 krillinai-* skills that drive the repository's own CLI, 1 runtime skill, and 7 writing-template skills without SKILL.md frontmatter names. They are bound to the application checkout (they build and run binaries under runtime/ and use $REPO_ROOT), so they are not portable skills and are not registered.",
+    "warnings": [
+      "Skills assume the OpenCreator repository is the working directory and instruct building its binaries.",
+      "Repository is about 340 MB."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "cloudai-x-threejs-skills",
+    "name": "CloudAI-X/threejs-skills",
+    "requestedAs": "cloudai-x/threejs-skills",
+    "batch": "original",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/CloudAI-X/threejs-skills"
+    },
+    "revision": "0e181866f095b5f06d005133876e926515390d95",
+    "lastCommit": "2026-10-19",
+    "publisher": "CloudAI-X",
+    "license": "MIT",
+    "skillsFound": 13,
+    "skills": [
+      "threejs-animation",
+      "threejs-asset-pipeline",
+      "threejs-fundamentals",
+      "threejs-geometry",
+      "threejs-interaction",
+      "threejs-lighting",
+      "threejs-loaders",
+      "threejs-materials",
+      "threejs-performance",
+      "threejs-postprocessing",
+      "threejs-react-three-fiber",
+      "threejs-shaders",
+      "threejs-textures"
+    ],
+    "summary": "13 single-file Three.js skills (fundamentals, geometry, materials, lighting, shaders, post-processing, R3F and more). threejs-fundamentals was registered in ES4; the other 12 are new. Instruction-only, no scripts.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "greensock-gsap-skills",
+    "name": "greensock/gsap-skills",
+    "requestedAs": "greensock/gsap-skills",
+    "batch": "original",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/greensock/gsap-skills"
+    },
+    "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+    "lastCommit": "2026-04-21",
+    "publisher": "GreenSock (official)",
+    "license": "MIT",
+    "skillsFound": 8,
+    "skills": [
+      "gsap-core",
+      "gsap-frameworks",
+      "gsap-performance",
+      "gsap-plugins",
+      "gsap-react",
+      "gsap-scrolltrigger",
+      "gsap-timeline",
+      "gsap-utils"
+    ],
+    "summary": "Eight official single-file GSAP skills (core, timeline, ScrollTrigger, plugins, utils, React, performance, frameworks). Instruction-only.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "zanwei-design-dna",
+    "name": "zanwei/design-dna",
+    "requestedAs": "zanwei/design-dna",
+    "batch": "original",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/zanwei/design-dna"
+    },
+    "revision": "593e39bc9e3652734653bd75544a333d7d43615e",
+    "lastCommit": "2026-08-28",
+    "publisher": "zanwei",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["design-dna"],
+    "summary": "One skill that extracts a three-dimension \"design DNA\" JSON (tokens, style, effects) from reference images or URLs and generates design from it. SKILL.md is at the repository root; helper scripts measure colours with an npm dependency.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "lottiefiles-motion-design-skill",
+    "name": "LottieFiles/motion-design-skill",
+    "requestedAs": "lottiefiles/motion-design-skill",
+    "batch": "original",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/lottiefiles/motion-design-skill"
+    },
+    "revision": "f9a8a041b85185ee4881b3471d3415e939aac772",
+    "lastCommit": "2026-05-18",
+    "publisher": "LottieFiles",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["lottie-motion-design"],
+    "summary": "One instruction-only motion-design skill (17 files of principles and references). Official LottieFiles organisation repository.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "athevon-genjutsu",
+    "name": "AThevon/genjutsu",
+    "requestedAs": "AThevon/genjutsu",
+    "batch": "original",
+    "kind": "framework",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/AThevon/genjutsu"
+    },
+    "revision": "1f518a71378b15d423389e546e767cffc86e14c3",
+    "lastCommit": "2026-10-05",
+    "publisher": "AThevon",
+    "license": "MIT",
+    "skillsFound": 20,
+    "skills": ["genjutsu-bunshin", "genjutsu-cast", "genjutsu-paint"],
+    "summary": "A creative-coding framework: three entry skills (cast, paint, bunshin) that load 17 internal \"_jutsu\" module skills (motion, GSAP, Three.js, SwiftUI, Compose, orchestration, a vendored copy of ui-ux-pro-max, ...). Only the three entry skills are registered; the modules are internal (metadata.internal) and are not independently useful.",
+    "warnings": [
+      "The entry skills locate their _jutsu modules by probing sibling directories, plugin caches and /sessions; upstream states that installing the repository without the modules produces generic output. Installing a single entry skill from this registry would be incomplete: the whole skills/ tree must be installed together.",
+      "The orchestration module ships workflow scripts that run rm -rf on scratch directories and spawn many subagents (documented at roughly 10 M tokens for a full run)."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "pbakaus-impeccable",
+    "name": "pbakaus/impeccable",
+    "requestedAs": "pbakaus/impeccable",
+    "batch": "original",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/pbakaus/impeccable"
+    },
+    "revision": "3930843f0c21a418443bfe8a2736f166bfcddb69",
+    "lastCommit": "2026-10-29",
+    "publisher": "Paul Bakaus",
+    "license": "Apache-2.0",
+    "skillsFound": 1,
+    "skills": ["impeccable"],
+    "summary": "One large design skill (\"impeccable\") with about two dozen sub-commands (shape, audit, polish, animate, ...). The repository keeps about 21 generated copies of the same skill for different agent harnesses plus test fixtures; the registered path is the plugin build, plugin/skills/impeccable. Source for the build is skill/ (SKILL.src.md).",
+    "warnings": [
+      "SKILL.md runs scripts/impeccable at the start of every session. The launcher executes, in order: $IMPECCABLE_BIN; a binary beside the script (none is shipped); ~/.impeccable/bin/impeccable and an `impeccable` found on PATH (both accepted after an engine handshake only, not checksum-verified); a cached engine; or an engine downloaded from the project's GitHub releases (engine v0.1.18) into ~/.impeccable. A download or cached copy is checked against engine-checksums.txt, which ships inside the pinned folder and fails closed. The engine binary itself was not inspected."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "nutlope-hallmark",
+    "name": "nutlope/hallmark",
+    "requestedAs": "Hallmark",
+    "batch": "design-ui",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/nutlope/hallmark"
+    },
+    "revision": "4f6a46c6dc325d40ab268c93e25c7b96676ebccd",
+    "lastCommit": "2026-10-29",
+    "publisher": "Together AI (Nutlope)",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["hallmark"],
+    "summary": "One design skill with 50 themes, reference photos, a lint tool (\"sloplint\") and optional Claude Code edit hooks. Repository homepage is usehallmark.com; README states it is made by Together AI.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "leonxlnx-taste-skill",
+    "name": "Leonxlnx/taste-skill",
+    "requestedAs": "Taste Skill",
+    "batch": "design-ui",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/Leonxlnx/taste-skill"
+    },
+    "revision": "12af471f627f866411b4bd785b19646d3672784c",
+    "lastCommit": "2026-10-24",
+    "publisher": "Leonxlnx",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["taste-skill"],
+    "summary": "One art-direction skill for websites (\"tasteskill v2\") with a research library, a real-browser inspector (own CDP client) and asset fetching scripts. The frontmatter name is design-taste-frontend while the folder is taste-skill. Upstream sponsors are listed in the README.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "anti-slop-unresolved",
+    "name": "Anti-slop",
+    "requestedAs": "Anti-slop",
+    "batch": "design-ui",
+    "kind": "lead",
+    "resolution": "ambiguous",
+    "decision": "unresolved",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "\"Anti-slop\" names no single project. miqdadbadjuber/anti-slop (6 skills, MIT, antislop.ai.id links to it) is one plausible meaning, but several other projects use the label, including Hallmark and Taste Skill (both requested separately) and prose-focused stop-slop. Nothing is registered until the intended project is named.",
+    "warnings": [],
+    "alternatives": [
+      {
+        "url": "https://github.com/miqdadbadjuber/anti-slop",
+        "note": "Most likely single \"anti-slop\" design/code skill pack: MIT, 6 skills under skills/ (antislop, antislop-code, antislop-copywriting, antislop-human, antislop-layoutmobile, antislop-ui), HEAD 3005235d030b; ownership of the project is established by the site-repo link, but that this is the one requested is not. Its installer is an npx package."
+      },
+      {
+        "url": "https://github.com/Nutlope/hallmark",
+        "note": "Describes itself as an anti-AI-slop design skill; already requested separately as Hallmark."
+      },
+      {
+        "url": "https://github.com/hardikpandya/stop-slop",
+        "note": "Prose (writing) de-slop skill, not a design skill."
+      }
+    ],
+    "needs": "Where the name \"Anti-slop\" was seen (a URL, post or directory listing), or the exact owner/repository. If miqdadbadjuber/anti-slop is the intended project, say so and it can be registered from the audit already done.",
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "nextlevelbuilder-ui-ux-pro-max",
+    "name": "nextlevelbuilder/ui-ux-pro-max-skill",
+    "requestedAs": "UI UX Pro Max",
+    "batch": "design-ui",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill"
+    },
+    "revision": "28b3b8dee8c976df4fa3e94aed4e092ad43fcb03",
+    "lastCommit": "2026-10-26",
+    "publisher": "NextLevelBuilder",
+    "license": "MIT",
+    "skillsFound": 7,
+    "skills": [
+      "ui-ux-pro-max",
+      "uipro-banner-design",
+      "uipro-brand",
+      "uipro-design",
+      "uipro-design-system",
+      "uipro-slides",
+      "uipro-ui-styling"
+    ],
+    "summary": "A design-intelligence skill plus six sibling skills (design, design-system, ui-styling, brand, banner-design, slides) backed by searchable CSV data and Python scripts. Registered from .claude/skills/ (the maintained build); cli/assets/skills holds packaged duplicates, and src/ui-ux-pro-max holds the shared data. The repository also contains an npm installer CLI (uipro) that is not registered.",
+    "warnings": [
+      "The npm CLI (cli/) installs the skills into many agents; it was not inspected for registration and should not be used in place of a pinned install."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "voltagent-awesome-design-md",
+    "name": "VoltAgent/awesome-design-md",
+    "requestedAs": "VoltAgent Awesome DESIGN.md",
+    "batch": "design-ui",
+    "kind": "design-reference",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/VoltAgent/awesome-design-md"
+    },
+    "revision": "fcc70284932276d085f01ef9f83edde90b1258cb",
+    "lastCommit": "2026-10-28",
+    "publisher": "VoltAgent",
+    "license": "MIT",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "A curated library of 84 DESIGN.md files (one folder per website/brand) that describe public sites' design languages for an agent to imitate. It contains no SKILL.md, so it is a design-system reference collection, not an installable skill.",
+    "warnings": [
+      "The DESIGN.md files describe third-party brands' visual identities; the MIT licence covers the repository text, not the brands' trademarks or design rights. Check before shipping a look-alike."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "nexu-open-design",
+    "name": "nexu-io/open-design",
+    "requestedAs": "Nexu Open Design",
+    "batch": "design-ui",
+    "kind": "application",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/nexu-io/open-design"
+    },
+    "revision": "fa19ff40e34dd50a9b01888b0339a1b2e1e68cc7",
+    "lastCommit": "2026-10-29",
+    "publisher": "Nexu",
+    "license": "Apache-2.0",
+    "skillsFound": 562,
+    "skills": [],
+    "summary": "An application (daemon, web app, desktop shells, design systems, templates and prompt libraries) that bundles 562 SKILL.md files: roughly 190 in skills/ (many vendored copies of other projects' skills such as gsap-*, frontend-design, web-design-guidelines, taste-skill, impeccable-design-polish, ui-ux-pro-max, plus media-generation wrappers), ~110 design-templates, and ~270 generated plugin entries. It is an application with a skills layer, so it is recorded as a reference. Original upstreams of the vendored skills are the ones to register, not these copies.",
+    "warnings": [
+      "Bundles vendored copies of third-party skills; provenance and redistribution rights are per skill and not verified.",
+      "About 350 MB; contains media-generation wrappers that call paid third-party APIs."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "elayadesign-ai-design-skills",
+    "name": "elayadesign/ai-design-skills",
+    "requestedAs": "Elaya AI Design Skills",
+    "batch": "design-ui",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/elayadesign/ai-design-skills"
+    },
+    "revision": "ded7efc9d5c02761c41a03caf3b78f9259ab8828",
+    "lastCommit": "2026-10-27",
+    "publisher": "Elaya Design",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["landing-page-design"],
+    "summary": "A one-skill repository (landing-page-design, a single SKILL.md of landing-page guidance). Despite the plural repository name only one skill exists at the audited revision.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "hyperbrowser-design-md",
+    "name": "Hyperbrowser Design MD (hyperdesign)",
+    "requestedAs": "Design MD — Hyperbrowser AI",
+    "batch": "design-ui",
+    "kind": "application",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/hyperbrowserai/hyperbrowser-app-examples"
+    },
+    "revision": "4fdaa93d77edf6ae0cf1cdb3012cf38b331f7095",
+    "lastCommit": "2026-08-03",
+    "publisher": "Hyperbrowser",
+    "license": "MIT (stated in the hyperdesign README; no root LICENSE file)",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "design-md.hyperbrowser.ai is a web application that extracts a DESIGN.md from any website; its source is the hyperdesign/ folder of hyperbrowserai/hyperbrowser-app-examples (site text and README text are identical). It needs HYPERBROWSER_API_KEY and ANTHROPIC_API_KEY, contains no SKILL.md and is not a skill. The nearest skill-like file, hyperbrowserai/examples skills/design-skill.md, is a flat markdown file with name: design (no folder with SKILL.md) that needs the Hyperbrowser MCP or CLI.",
+    "warnings": ["Requires paid third-party API keys (Hyperbrowser, Anthropic)."],
+    "alternatives": [
+      {
+        "url": "https://github.com/hyperbrowserai/examples",
+        "note": "Contains skills/design-skill.md (MIT, HEAD 742df66242aad1ad5474b817909d1e85f953168f), a single flat file rather than a skill folder."
+      }
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "refero-skill",
+    "name": "referodesign/refero_skill",
+    "requestedAs": "Styles — Refero Design (skill)",
+    "batch": "design-ui",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/referodesign/refero_skill"
+    },
+    "revision": "2382e518f90096df607196b9a635da2d1bc142f9",
+    "lastCommit": "2026-10-12",
+    "publisher": "Refero",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["refero-design"],
+    "summary": "Official Refero skill (refero-design). Linked from Refero's own documentation. Live research needs a paid Refero plan and OAuth to the Refero MCP; offline it works from bundled references.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "refero-styles",
+    "name": "Refero Styles library",
+    "requestedAs": "Styles — Refero Design",
+    "batch": "design-ui",
+    "kind": "design-reference",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://styles.refero.design"
+    },
+    "publisher": "Refero",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "styles.refero.design is a web library (beta) of 2,000+ DESIGN.md design systems, with MCP access. It is a hosted service, with no GitHub repository and no SKILL.md, so it is a reference. The skill that uses Refero is registered separately as refero-skill.",
+    "warnings": [
+      "Hosted beta service; terms, licensing of the individual DESIGN.md files and pricing were not confirmed."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "designmd-supply",
+    "name": "context-dot-dev/designmd-supply",
+    "requestedAs": "DesignMD — Supply",
+    "batch": "design-ui",
+    "kind": "application",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/context-dot-dev/designmd-supply"
+    },
+    "revision": "e6bedb59fe9746dcb339f82e2de4c2a825128197",
+    "lastCommit": "2026-10-11",
+    "publisher": "Context.dev",
+    "license": "MIT",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "The Next.js application behind designmd.supply, which generates DESIGN.md files for websites. It contains no SKILL.md; third-party \"designmd-supply-generator\" skills on skills.sh are wrappers, not upstream. Ownership rests on the repository homepage field (designmd.supply) because the site itself could not be fetched.",
+    "warnings": ["Needs CONTEXT_DEV_API_KEY and a Vercel AI Gateway key to run."],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "typeui-cli",
+    "name": "bergside/typeui",
+    "requestedAs": "TypeUI.sh",
+    "batch": "design-ui",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/bergside/typeui"
+    },
+    "revision": "efc5f21dff38692e4eaffc304fed465d7cb531e8",
+    "lastCommit": "2026-10-22",
+    "publisher": "Bergside LLC",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["typeui-fundamentals"],
+    "summary": "The TypeUI CLI, MCP server and plugins. Its only skill, typeui-fundamentals (skills/fundamentals), is registered; the plugin folders hold copies for other agents. Both bergside repositories name typeui.sh as their homepage; the reverse link from the site could not be fetched.",
+    "warnings": [
+      "Normal use is through npx typeui.sh and a hosted MCP server; install from the pinned skill folder instead."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "typeui-design-skills",
+    "name": "bergside/awesome-design-skills",
+    "requestedAs": "TypeUI.sh (design-skill library)",
+    "batch": "design-ui",
+    "kind": "design-reference",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/bergside/awesome-design-skills"
+    },
+    "revision": "f631a09b4fcc0166f2e2c1a8c81906ef680c57e8",
+    "lastCommit": "2026-06-28",
+    "publisher": "Bergside LLC",
+    "license": "MIT",
+    "skillsFound": 67,
+    "skills": [],
+    "summary": "The TypeUI registry: 67 near-identical style skills (one per design language, each a SKILL.md plus DESIGN.md, frontmatter license MIT, author typeui.sh). They are style specifications to be pulled per project, so the collection is recorded as a design-system reference and none are registered individually. Individual styles can be registered later on request.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "neuform-ai",
+    "name": "Neuform AI",
+    "requestedAs": "Neuform AI",
+    "batch": "design-ui",
+    "kind": "lead",
+    "resolution": "unresolved",
+    "decision": "unresolved",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "neuform.ai is a commercial, login-walled service (AI HTML landing pages and a DESIGN.md catalogue). No GitHub repository, SKILL.md, MCP or CLI was found, and the site names no company or repository link.",
+    "warnings": [],
+    "needs": "A link from Neuform's documentation or terms to an open repository or skill, or the page where the skill was seen.",
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "motionsites-claude-skill",
+    "name": "Motionsites-AI/claude-skill",
+    "requestedAs": "MotionSites AI Claude Skill",
+    "batch": "design-ui",
+    "kind": "lead",
+    "resolution": "ambiguous",
+    "decision": "unresolved",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "A repository with the requested name exists (Motionsites-AI/claude-skill, one skill motionsites-web-builder, HEAD faa30d512e3973e58675c72101a7ef42ed37ae83, last commit 2026-10-26), and its homepage field and README link to motionsites.ai. But the link does not run the other way: motionsites.ai does not mention the skill or the repository, and the organisation was created on the day of the last commit and is unverified. Ownership is therefore not established.",
+    "warnings": [],
+    "alternatives": [
+      {
+        "url": "https://github.com/Motionsites-AI/claude-skill",
+        "note": "Skill at plugins/motionsites-web-builder/skills/motionsites-web-builder; skill text MIT, but examples/ and media/ are (c) MotionSites and must not be mirrored; promotes a paid plan and a paid MCP."
+      }
+    ],
+    "needs": "A link from motionsites.ai (or the creator's official channels) to this repository, or confirmation from the requester that this is the intended project.",
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "claude-animation-base",
+    "name": "JohnHeibel/ClaudeAnimationBase",
+    "requestedAs": "John Heibel — Claude Animation Base (johnheibel/claudeanimation-base)",
+    "batch": "video-animation",
+    "kind": "application",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/JohnHeibel/ClaudeAnimationBase"
+    },
+    "revision": "0ac8bf2b31942376cb6b8c4074715595d512acd2",
+    "lastCommit": "2026-09-24",
+    "publisher": "John Heibel",
+    "license": "MIT",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "The requested path johnheibel/claudeanimation-base does not exist; the real repository is JohnHeibel/ClaudeAnimationBase (LICENSE and commits name John Heibel). It is a starter kit for animating a character with p5.js and p5.brush: ANIMATION_GUIDE.md is the instruction document the user points the model at, plus render.mjs, studio.html and a demo scene. There is no SKILL.md and no plugin manifest, so it is not a skill as published.",
+    "warnings": [
+      "Needs Node.js, Google Chrome (driven through puppeteer-core) and ffmpeg; renders are slow without a GPU.",
+      "The \"Clawd\" character is a likeness of the Claude Code mascot; MIT does not settle any Anthropic brand rights."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "vincentwei1021-video-shotcraft",
+    "name": "Vincentwei1021/video-shotcraft",
+    "requestedAs": "Vincentwei1021 — Video Shotcraft",
+    "batch": "video-animation",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/Vincentwei1021/video-shotcraft"
+    },
+    "revision": "1266a3ec4831289c4d893d42dd5102723658039a",
+    "lastCommit": "2026-10-29",
+    "publisher": "Vincentwei1021 (Wei Yihao)",
+    "license": "Apache-2.0",
+    "skillsFound": 1,
+    "skills": ["video-shotcraft"],
+    "summary": "One heavyweight Remotion skill (video-shotcraft) for cinematic product videos, with 124 shot recipe cards, a template, ~120 demo shots, a workbench app, SFX tooling, JianYing export and publishing scripts. SKILL.md is at the repository root; the pinned snapshot is about 53 MB in 1,217 files (439 media files, 67 scripts).",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "vincentwei1021-mg-styles-15",
+    "name": "Vincentwei1021/mg-styles-15",
+    "requestedAs": "Vincentwei1021 — MG Styles 15",
+    "batch": "video-animation",
+    "kind": "design-reference",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/Vincentwei1021/mg-styles-15"
+    },
+    "revision": "49052d80bfaf9fa8412cc9710530e5e95a3b8d8c",
+    "lastCommit": "2026-10-05",
+    "publisher": "Vincentwei1021",
+    "license": "MIT (third-party files carry their own licences)",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "Fifteen 10-second motion-design films with their style notes, full prompts and source, made with Claude writing code (SVG, Canvas, WebGL, Three.js; Blender for one 3D film; Python audio synthesis). A showcase and prompt library with no SKILL.md; a skill would have to be authored over it. Reported as about 570 MB (not downloaded; identity and licence were checked through the repository's README and LICENSE file).",
+    "warnings": [
+      "Python 3.11+ with a heavy pinned stack (librosa, numba, pedalboard, rembg, OpenCV), Blender for the 3D film, ffmpeg and puppeteer-core; reported by research, not executed.",
+      "Fonts are not bundled; about 35 fonts with mixed licences must be sourced separately."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "vercel-nextjs-skills",
+    "name": "vercel/next.js (skills/)",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/vercel/next.js"
+    },
+    "revision": "79107ebd94e53c69865c1a49ac734ba8004491ba",
+    "lastCommit": "2026-10-29",
+    "publisher": "Vercel",
+    "license": "MIT",
+    "skillsFound": 6,
+    "skills": [
+      "next-bundle-optimizer",
+      "next-cache-components-adoption",
+      "next-cache-components-optimizer",
+      "next-dev-loop",
+      "next-partial-prefetching-adoption",
+      "next-partial-prefetching-optimizer"
+    ],
+    "summary": "Six official Next.js adoption/optimisation skills in the framework monorepo's skills/ folder (vercel-labs/next-skills now only redirects here). Only skills/ was examined; the rest of the monorepo is not a skill source.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "nuxt-ui",
+    "name": "nuxt/ui (skills/)",
+    "batch": "discovered",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/nuxt/ui"
+    },
+    "revision": "366e948458689236e5b2fa98cb2e292f6e5327b3",
+    "lastCommit": "2026-10-28",
+    "publisher": "Nuxt (official)",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["nuxt-ui"],
+    "summary": "The official Nuxt UI skill (nuxt-ui) in the component library repository. No general nuxt/skills repository exists.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "shadcn-ui",
+    "name": "shadcn-ui/ui (skills/)",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/shadcn-ui/ui"
+    },
+    "revision": "96da9cc7f1aa10580a3741664e2a77c721206c00",
+    "lastCommit": "2026-10-27",
+    "publisher": "shadcn-ui",
+    "license": "MIT",
+    "skillsFound": 2,
+    "skills": ["migrate-radix-to-base", "shadcn"],
+    "summary": "Two official skills (shadcn, migrate-radix-to-base) in the shadcn/ui monorepo. The skills drive the shadcn CLI, which fetches components from a registry at use time.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "addyosmani-web-quality-skills",
+    "name": "addyosmani/web-quality-skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/addyosmani/web-quality-skills"
+    },
+    "revision": "afa8da942115f2961fdbfa80807ea0b232ff6c00",
+    "lastCommit": "2026-08-24",
+    "publisher": "Addy Osmani",
+    "license": "MIT",
+    "skillsFound": 6,
+    "skills": [
+      "web-quality-accessibility",
+      "web-quality-audit",
+      "web-quality-best-practices",
+      "web-quality-core-web-vitals",
+      "web-quality-performance",
+      "web-quality-seo"
+    ],
+    "summary": "Six web-quality skills (accessibility, core-web-vitals, performance, SEO, best-practices, web-quality-audit). A separate repository from addyosmani/agent-skills; no skill is duplicated between them.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "masup9-a11y-specialist-skills",
+    "name": "masup9/a11y-specialist-skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/masup9/a11y-specialist-skills"
+    },
+    "revision": "93d4afe2336a72195f23495262a33dee2fc0112f",
+    "lastCommit": "2026-10-29",
+    "publisher": "masup9 (individual maintainer)",
+    "license": "MIT",
+    "skillsFound": 6,
+    "skills": [
+      "a11y-knowledge",
+      "auditing-wcag",
+      "implementing-a11y",
+      "planning-a11y-improvement",
+      "planning-wcag-audit",
+      "reviewing-a11y"
+    ],
+    "summary": "Six accessibility skills (WCAG auditing and review) by an individual maintainer; no vendor-official accessibility skills repository exists. Complements the already-registered wcag-guide.",
+    "warnings": ["Individual maintainer, small community (about 60 stars at discovery)."],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "phaser-skills",
+    "name": "phaserjs/phaser (skills/)",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/phaserjs/phaser"
+    },
+    "revision": "02d8931b626d9764c133cbb3fbf99966c03c757c",
+    "lastCommit": "2026-08-21",
+    "publisher": "Phaser Studio (official)",
+    "license": "MIT",
+    "skillsFound": 28,
+    "skills": [
+      "phaser-animations",
+      "phaser-audio-and-sound",
+      "phaser-game-setup-and-config",
+      "phaser-input-keyboard-mouse-touch",
+      "phaser-loading-assets",
+      "phaser-physics-arcade",
+      "phaser-scale-and-responsive",
+      "phaser-scenes",
+      "phaser-sprites-and-images",
+      "phaser-tweens"
+    ],
+    "summary": "Twenty-eight official Phaser 4 skills. Ten core ones are registered (setup, scenes, sprites, animations, input, loading, arcade physics, scaling, tweens, audio); the other 18 (cameras, filters, tilemaps, particles, Matter physics, v3-to-v4 migration, ...) are discovered but not registered, to keep the catalog focused. All are single-file instruction skills.",
+    "warnings": [
+      "Targets Phaser 4; Phaser 3 projects need the v3-to-v4 migration skill (not registered) or different guidance."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "expo-skills",
+    "name": "expo/skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/expo/skills"
+    },
+    "revision": "05754e71d02abe0d2d7a2fb5259ccac41f5ea59c",
+    "lastCommit": "2026-10-28",
+    "publisher": "Expo (official)",
+    "license": "MIT",
+    "skillsFound": 24,
+    "skills": [
+      "eas-update",
+      "eas-workflows",
+      "expo-animation",
+      "expo-data-fetching",
+      "expo-design-system",
+      "expo-dev-client",
+      "expo-native-ui",
+      "expo-project-structure",
+      "expo-router",
+      "expo-upgrade"
+    ],
+    "summary": "Twenty-four official Expo skills (23 in plugins/expo/skills plus an experimental migration skill). Ten are registered (router, data fetching, animation, project structure, upgrade, dev client, design system, native UI, EAS update, EAS workflows). The rest (EAS hosting/observe/simulator, brownfield, app clips, modules, DOM, ...) are discovered but not registered. An internal expo-skill-eval folder is eval tooling.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "remotion-skills",
+    "name": "remotion-dev/skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/remotion-dev/skills"
+    },
+    "revision": "30d4553ecd46fbc5212fd0ff006ae43af522158b",
+    "lastCommit": "2026-10-26",
+    "publisher": "Remotion (official publish mirror)",
+    "license": "unknown",
+    "skillsFound": 12,
+    "skills": [
+      "remotion-best-practices",
+      "remotion-captions",
+      "remotion-create",
+      "remotion-docs",
+      "remotion-interactivity",
+      "remotion-maps",
+      "remotion-markup",
+      "remotion-multimedia",
+      "remotion-render",
+      "remotion-saas",
+      "remotion-studio",
+      "remotion-upgrade"
+    ],
+    "summary": "Twelve official Remotion skills, generated from packages/skills in remotion-dev/remotion into this publish repository. The mirror has no LICENSE file; the parent project uses the custom Remotion License.",
+    "warnings": [
+      "Remotion itself is free for individuals and small teams; larger for-profit companies need a company licence."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "heygen-hyperframes",
+    "name": "heygen-com/hyperframes (skills/)",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/heygen-com/hyperframes"
+    },
+    "revision": "4e2a1c215a42c6d262b8c635df9d5edff80e8830",
+    "lastCommit": "2026-10-29",
+    "publisher": "HeyGen",
+    "license": "Apache-2.0",
+    "skillsFound": 7,
+    "skills": [
+      "hyperframes",
+      "hyperframes-cli",
+      "hyperframes-media-use",
+      "remotion-to-hyperframes"
+    ],
+    "summary": "HeyGen's HTML-to-video framework. skills/ holds seven skills; four are registered (hyperframes, hyperframes-cli, media-use, remotion-to-hyperframes). figma, hyperframes-registry and slideshow are not registered. The repository is about 330 MB and also contains registry blocks and examples that carry their own SKILL.md files, which are not skills to install.",
+    "warnings": ["Large monorepo; only the skills/ folders are in scope."],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "rive-skills",
+    "name": "rive-app/skills",
+    "batch": "discovered",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/rive-app/skills"
+    },
+    "revision": "0516522e5216400fdd630732d143bafb12528f50",
+    "lastCommit": "2026-10-19",
+    "publisher": "Rive (official publish mirror)",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["rive"],
+    "summary": "The official Rive skill (rive), published as a mirror of the Rive monorepo's packages/skills (2 commits, no stars at discovery).",
+    "warnings": ["New read-only mirror with a very short history."],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "playwright-cli",
+    "name": "microsoft/playwright-cli",
+    "batch": "discovered",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/microsoft/playwright-cli"
+    },
+    "revision": "b1a5903c5b633b8c9f843ad7b629c2a78437040c",
+    "lastCommit": "2026-10-19",
+    "publisher": "Microsoft",
+    "license": "Apache-2.0",
+    "skillsFound": 1,
+    "skills": ["playwright-cli"],
+    "summary": "The official playwright-cli skill, which teaches an agent the playwright-cli command-line browser tool. A second SKILL.md under .claude/ is repository-internal dev tooling and is not registered.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "neon-agent-skills",
+    "name": "neondatabase/agent-skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/neondatabase/agent-skills"
+    },
+    "revision": "9df568a3f88a361ea33db00453ff754d07b3b3e1",
+    "lastCommit": "2026-10-27",
+    "publisher": "Neon",
+    "license": "Apache-2.0",
+    "skillsFound": 9,
+    "skills": ["neon-postgres", "neon-postgres-branches"],
+    "summary": "Nine official Neon skills (also mirrored under plugins/). Two are registered (neon-postgres, neon-postgres-branches); auth, functions, realtime, object storage, AI gateway and the egress optimizer are discovered but not registered.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "prisma-skills",
+    "name": "prisma/skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/prisma/skills"
+    },
+    "revision": "8ea289b730c2e89f7ff1f518af128b113d842a92",
+    "lastCommit": "2026-10-29",
+    "publisher": "Prisma (official)",
+    "license": "MIT",
+    "skillsFound": 10,
+    "skills": [
+      "prisma-cli",
+      "prisma-client-api",
+      "prisma-orm-setup",
+      "prisma-postgres",
+      "prisma-upgrade-v7"
+    ],
+    "summary": "Ten official Prisma skills. Five are registered (CLI, client API, ORM setup, Postgres, v7 upgrade); compute, MongoDB upgrade, driver adapters and database setup are discovered but not registered.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "cloudflare-skills",
+    "name": "cloudflare/skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/cloudflare/skills"
+    },
+    "revision": "49a31e0b3229ccdffe4944be9c61bc7481d1d432",
+    "lastCommit": "2026-10-28",
+    "publisher": "Cloudflare",
+    "license": "Apache-2.0",
+    "skillsFound": 19,
+    "skills": [
+      "cloudflare-agents-sdk",
+      "cloudflare-durable-objects",
+      "cloudflare-web-perf",
+      "cloudflare-workers-best-practices",
+      "cloudflare-workers-profiling",
+      "cloudflare-wrangler"
+    ],
+    "summary": "Nineteen official Cloudflare skills. Six are registered (web-perf, workers-best-practices, workers-profiling, durable-objects, agents-sdk, wrangler); the product-specific rest (email, sandbox, turnstile, basin, k2, ...) is discovered but not registered. turnstile-spin ships shell scripts.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "flutter-agent-plugins",
+    "name": "flutter/agent-plugins",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/flutter/agent-plugins"
+    },
+    "revision": "90fa51dc9d1bd6694cee226397e08ec8193e9e69",
+    "lastCommit": "2026-10-26",
+    "publisher": "Flutter (official)",
+    "license": "BSD-3-Clause",
+    "skillsFound": 25,
+    "skills": [
+      "flutter-add-integration-test",
+      "flutter-add-widget-test",
+      "flutter-apply-architecture-best-practices",
+      "flutter-build-responsive-layout",
+      "flutter-fix-layout-issues",
+      "flutter-setup-declarative-routing"
+    ],
+    "summary": "Twenty-five official Flutter and Dart skills (flutter/skills redirects here). Six Flutter skills are registered (architecture, responsive layout, layout fixes, widget tests, declarative routing, integration tests); the Dart tooling skills are discovered but not registered. Contributor-internal agent folders under .agents/ are not skills to install.",
+    "warnings": ["LICENSE is a BSD-style notice; recorded as BSD-3-Clause from its text."],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "android-skills",
+    "name": "android/skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/android/skills"
+    },
+    "revision": "6daa53ef27fa2aa87827d183a85c06cedceca833",
+    "lastCommit": "2026-10-29",
+    "publisher": "Google Android (official)",
+    "license": "Apache-2.0",
+    "skillsFound": 36,
+    "skills": [
+      "android-anr-audit-and-fix",
+      "android-intent-security",
+      "android-jetpack-compose-performance",
+      "android-navigation-3",
+      "android-permissions-security",
+      "android-r8-analyzer",
+      "android-testing-setup"
+    ],
+    "summary": "Thirty-six official Android skills. Seven are registered (Compose performance, ANR audit, R8 analyzer, permissions and intent security, testing setup, Navigation 3); the remaining product- and form-factor-specific skills (Wear, XR, Cars, Play Engage, ...) are discovered but not registered.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "kotlin-agent-skills",
+    "name": "Kotlin/kotlin-agent-skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/Kotlin/kotlin-agent-skills"
+    },
+    "revision": "c2f90697bf71966a117a13340d5fff787f004140",
+    "lastCommit": "2026-09-11",
+    "publisher": "JetBrains (Kotlin)",
+    "license": "Apache-2.0",
+    "skillsFound": 10,
+    "skills": ["kotlin-backend-jpa-entity-mapping", "kotlin-tooling-java-to-kotlin"],
+    "summary": "Ten official Kotlin skills. Two are registered (Java-to-Kotlin conversion, JPA entity mapping); the build-tooling migration skills are discovered but not registered.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "twostraws-swiftui-agent-skill",
+    "name": "twostraws/SwiftUI-Agent-Skill",
+    "batch": "discovered",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/twostraws/SwiftUI-Agent-Skill"
+    },
+    "revision": "f2920b63995263f57b3e198674e89a602efba6d2",
+    "lastCommit": "2026-10-26",
+    "publisher": "Paul Hudson (twostraws)",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["swiftui-pro"],
+    "summary": "One SwiftUI review/guidance skill by a well-known community maintainer.",
+    "warnings": ["Community maintainer, not Apple."],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "avdlee-swiftui-agent-skill",
+    "name": "AvdLee/SwiftUI-Agent-Skill",
+    "batch": "discovered",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/AvdLee/SwiftUI-Agent-Skill"
+    },
+    "revision": "204dba7c67256a8b707ee3fbc5759a824191974f",
+    "lastCommit": "2026-10-06",
+    "publisher": "Antoine van der Lee (AvdLee)",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["swiftui-expert-skill"],
+    "summary": "One SwiftUI expert skill (swiftui-expert-skill) with Instruments trace-analysis scripts. A second SKILL.md under .agents/ is repository-internal.",
+    "warnings": ["Community maintainer, not Apple."],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "avdlee-swift-concurrency-agent-skill",
+    "name": "AvdLee/Swift-Concurrency-Agent-Skill",
+    "batch": "discovered",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/AvdLee/Swift-Concurrency-Agent-Skill"
+    },
+    "revision": "d5770817d2622e1585b1f7eaebc791a9cb0959c8",
+    "lastCommit": "2026-09-14",
+    "publisher": "Antoine van der Lee (AvdLee)",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["swift-concurrency"],
+    "summary": "One Swift concurrency skill.",
+    "warnings": ["Community maintainer, not Apple."],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "langchain-skills",
+    "name": "langchain-ai/langchain-skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/langchain-ai/langchain-skills"
+    },
+    "revision": "126c384d8552dcb476b226c244172186cc3f4328",
+    "lastCommit": "2026-10-25",
+    "publisher": "LangChain",
+    "license": "MIT",
+    "skillsFound": 22,
+    "skills": [
+      "langchain-eval-engineering",
+      "langchain-fundamentals",
+      "langchain-rag",
+      "langgraph-fundamentals",
+      "langgraph-human-in-the-loop",
+      "langgraph-persistence"
+    ],
+    "summary": "Twenty-two official LangChain, LangGraph and Deep Agents skills. Six are registered (RAG, fundamentals, LangGraph fundamentals, persistence, human-in-the-loop, eval engineering); the quickstarts, CLI, swarm and deep-agents skills are discovered but not registered. A root install.sh exists and must not be used.",
+    "warnings": ["The repository root has an install.sh installer that was not inspected."],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "huggingface-skills",
+    "name": "huggingface/skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/huggingface/skills"
+    },
+    "revision": "25910b3d0ba31a2ba102f901cdc9e008c278a69c",
+    "lastCommit": "2026-10-29",
+    "publisher": "Hugging Face (official)",
+    "license": "Apache-2.0",
+    "skillsFound": 26,
+    "skills": [
+      "hf-cli",
+      "hf-mcp",
+      "huggingface-local-models",
+      "train-sentence-transformers",
+      "transformers-js"
+    ],
+    "summary": "Twenty-six official Hugging Face skills. Five local-model/RAG/MCP-relevant ones are registered (local models, transformers.js, hf-mcp, hf-cli, sentence-transformers training); cloud/SageMaker, Spaces, LLM/vision training and paper-publishing skills are discovered but not registered.",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "llamaparse-agent-skills",
+    "name": "run-llama/llamaparse-agent-skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/run-llama/llamaparse-agent-skills"
+    },
+    "revision": "2dcef7c62417bd2ec4671fce4621bb1e8cce48d0",
+    "lastCommit": "2026-07-03",
+    "publisher": "LlamaIndex",
+    "license": "MIT",
+    "skillsFound": 3,
+    "skills": ["liteparse", "llamacloud-index", "llamaparse"],
+    "summary": "Three official document-parsing/RAG skills: liteparse (local), llamaparse and llamacloud-index (cloud services that need an API key).",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "claude-plugins-official",
+    "name": "anthropics/claude-plugins-official (mcp-server-dev)",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-for-review",
+    "upstream": {
+      "url": "https://github.com/anthropics/claude-plugins-official"
+    },
+    "revision": "f8c5e7a1dcb71b10cb74586224b5401f3de5db28",
+    "lastCommit": "2026-10-27",
+    "publisher": "Anthropic",
+    "license": "Apache-2.0",
+    "skillsFound": 27,
+    "skills": ["build-mcp-app", "build-mcp-server", "build-mcpb"],
+    "summary": "The official plugin marketplace repository (27 SKILL.md folders under plugins/ and 6 under external_plugins/, some third-party). Only the three mcp-server-dev skills (build-mcp-server, build-mcp-app, build-mcpb) are registered. Overlaps in purpose with the already-registered mcp-builder (anthropics/skills). Plugin-specific licences apply: confirm the plugin's own LICENSE before redistributing.",
+    "warnings": [
+      "Marketplace repository with per-plugin licences; only mcp-server-dev was examined."
+    ],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "getsentry-skills",
+    "name": "getsentry/skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/getsentry/skills"
+    },
+    "revision": "d12f250460ffd961f549dbebf7eeb0cf4afd4c2e",
+    "lastCommit": "2026-10-23",
+    "publisher": "Sentry",
+    "license": "Apache-2.0",
+    "skillsFound": 30,
+    "skills": [
+      "sentry-find-bugs",
+      "sentry-gha-security-review",
+      "sentry-security-review",
+      "sentry-skill-scanner"
+    ],
+    "summary": "Thirty Sentry engineering skills, many specific to Sentry's own processes. Four general security/bug-finding ones are registered (security-review, find-bugs, gha-security-review, skill-scanner).",
+    "warnings": [],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "openai-skills",
+    "name": "openai/skills",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/openai/skills"
+    },
+    "revision": "49f948faa9258a0c61caceaf225e179651397431",
+    "lastCommit": "2026-06-24",
+    "publisher": "OpenAI",
+    "license": "Per skill (no root LICENSE file)",
+    "skillsFound": 44,
+    "skills": [
+      "playwright",
+      "security-best-practices",
+      "security-ownership-map",
+      "security-threat-model"
+    ],
+    "summary": "The Codex skills catalogue (44 skills: 39 curated plus 5 system). security-threat-model was registered in ES4; playwright, security-best-practices and security-ownership-map are added. The repository has no LICENSE file at the root; per-skill LICENSE.txt files apply and were read for the registered skills.",
+    "warnings": ["No root licence; each registered skill carries its own LICENSE.txt."],
+    "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "gamedev-godot-skills",
+    "name": "gamedev-skills/awesome-gamedev-agent-skills (Godot)",
+    "batch": "discovered",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills"
+    },
+    "revision": "19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9",
+    "lastCommit": "2026-10-28",
+    "publisher": "gamedev-skills (community)",
+    "license": "Apache-2.0",
+    "skillsFound": 77,
+    "skills": [
+      "godot-animation",
+      "godot-export",
+      "godot-gdscript",
+      "godot-nodes-scenes",
+      "godot-signals-groups",
+      "godot-ui-control"
+    ],
+    "summary": "A community pack of 77 game-development skills (plus a router skill) (Godot, Unity, Unreal, Roblox, Phaser, PixiJS, Three.js, genres, disciplines). No official Godot skills exist. Six Godot skills are registered (GDScript, nodes and scenes, signals and groups, UI controls, animation, export); the rest are discovered but not registered. The pack has no Babylon.js skill.",
+    "warnings": ["Community-made, not from the Godot project."],
+    "discoveredAt": "2026-10-30"
+  }
+]

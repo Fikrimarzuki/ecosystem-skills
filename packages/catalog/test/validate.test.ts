@@ -181,6 +181,9 @@ describe('buildCatalog', () => {
   });
 
   it('requires the verified revision for external assignments', () => {
+    // only approved external skills can be assigned (ES16.1), so the fixture skill is approved
+    const approvedExt = () =>
+      external({ review: reviewed({ status: 'approved', approvedBy: 'owner' }) });
     const consumer = (verification: object) => ({
       id: 'c',
       name: 'C',
@@ -188,15 +191,18 @@ describe('buildCatalog', () => {
       assignments: [{ skill: 'ext', agents: ['codex'], verification }],
     });
     const v = { status: 'verified', verifiedAt: '2026-10-26', method: 'm' };
-    expect(errors(reg({ skills: [external()], consumers: [consumer(v)] })).join()).toMatch(
+    expect(errors(reg({ skills: [approvedExt()], consumers: [consumer(v)] })).join()).toMatch(
       /requires "revision"/,
     );
     expect(
-      errors(reg({ skills: [external()], consumers: [consumer({ ...v, revision: SHA })] })),
+      errors(reg({ skills: [approvedExt()], consumers: [consumer({ ...v, revision: SHA })] })),
     ).toEqual([]);
     const withHash = (contentHash: string) =>
       errors(
-        reg({ skills: [external()], consumers: [consumer({ ...v, revision: SHA, contentHash })] }),
+        reg({
+          skills: [approvedExt()],
+          consumers: [consumer({ ...v, revision: SHA, contentHash })],
+        }),
       );
     expect(withHash(HASH)).toEqual([]);
     expect(withHash('abc').join()).toMatch(/sha256-/);

@@ -1,0 +1,649 @@
+[
+  {
+    "id": "es19-gsap-core",
+    "skill": "gsap-core",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES19 static assessment: pinned files read as data; no agent was run)",
+    "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+    "contentHash": "sha256-5797628abf75abe9ed2535be410cdae261dd30f5bb8cb3cc8cb3f34c95ad10aa",
+    "scope": "SKILL.md and every supporting file at the pinned revision, read as data; sizes measured; registry warnings and blockers included. No agent behaviour was observed.",
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 14792,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md at the pinned revision"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 3670,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the skill folder",
+        "value": 1,
+        "unit": "files",
+        "method": "folder inventory at the pinned revision"
+      },
+      {
+        "name": "Folder size",
+        "value": 14792,
+        "unit": "bytes",
+        "method": "sum of file sizes at the pinned revision"
+      }
+    ],
+    "security": [
+      "No scripts, binaries, frontmatter tool grants or flagged patterns (ES16 discovery scan, re-checked here).",
+      "Links point to gsap.com documentation pages as further reading; nothing tells the agent to fetch them at run time."
+    ],
+    "compatibility": [
+      "A single SKILL.md, portable across agents that read Agent Skills folders. Claude Code, Codex and Cursor are named in the upstream README (documented, not tested)."
+    ],
+    "strengths": [
+      "Covers the core tween API, transform aliases, autoAlpha, stagger, easing and defaults with short examples.",
+      "Recommends gsap.matchMedia() for breakpoints and prefers-reduced-motion, with automatic revert.",
+      "Explicit best-practice and \"Do Not\" lists (prefer timelines over chained delays, store tweens you control)."
+    ],
+    "weaknesses": [
+      "Tells the agent to recommend GSAP by default whenever the user asks for animation without naming a library (it does say to respect an existing choice). That can add a dependency where CSS transitions would do.",
+      "Broad trigger description (any \"animation in React/Vue/vanilla\"); about 3,700 tokens are loaded each time it triggers."
+    ],
+    "comparison": {
+      "status": "not-run",
+      "summary": "No agent was run. The skill is unreviewed (discovered), and ES19 runs no unreviewed instructions in an agent. The comparison tasks are ready: gsap-react-entrance, gsap-scroll-reveal, gsap-timeline-intro."
+    },
+    "recommendation": "review",
+    "blockers": [
+      "Unreviewed: needs a read-and-hash review and an owner approval before any agent run or install."
+    ],
+    "notes": "Decide during review whether the \"recommend GSAP by default\" instruction is acceptable for projects that do not already use GSAP."
+  },
+  {
+    "id": "es19-gsap-react",
+    "skill": "gsap-react",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES19 static assessment: pinned files read as data; no agent was run)",
+    "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+    "contentHash": "sha256-91dc61a096430fa593c991949905d646c2597d5a2964b24682a39235565d0fe0",
+    "scope": "SKILL.md and every supporting file at the pinned revision, read as data; sizes measured; registry warnings and blockers included. No agent behaviour was observed.",
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 6565,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md at the pinned revision"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 1632,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the skill folder",
+        "value": 1,
+        "unit": "files",
+        "method": "folder inventory at the pinned revision"
+      },
+      {
+        "name": "Folder size",
+        "value": 6565,
+        "unit": "bytes",
+        "method": "sum of file sizes at the pinned revision"
+      }
+    ],
+    "security": [
+      "No scripts, binaries, frontmatter tool grants or flagged patterns (ES16 discovery scan, re-checked here).",
+      "Links point to gsap.com documentation pages as further reading; nothing tells the agent to fetch them at run time."
+    ],
+    "compatibility": [
+      "A single SKILL.md, portable across agents that read Agent Skills folders. Claude Code, Codex and Cursor are named in the upstream README (documented, not tested).",
+      "Assumes React and @gsap/react (useGSAP); covers the useEffect + gsap.context fallback and SSR (Next.js)."
+    ],
+    "strengths": [
+      "Teaches the cleanup patterns that prevent leaks: useGSAP with scope, or gsap.context() with revert().",
+      "Scoped selectors and refs, context-safe callbacks, client-only execution for SSR frameworks.",
+      "Small (about 1,600 tokens)."
+    ],
+    "weaknesses": [
+      "Adds @gsap/react as a dependency when followed.",
+      "Overlaps with gsap-core; the two are likely to trigger together."
+    ],
+    "comparison": {
+      "status": "not-run",
+      "summary": "No agent was run. The skill is unreviewed (discovered), and ES19 runs no unreviewed instructions in an agent. The comparison tasks are ready: gsap-react-entrance."
+    },
+    "recommendation": "prioritize-review",
+    "blockers": [
+      "Unreviewed: needs a read-and-hash review and an owner approval before any agent run or install."
+    ]
+  },
+  {
+    "id": "es19-gsap-scrolltrigger",
+    "skill": "gsap-scrolltrigger",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES19 static assessment: pinned files read as data; no agent was run)",
+    "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+    "contentHash": "sha256-be82f0a756f814785082af2442974daede77a7377a3de256e3cfe8b4e6228acf",
+    "scope": "SKILL.md and every supporting file at the pinned revision, read as data; sizes measured; registry warnings and blockers included. No agent behaviour was observed.",
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 18390,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md at the pinned revision"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 4574,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the skill folder",
+        "value": 1,
+        "unit": "files",
+        "method": "folder inventory at the pinned revision"
+      },
+      {
+        "name": "Folder size",
+        "value": 18390,
+        "unit": "bytes",
+        "method": "sum of file sizes at the pinned revision"
+      }
+    ],
+    "security": [
+      "No scripts, binaries, frontmatter tool grants or flagged patterns (ES16 discovery scan, re-checked here).",
+      "Links point to gsap.com documentation pages as further reading; nothing tells the agent to fetch them at run time."
+    ],
+    "compatibility": [
+      "A single SKILL.md, portable across agents that read Agent Skills folders. Claude Code, Codex and Cursor are named in the upstream README (documented, not tested)."
+    ],
+    "strengths": [
+      "Covers registration, scrub, pinning, batch, scrollerProxy, horizontal scroll and refresh/cleanup, including killing triggers in SPAs.",
+      "Warns against leaving markers on and covers refresh order."
+    ],
+    "weaknesses": [
+      "Largest of the GSAP skills (about 4,600 tokens when triggered).",
+      "Overlaps with gsap-core and gsap-performance."
+    ],
+    "comparison": {
+      "status": "not-run",
+      "summary": "No agent was run. The skill is unreviewed (discovered), and ES19 runs no unreviewed instructions in an agent. The comparison tasks are ready: gsap-scroll-reveal."
+    },
+    "recommendation": "review",
+    "blockers": [
+      "Unreviewed: needs a read-and-hash review and an owner approval before any agent run or install."
+    ]
+  },
+  {
+    "id": "es19-gsap-timeline",
+    "skill": "gsap-timeline",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES19 static assessment: pinned files read as data; no agent was run)",
+    "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+    "contentHash": "sha256-31f4db79a92276e2ac39f02b99f5fe79da6217c4b5e4476cbbc552064246f71f",
+    "scope": "SKILL.md and every supporting file at the pinned revision, read as data; sizes measured; registry warnings and blockers included. No agent behaviour was observed.",
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 4394,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md at the pinned revision"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 1084,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the skill folder",
+        "value": 1,
+        "unit": "files",
+        "method": "folder inventory at the pinned revision"
+      },
+      {
+        "name": "Folder size",
+        "value": 4394,
+        "unit": "bytes",
+        "method": "sum of file sizes at the pinned revision"
+      }
+    ],
+    "security": [
+      "No scripts, binaries, frontmatter tool grants or flagged patterns (ES16 discovery scan, re-checked here).",
+      "Links point to gsap.com documentation pages as further reading; nothing tells the agent to fetch them at run time."
+    ],
+    "compatibility": [
+      "A single SKILL.md, portable across agents that read Agent Skills folders. Claude Code, Codex and Cursor are named in the upstream README (documented, not tested)."
+    ],
+    "strengths": [
+      "Position parameter, labels, nesting and playback control in a compact file (about 1,100 tokens).",
+      "Prefers timelines over chained delays."
+    ],
+    "weaknesses": ["Narrow scope; mostly useful together with gsap-core."],
+    "comparison": {
+      "status": "not-run",
+      "summary": "No agent was run. The skill is unreviewed (discovered), and ES19 runs no unreviewed instructions in an agent. The comparison tasks are ready: gsap-timeline-intro."
+    },
+    "recommendation": "prioritize-review",
+    "blockers": [
+      "Unreviewed: needs a read-and-hash review and an owner approval before any agent run or install."
+    ]
+  },
+  {
+    "id": "es19-gsap-performance",
+    "skill": "gsap-performance",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES19 static assessment: pinned files read as data; no agent was run)",
+    "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+    "contentHash": "sha256-c6625d9b2139438f23093aae1051aaa81d7c6f6ca2f232a71d8c1c1a6b4e4ea2",
+    "scope": "SKILL.md and every supporting file at the pinned revision, read as data; sizes measured; registry warnings and blockers included. No agent behaviour was observed.",
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 4139,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md at the pinned revision"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 1026,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the skill folder",
+        "value": 1,
+        "unit": "files",
+        "method": "folder inventory at the pinned revision"
+      },
+      {
+        "name": "Folder size",
+        "value": 4139,
+        "unit": "bytes",
+        "method": "sum of file sizes at the pinned revision"
+      }
+    ],
+    "security": [
+      "No scripts, binaries, frontmatter tool grants or flagged patterns (ES16 discovery scan, re-checked here).",
+      "Links point to gsap.com documentation pages as further reading; nothing tells the agent to fetch them at run time."
+    ],
+    "compatibility": [
+      "A single SKILL.md, portable across agents that read Agent Skills folders. Claude Code, Codex and Cursor are named in the upstream README (documented, not tested)."
+    ],
+    "strengths": [
+      "Transform/opacity over layout properties, sparing will-change, batched reads and writes, cleanup of stray tweens.",
+      "Small (about 1,000 tokens)."
+    ],
+    "weaknesses": ["General advice; overlaps with gsap-core best practices."],
+    "comparison": {
+      "status": "not-run",
+      "summary": "No agent was run. The skill is unreviewed (discovered), and ES19 runs no unreviewed instructions in an agent. The comparison tasks are ready: gsap-react-entrance, gsap-scroll-reveal."
+    },
+    "recommendation": "prioritize-review",
+    "blockers": [
+      "Unreviewed: needs a read-and-hash review and an owner approval before any agent run or install."
+    ]
+  },
+  {
+    "id": "es19-web-quality-accessibility",
+    "skill": "web-quality-accessibility",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES19 static assessment: pinned files read as data; no agent was run)",
+    "revision": "afa8da942115f2961fdbfa80807ea0b232ff6c00",
+    "contentHash": "sha256-3903ee59a525e80b469d846660c76d5a95628779b3c344a342e2c1799f100588",
+    "scope": "SKILL.md and every supporting file at the pinned revision, read as data; sizes measured; registry warnings and blockers included. No agent behaviour was observed.",
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 14358,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md at the pinned revision"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 3566,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the skill folder",
+        "value": 3,
+        "unit": "files",
+        "method": "folder inventory at the pinned revision"
+      },
+      {
+        "name": "Folder size",
+        "value": 29473,
+        "unit": "bytes",
+        "method": "sum of file sizes at the pinned revision"
+      }
+    ],
+    "security": [
+      "No scripts, binaries or frontmatter tool grants; ES16 recorded no warnings.",
+      "Suggests running Lighthouse or axe and, when available, Chrome DevTools MCP tools against a rendered page; that requires a browser and the target URL."
+    ],
+    "compatibility": [
+      "The frontmatter name is \"accessibility\", not the folder name used here (web-quality-accessibility); the Agent Skills spec expects them to match, and the generic name can collide with another skill called \"accessibility\".",
+      "Links to a sibling skill outside its folder (../web-quality-audit/SKILL.md); installed alone that link is broken."
+    ],
+    "strengths": [
+      "WCAG 2.2 coverage, including the criteria new in 2.2 (focus not obscured, target size, dragging, consistent help, accessible authentication).",
+      "Evidence-led workflow: audit, localise the failing component, fix, re-run; states that automated tools catch only a subset of barriers."
+    ],
+    "weaknesses": [
+      "About 3,600 tokens when triggered, plus reference files.",
+      "Best results assume browser tooling (Lighthouse, axe or Chrome DevTools MCP)."
+    ],
+    "comparison": {
+      "status": "not-run",
+      "summary": "No agent was run. The skill is unreviewed (discovered), and ES19 runs no unreviewed instructions in an agent. The comparison tasks are ready: a11y-signup-form. No approved accessibility alternative exists for arm C (wcag-guide is reviewed, not approved)."
+    },
+    "recommendation": "prioritize-review",
+    "blockers": [
+      "Unreviewed: needs a read-and-hash review and an owner approval before any agent run or install.",
+      "Out-of-folder reference (../web-quality-audit/SKILL.md): install with that skill, or vendor the reference in a curated release with the change declared."
+    ]
+  },
+  {
+    "id": "es19-web-quality-core-web-vitals",
+    "skill": "web-quality-core-web-vitals",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES19 static assessment: pinned files read as data; no agent was run)",
+    "revision": "afa8da942115f2961fdbfa80807ea0b232ff6c00",
+    "contentHash": "sha256-5d21f4bee734bcbaa310b1bed970ecdd3ad55626a719162d84f216242c3a88da",
+    "scope": "SKILL.md and every supporting file at the pinned revision, read as data; sizes measured; registry warnings and blockers included. No agent behaviour was observed.",
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 9776,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md at the pinned revision"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 2436,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the skill folder",
+        "value": 4,
+        "unit": "files",
+        "method": "folder inventory at the pinned revision"
+      },
+      {
+        "name": "Folder size",
+        "value": 23310,
+        "unit": "bytes",
+        "method": "sum of file sizes at the pinned revision"
+      }
+    ],
+    "security": [
+      "No scripts, binaries or frontmatter tool grants; ES16 recorded no warnings.",
+      "Prefers field data (CrUX) and browser traces; links to web.dev and Chrome documentation as reading, not as fetched instructions."
+    ],
+    "compatibility": [
+      "The frontmatter name is \"core-web-vitals\", not the folder name used here.",
+      "Reads sibling skill files outside its folder (../performance/references/MEASUREMENT.md and RUM.md, ../performance/SKILL.md); installed alone those references are missing."
+    ],
+    "strengths": [
+      "Measure first, and do not claim LCP, INP or CLS failures without runtime evidence; do not claim field improvements right after a lab fix.",
+      "LCP/INP/CLS checklists and framework quick fixes (Next.js, React, Vue/Nuxt)."
+    ],
+    "weaknesses": [
+      "Depends on the separate web-quality-performance skill for its measurement workflow.",
+      "About 2,400 tokens when triggered."
+    ],
+    "comparison": {
+      "status": "not-run",
+      "summary": "No agent was run. The skill is unreviewed (discovered), and ES19 runs no unreviewed instructions in an agent. The comparison tasks are ready: cwv-hero-page."
+    },
+    "recommendation": "review",
+    "blockers": [
+      "Unreviewed: needs a read-and-hash review and an owner approval before any agent run or install.",
+      "Hidden dependency on the sibling web-quality-performance skill (../performance/...): register and review them together, or vendor the references in a curated release with the change declared."
+    ]
+  },
+  {
+    "id": "es19-frontend-design",
+    "skill": "frontend-design",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES19 static assessment: pinned files read as data; no agent was run)",
+    "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+    "contentHash": "sha256-897580988957672e5c5620ae2752aad18b099855e17e917fe7e7415eca86643c",
+    "scope": "SKILL.md and every supporting file at the pinned revision, read as data; sizes measured; registry warnings and blockers included. No agent behaviour was observed.",
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 9390,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md at the pinned revision"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 2341,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the skill folder",
+        "value": 2,
+        "unit": "files",
+        "method": "folder inventory at the pinned revision"
+      },
+      {
+        "name": "Folder size",
+        "value": 19564,
+        "unit": "bytes",
+        "method": "sum of file sizes at the pinned revision"
+      }
+    ],
+    "security": [
+      "Approved in ES6 after a full read; no scripts or tool grants. Re-hashed in ES19: the pinned folder still matches the approved hash."
+    ],
+    "compatibility": [
+      "Explicit runs were verified on Claude Code and Codex in ES6 (evidence.json). Those runs show the skill loads and is followed; they are not a comparative quality evaluation."
+    ],
+    "strengths": [
+      "Grounds design in the subject matter, plans and critiques against the brief, and asks for restraint and self-critique.",
+      "Compact (about 2,300 tokens), with no scripts or external dependencies."
+    ],
+    "weaknesses": [
+      "Principles rather than checks: nothing in it verifies contrast, layout or accessibility mechanically."
+    ],
+    "comparison": {
+      "status": "not-run",
+      "summary": "Approved alternative (arm C) for the design-landing task. No comparative run was made in ES19; it would need owner authorization and an isolated agent environment."
+    },
+    "recommendation": "keep-approved",
+    "blockers": []
+  },
+  {
+    "id": "es19-hallmark",
+    "skill": "hallmark",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES19 static assessment: pinned files read as data; no agent was run)",
+    "revision": "4f6a46c6dc325d40ab268c93e25c7b96676ebccd",
+    "contentHash": "sha256-c2682f28a6673713c63e2053245520ff319998e47f7ae10880fdb52e4712dd30",
+    "scope": "SKILL.md and every supporting file at the pinned revision, read as data; sizes measured; registry warnings and blockers included. No agent behaviour was observed.",
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 18239,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md at the pinned revision"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 4542,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the skill folder",
+        "value": 183,
+        "unit": "files",
+        "method": "folder inventory at the pinned revision"
+      },
+      {
+        "name": "Folder size",
+        "value": 7057511,
+        "unit": "bytes",
+        "method": "sum of file sizes at the pinned revision"
+      }
+    ],
+    "security": [
+      "6 discovery warning(s) recorded in ES16/ES16.1 (see the skill page): Optional, user-run installers: scripts/install-hook. scripts/imagegen. Ships 755 referenced stock photos and 53 images: the \"openly licensed, credited\" claim was not verified per file."
+    ],
+    "compatibility": [
+      "Documented for claude-code, codex, cursor in the upstream README (not tested)."
+    ],
+    "strengths": [
+      "A hard floor (contrast, focus, reduced motion, no invented facts, phone layout) plus a lint tool aimed at the same checks.",
+      "Deals a theme direction so consecutive builds do not converge on one template."
+    ],
+    "weaknesses": [
+      "Large: 183 files and about 7 MB (themes, images, scripts); about 4,500 tokens of instructions plus references loaded during a build.",
+      "Optional installers can edit Claude Code settings and agent folders; image generation uses a paid API."
+    ],
+    "comparison": {
+      "status": "not-run",
+      "alternative": "frontend-design",
+      "summary": "Kept in static assessment: its scripts and warnings must be reviewed before any agent runs it. The design-landing task (arms A, B and C with frontend-design as the approved alternative) is ready for a later, authorized run."
+    },
+    "recommendation": "static-only",
+    "blockers": [
+      "Unreviewed, with recorded warnings: a security review of its scripts must come before any agent run."
+    ]
+  },
+  {
+    "id": "es19-taste-skill",
+    "skill": "taste-skill",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES19 static assessment: pinned files read as data; no agent was run)",
+    "revision": "12af471f627f866411b4bd785b19646d3672784c",
+    "contentHash": "sha256-5dcb18e74daf37e45fb16a748d6e56c9258411b34bf79526dd5fb110ea3e8fdf",
+    "scope": "SKILL.md and every supporting file at the pinned revision, read as data; sizes measured; registry warnings and blockers included. No agent behaviour was observed.",
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 39537,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md at the pinned revision"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 9875,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the skill folder",
+        "value": 39,
+        "unit": "files",
+        "method": "folder inventory at the pinned revision"
+      },
+      {
+        "name": "Folder size",
+        "value": 2424169,
+        "unit": "bytes",
+        "method": "sum of file sizes at the pinned revision"
+      }
+    ],
+    "security": [
+      "4 discovery warning(s) recorded in ES16/ES16.1 (see the skill page): scripts/assets. The frontmatter name (design-taste-frontend) differs from the folder name (taste-skill); the Agent Skills specification expects them to match. Contains 13 executable/script file(s) (app-draw."
+    ],
+    "compatibility": ["Documented for claude-code, codex in the upstream README (not tested)."],
+    "strengths": [
+      "Explicit art-direction process (argument, direction, idea, words, build, gate, look, move).",
+      "Checks the result in a real browser before reporting."
+    ],
+    "weaknesses": [
+      "Very large instructions: about 9,900 tokens of SKILL.md before any reference is read.",
+      "Runs its own browser inspector and fetches photos at run time; the frontmatter name differs from the folder name."
+    ],
+    "comparison": {
+      "status": "not-run",
+      "alternative": "frontend-design",
+      "summary": "Kept in static assessment: its scripts and warnings must be reviewed before any agent runs it. The design-landing task (arms A, B and C with frontend-design as the approved alternative) is ready for a later, authorized run."
+    },
+    "recommendation": "static-only",
+    "blockers": [
+      "Unreviewed, with recorded warnings: a security review of its scripts must come before any agent run."
+    ]
+  },
+  {
+    "id": "es19-impeccable",
+    "skill": "impeccable",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES19 static assessment: pinned files read as data; no agent was run)",
+    "revision": "3930843f0c21a418443bfe8a2736f166bfcddb69",
+    "contentHash": "sha256-f379290f52c8c449e6aa4032b4e140c6298514efc18f0c5324f411e9984ff46b",
+    "scope": "SKILL.md and every supporting file at the pinned revision, read as data; sizes measured; registry warnings and blockers included. No agent behaviour was observed.",
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 12042,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md at the pinned revision"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 3007,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the skill folder",
+        "value": 58,
+        "unit": "files",
+        "method": "folder inventory at the pinned revision"
+      },
+      {
+        "name": "Folder size",
+        "value": 2211593,
+        "unit": "bytes",
+        "method": "sum of file sizes at the pinned revision"
+      }
+    ],
+    "security": [
+      "4 discovery warning(s) recorded in ES16/ES16.1 (see the skill page): Approval blocked until resolved: The downloaded engine binary (and any binary found in ~/. SKILL. Contains 7 executable/script file(s) (impeccable, impeccable.",
+      "Approval blocker: The downloaded engine binary (and any binary found in ~/.impeccable or on PATH) is not covered by this registry's content hash and has not been reviewed"
+    ],
+    "compatibility": [
+      "Documented for claude-code, codex, cursor in the upstream README (not tested)."
+    ],
+    "strengths": [
+      "A dedicated set of critique, audit and polish commands for existing UI, which no approved skill covers.",
+      "Explicit mode handling (persuade, operate, read) to scale ambition to the surface."
+    ],
+    "weaknesses": [
+      "Runs a launcher at every session start that executes or downloads an engine binary that has not been reviewed.",
+      "58 files and about 2.2 MB."
+    ],
+    "comparison": {
+      "status": "not-run",
+      "alternative": "frontend-design",
+      "summary": "Kept in static assessment: its scripts and warnings must be reviewed before any agent runs it. The design-landing task (arms A, B and C with frontend-design as the approved alternative) is ready for a later, authorized run."
+    },
+    "recommendation": "static-only",
+    "blockers": [
+      "Unreviewed, with recorded warnings: a security review of its scripts must come before any agent run.",
+      "Approval blocker: The downloaded engine binary (and any binary found in ~/.impeccable or on PATH) is not covered by this registry's content hash and has not been reviewed"
+    ]
+  }
+]

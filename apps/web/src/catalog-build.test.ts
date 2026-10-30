@@ -21,7 +21,16 @@ import { catalogPlugin } from '../catalog-plugin.ts';
  */
 const repo = resolve(__dirname, '../../..');
 const web = join(repo, 'apps/web');
-const REGISTRY = ['skills', 'consumers', 'integrations', 'evidence'] as const;
+const REGISTRY = [
+  'skills',
+  'consumers',
+  'integrations',
+  'evidence',
+  'sources',
+  'releases',
+  'evaluations',
+  'updates',
+] as const;
 const readRegistry = (root: string) =>
   Object.fromEntries(
     REGISTRY.map((n) => [n, JSON.parse(readFileSync(join(root, 'registry', `${n}.json`), 'utf8'))]),
@@ -63,6 +72,7 @@ describe('catalog plugin', () => {
     expect(catalog.consumers).toHaveLength(reg.consumers.length);
     expect(catalog.integrations).toHaveLength(reg.integrations.length);
     expect(catalog.evidence).toHaveLength(reg.evidence.length);
+    expect(catalog.sources).toHaveLength(reg.sources.length);
     expect(emitted[0]!.source).toBe(catalogToJson(expectedCatalog(repo)));
   });
 
@@ -120,7 +130,14 @@ describe('production build (real vite build, nothing pre-generated)', () => {
     const catalog = JSON.parse(text) as Record<string, unknown>; // valid JSON
     expect(text).toBe(catalogToJson(expectedCatalog(root))); // exactly the generated catalog
     const reg = readRegistry(root);
-    for (const k of ['skills', 'consumers', 'integrations', 'evidence'] as const)
+    for (const k of [
+      'skills',
+      'consumers',
+      'integrations',
+      'evidence',
+      'sources',
+      'releases',
+    ] as const)
       expect(catalog[k], k).toHaveLength(reg[k].length);
     // The public catalog must carry no local paths or credential-like strings.
     expect(text).not.toMatch(

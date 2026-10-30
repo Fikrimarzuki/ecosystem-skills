@@ -210,3 +210,21 @@ explicit request (evidence `es93-*`). Natural triggering and behavioral effect w
 ## Not covered yet
 
 Global activation, other agents (e.g. Cursor), Windows (junctions instead of symlinks), and pruning of copies.
+
+## New machine or fresh clone
+
+`external/` (installs, backups, `installed.json`) is git-ignored, so a fresh clone has no installed third-party skills even though
+the registry and any committed or consumer-side links exist. Consumer links to `external/skills/<id>` then dangle, and
+`pnpm skills:verify <consumer>` reports `not installed (run pnpm skills:install <id>)`. That is environmental, not a verifier
+fault. Recover by reinstalling the approved skills the consumer uses, for example `pnpm skills:install grilling`,
+`verification-before-completion`, `frontend-design`, `writing-plans` (each downloads the pinned commit, checks the reviewed content
+hash and writes only under `external/`), then verify again. No link has to be recreated.
+
+## Curated releases (ES18–ES21)
+
+An assignment with `release: "x.y.z"` uses an approved curated release instead of the legacy upstream install. Such assignments are created and
+changed only through `pnpm skills:library install|upgrade|rollback` (preview by default, `--apply` to act), which also copy the release into the
+machine-local store `external/releases/` and track installs in `external/releases.lock.json`. `pnpm skills:library status <consumer>` shows
+legacy vs curated, desired vs installed, drift, upgrades and rollback availability. `skills:sync` and `skills:verify` handle curated assignments
+like any other. Moving a legacy install to a curated release needs `upgrade --migrate` and is reversible with `rollback --to legacy`. See
+[library.md](library.md).

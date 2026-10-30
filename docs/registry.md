@@ -19,6 +19,8 @@ Array of skills. Key fields (schema: `packages/catalog/src/schema.ts`):
   - external: `{ "type": "external", "upstream": { "url" }, "fork"?: { "url" }, "path", "revision" }`.
     `upstream` is always the original project; a `fork` is recorded separately. `path` is the skill folder
     inside the repository (safe relative path). `revision` is a full 40-character commit SHA.
+  - A skill whose SKILL.md sits at the repository root (a few upstreams do this) uses `"path": "."`. Only external
+    skills may; the pin then covers the whole repository, and `pnpm skills:install` refuses it until a subset is chosen.
 - `author`, `license` — required for external skills (`"unknown"` if upstream states none; never guess)
 - `version`, `agents` (`claude-code` | `codex` | `cursor`; for external skills, as documented upstream —
   not verified by us), `requires` (integration ids), `requiresSkills` (skills it explicitly invokes), `docs`
@@ -29,14 +31,68 @@ Array of skills. Key fields (schema: `packages/catalog/src/schema.ts`):
     reviewed folder; changing the pin forces a re-review
   - `approved` needs `approvedBy` (never set automatically) and all `requiresSkills` approved
 
+- `discovery` (optional, external only; added by ES16): how a candidate entered the registry —
+  `{ discoveredAt, outcome, source, contentHash, warnings[], dependencies[], audit }`. `outcome` is
+  `register-for-review` or `register-with-warnings` (which requires at least one warning). `source` is an id in
+  `sources.json` that lists this skill. It is a metadata and file scan, not a review: the review status stays
+  `unreviewed`, and a discovery record never implies approval, installation or activation.
+  `approvalBlockers[]` (ES16.1) lists conditions that must be resolved before approval (a repository-root SKILL.md, missing
+  sibling skills, an unreviewed downloaded binary, an unconfirmed licence). While any remain the skill cannot be approved
+  or installed; clearing them is a deliberate edit that must come with review findings. Validation also requires: an
+  approved skill with discovery warnings has review findings; a review of the pinned revision hashes to the discovery hash;
+  an approved skill is not a repository-root skill; and `register-for-review` carries no warnings. Candidates carry an
+  explicit `"review": { "status": "unreviewed", "findings": [] }`.
+
 Approval is a registry fact; **installation and activation are not**. They are machine-local, so they are neither in
 the registry nor in the public catalog; see [external-skills.md](external-skills.md) and [consumers.md](consumers.md).
+
+## `sources.json`
+
+Repositories, applications, standards and leads that were examined (ES16). A source is not a skill; it records what a
+name resolved to and what was decided. Fields: `id`, `name`, `requestedAs?`, `batch` (`original` | `design-ui` |
+`video-animation` | `discovered`), `kind` (`skill` | `skill-collection` | `framework` | `application` |
+`design-reference` | `standard` | `lead`), `resolution` (`verified` | `ambiguous` | `unresolved`), `decision`
+(`register-for-review` | `register-with-warnings` | `reference-only` | `unresolved` | `reject`), `upstream?`,
+`revision?` (the commit examined), `publisher?`, `license?`, `lastCommit?`, `skillsFound`, `skills[]` (registered
+skill ids), `summary`, `warnings[]`, `alternatives[]` (other candidates considered), `needs?`, `discoveredAt`.
+
+Rules enforced by validation: a verified source needs `upstream`; a source that registers skills needs `revision` and at
+least one listed skill, and every listed skill must come from the same upstream; `reference-only`, `unresolved` and
+`reject` sources list no skills; a non-verified source must be `unresolved` or `reject`, carries no `revision`, and an
+`unresolved` one must say what would resolve it (`needs`); a source with any skill registered _with warnings_ must itself
+be `register-with-warnings`. See [es16-discovery.md](es16-discovery.md) for the ES16 results.
+
+## `releases.json`
+
+Curated releases (ES17): locally stored, versioned copies under `library/<skill>/<version>/`. One record per release:
+`skill`, `version` (semantic), `createdAt`, `path`, `upstream` `{ url, path, revision, contentHash }` (absent only for a
+first-party skill), `curatedHash`, `license`, `attribution`, `modifications[]` `{ kind, path, summary, why,
+affectsBehavior, affectsDependencies, affectsPermissions }`, `review` `{ outcome, reviewer?, reviewedAt?, scope?, checks[],
+evidence[], notes? }`, `approval` `{ status: unapproved | approved | withdrawn, approvedBy?, approvedAt? }`,
+`supportedAgents[]`, `dependencies[]`, `restrictions[]`, `notes?`. A release is not an approval and is never created
+automatically. A skill may also carry `curation` `{ state: pending | blocked, reason, updatedAt }` while it has no release.
+A release review also records the `contentHash` it covered (equal to `curatedHash`). All rules, including the security-review requirements and immutability, are in [library.md](library.md).
+
+## `evaluations.json` (ES19)
+
+Comparative evaluation records: `id`, `skill`, `kind` (`static-assessment` | `agent-run`), `date`, `assessor`, `revision`, `contentHash`,
+`scope`, `security[]`, `compatibility[]`, `strengths[]`, `weaknesses[]`, `measurements[]` `{ name, value, unit, method }`,
+`comparison` `{ status: not-run | run, alternative?, summary }`, `evidence[]` (ids in evidence.json), `recommendation`
+(`prioritize-review` | `review` | `static-only` | `not-recommended` | `keep-approved`), `blockers[]`, `notes?`. A static assessment cannot
+claim a run or cite run evidence; an agent run must cite evidence for the skill or its alternative; a recommendation is never an approval.
+
+## `updates.json` (ES20)
+
+One upstream check per external skill: `skill`, `checkedAt` (ISO date-time, when this repository looked), `pinnedRevision`,
+`latestRevision?`, `latestCommitDate?`, `status` (`up-to-date` | `update-available` | `review-required` | `source-unavailable` |
+`check-failed`), `latestContentHash?`, `changes?` (added/removed/changed, kinds, security-sensitive list), `detail`. A skill without a record is
+"never checked". Written only by `pnpm skills:library check-upstream --write`.
 
 ## `consumers.json`
 
 Projects (`kind: "project"`) and global setups (`kind: "global"`). Each has `agents` and `assignments`:
 `{ skill, agents, install, verification }`. `install` is `symlink` (default) or `copy`. An assignment is
-**desired state** (per agent). `verification` defaults to `unverified`; `verified` is rejected unless
+**desired state** (per agent), and only approved external skills may be assigned (registry validation, as well as the `assign` command). An assignment may pin a curated release with `release: "x.y.z"` (ES18): the release must be installable (approved, clean review, no blockers), the install mode must be `symlink`, and the canonical copy is the verified store folder `external/releases/<skill>/<version>`. `verification` defaults to `unverified`; `verified` is rejected unless
 `verifiedAt` and `method` record how it was checked. For external skills `verification.revision` is required;
 when it differs from the pinned `source.revision`, the website marks the verification **stale** (update impact).
 Global agent assignments use a `kind: "global"` consumer.

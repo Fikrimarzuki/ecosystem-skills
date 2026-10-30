@@ -22,7 +22,8 @@ import {
   realOrUndefined,
 } from './fsguard.ts';
 import { PROJECT_SKILL_DIRS } from './links.ts';
-import type { Agent, Catalog, Consumer, Skill } from './schema.ts';
+import type { Agent, Catalog, Consumer, Release, Skill } from './schema.ts';
+import { readCuratedLock, storePath, storeRoot, storeState } from './store.ts';
 import { scanTree } from './tree.ts';
 import { assignmentPolicy } from './consumers.ts';
 
@@ -38,14 +39,30 @@ export interface Canonical {
 /** Areas of this repository whose links are "owned" by Ecosystem Skills. */
 export function managedRoots(repoRoot: string): string[] {
   const real = realOrUndefined(repoRoot) ?? resolve(repoRoot);
-  return [join(real, 'external', 'skills'), join(real, 'skills')];
+  return [join(real, 'external', 'skills'), join(real, 'skills'), storeRoot(real)];
 }
 
-export function resolveCanonical(repoRoot: string, skill: Skill): Canonical {
+export function resolveCanonical(repoRoot: string, skill: Skill, release?: Release): Canonical {
   const problems: string[] = [];
   const repoReal = realOrUndefined(repoRoot) ?? resolve(repoRoot);
-  const policy = assignmentPolicy(skill);
+  const policy = assignmentPolicy(skill, release);
   if (policy) problems.push(policy);
+  if (release) {
+    // Curated assignment (ES18): the canonical copy is the verified store folder of exactly this release.
+    const state = storeState(repoReal, readCuratedLock(repoReal).lock, release);
+    const p = storePath(repoReal, release.skill, release.version);
+    if (state !== 'verified')
+      return {
+        skill,
+        problems: [
+          ...problems,
+          state === 'absent'
+            ? `curated ${release.skill}@${release.version} is not installed here (run pnpm skills:library install)`
+            : `curated store copy of ${release.skill}@${release.version} is ${state}`,
+        ],
+      };
+    return { skill, path: realOrUndefined(p) ?? p, hash: release.curatedHash, problems };
+  }
   if (skill.source.type === 'first-party') {
     const p = realOrUndefined(resolve(repoReal, skill.source.path));
     if (!p)
@@ -161,8 +178,15 @@ export function planSync(
   const items: PlanItem[] = [];
   const dirs: string[] = [];
   const canonCache = new Map<string, Canonical>();
-  const canonical = (s: Skill) =>
-    canonCache.get(s.id) ?? canonCache.set(s.id, resolveCanonical(repoRoot, s)).get(s.id)!;
+  const canonical = (s: Skill, version?: string) => {
+    const key = `${s.id}@${version ?? ''}`;
+    const rel = version
+      ? catalog.releases.find((r) => r.skill === s.id && r.version === version)
+      : undefined;
+    if (version && !rel)
+      return { skill: s, problems: [`assigned release ${s.id}@${version} is not in the registry`] };
+    return canonCache.get(key) ?? canonCache.set(key, resolveCanonical(repoRoot, s, rel)).get(key)!;
+  };
 
   for (const [agent, relDir] of Object.entries(PROJECT_SKILL_DIRS) as [Agent, string][]) {
     const assigned = consumer.assignments.filter((a) => a.agents.includes(agent));
@@ -189,7 +213,7 @@ export function planSync(
         });
         continue;
       }
-      const c = canonical(skill);
+      const c = canonical(skill, a.release);
       const kind = dir.toCreate.length ? 'missing' : kindOf(b.entry);
       const withC = { ...b, canonical: c.path, hash: c.hash };
 
@@ -514,15 +538,22 @@ export function verifyConsumer(
       });
       continue;
     }
-    const c = resolveCanonical(repoRoot, skill);
+    const rel = a.release
+      ? catalog.releases.find((r) => r.skill === skill.id && r.version === a.release)
+      : undefined;
+    const c =
+      a.release && !rel
+        ? { problems: [`assigned release ${skill.id}@${a.release} is not in the registry`] }
+        : resolveCanonical(repoRoot, skill, rel);
     checks.push(
       c.problems.length
         ? { level: 'error', subject: a.skill, message: c.problems.join('; ') }
         : {
             level: 'ok',
             subject: a.skill,
-            message:
-              skill.origin === 'external'
+            message: a.release
+              ? `curated release ${a.release}: approved; store copy verified against its hash`
+              : skill.origin === 'external'
                 ? `approved; installed at the pinned revision; content hash matches`
                 : `first-party source present (${skill.source.type === 'first-party' ? skill.source.path : ''})`,
           },

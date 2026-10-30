@@ -1,9 +1,26 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import type { Catalog, Consumer, Evidence, Skill } from '@ecosystem-skills/catalog';
+import type {
+  Catalog,
+  Consumer,
+  Evaluation,
+  Evidence,
+  Release,
+  Skill,
+  Source,
+} from '@ecosystem-skills/catalog';
+import {
+  contentAvailability,
+  releaseInstallProblems,
+  type Availability,
+  type ContentState,
+  type InstallProblem,
+  type Reason,
+} from '@ecosystem-skills/catalog/availability';
 import { tEn, type T } from './i18n.tsx';
 import { currentUrl, href as routerHref, subscribe } from './router.ts';
 
-export type { Catalog, Consumer, Evidence, Skill };
+export type { Catalog, Consumer, Evaluation, Evidence, Release, Skill, Source };
+export type { Availability, ContentState, InstallProblem, Reason };
 type Assignment = Consumer['assignments'][number];
 
 /**
@@ -56,14 +73,20 @@ export const GROUP_OF_CATEGORY: Record<string, (typeof GROUPS)[number]> = {
   database: 'Coding',
   debugging: 'Coding',
   documentation: 'Communication',
+  devops: 'Coding',
   'frontend-design': 'Design',
+  'game-dev': 'Coding',
   'graphics-3d': 'Coding',
   illustration: 'Design',
+  mobile: 'Coding',
+  'motion-design': 'Design',
+  performance: 'Verification',
   planning: 'Planning',
   react: 'Coding',
   security: 'Verification',
   testing: 'Verification',
   tooling: 'Verification',
+  video: 'Design',
   vue: 'Coding',
 };
 export function groupOf(s: Skill): Group {
@@ -90,9 +113,11 @@ export const TESTED_AGENTS = ['claude-code', 'codex'] as const;
 export function sourceTreeUrl(s: Skill): string | undefined {
   if (s.source.type !== 'external') return undefined;
   const base = s.source.upstream.url.replace(/\.git$/, '').replace(/\/$/, '');
-  return /^https:\/\/github\.com\//.test(base)
-    ? `${base}/tree/${s.source.revision}/${s.source.path}`
-    : undefined;
+  if (!/^https:\/\/github\.com\//.test(base)) return undefined;
+  // "." means SKILL.md sits at the repository root.
+  return s.source.path === '.'
+    ? `${base}/tree/${s.source.revision}`
+    : `${base}/tree/${s.source.revision}/${s.source.path}`;
 }
 
 /** "owner/repo" for GitHub sources, otherwise the host. */
@@ -203,6 +228,7 @@ export type Route =
   | { page: 'skill'; id: string }
   | { page: 'consumers' }
   | { page: 'integrations' }
+  | { page: 'sources' }
   | { page: 'notfound'; path: string };
 
 /**
@@ -234,13 +260,14 @@ export function parseRoute(url: string): Route {
     if (a === 'overview') return { page: 'dashboard' };
     if (a === 'consumers') return { page: 'consumers' };
     if (a === 'integrations') return { page: 'integrations' };
+    if (a === 'sources') return { page: 'sources' };
   }
   return notfound;
 }
 
 /** Clean URLs for internal links; the deployment base path (if any) is added. */
 export const homeHref = () => routerHref('/');
-export const pageHref = (page: 'overview' | 'skills' | 'consumers' | 'integrations') =>
+export const pageHref = (page: 'overview' | 'skills' | 'consumers' | 'integrations' | 'sources') =>
   routerHref(`/${page}`);
 export const skillHref = (id: string) => routerHref(`/skills/${encodeURIComponent(id)}`);
 export const skillsHref = (q: Query) => {
@@ -366,8 +393,10 @@ export interface SkillFilter {
   status?: string;
   /** An agent id, "any" (verified on at least one agent) or "none" (verified on no agent). */
   agent?: string;
+  /** A content availability state (ES17): source-only, curated-unapproved, curated-approved, curation-blocked, curation-pending. */
+  content?: string;
 }
-export const FILTER_KEYS = ['q', 'group', 'origin', 'status', 'agent'] as const;
+export const FILTER_KEYS = ['q', 'group', 'origin', 'status', 'agent', 'content'] as const;
 
 export function filterSkills(c: Catalog, f: SkillFilter): Skill[] {
   const q = (f.q ?? '').trim().toLowerCase();
@@ -378,6 +407,7 @@ export function filterSkills(c: Catalog, f: SkillFilter): Skill[] {
         (!f.group || groupOf(s) === f.group) &&
         (!f.origin || s.origin === f.origin) &&
         (!f.status || stage(s) === f.status) &&
+        (!f.content || availabilityOf(c, s).state === f.content) &&
         (!f.agent ||
           (f.agent === 'any'
             ? verified.length > 0
@@ -385,9 +415,16 @@ export function filterSkills(c: Catalog, f: SkillFilter): Skill[] {
               ? verified.length === 0
               : verified.includes(f.agent))) &&
         (!q ||
-          [s.id, s.name, s.description, s.category, groupOf(s), ...s.tags, s.author ?? ''].some(
-            (t) => t.toLowerCase().includes(q),
-          ))
+          [
+            s.id,
+            s.name,
+            s.description,
+            s.category,
+            groupOf(s),
+            ...s.tags,
+            s.author ?? '',
+            sourceLabel(s),
+          ].some((t) => t.toLowerCase().includes(q)))
       );
     })
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -428,6 +465,8 @@ export function describeFilter(
       return t('Status {value}', { value: t(STAGE_LABEL[value as Stage] ?? value) });
     case 'agent':
       return AGENT_FILTER_LABEL(value, t);
+    case 'content':
+      return t('Content {value}', { value: t(CONTENT_LABEL[value as ContentState] ?? value) });
   }
 }
 
@@ -556,7 +595,11 @@ export function lifecycle(c: Catalog, s: Skill, t: T = tEn): LifecycleRow[] {
           'Reviewed',
           'none',
           t('No'),
-          t('Discovered only. Its content has not been read or scanned.'),
+          s.discovery
+            ? t(
+                'Discovered with a metadata and file scan (see Discovery scan). No review has been done and no decision made.',
+              )
+            : t('Discovered only. Its content has not been read or scanned.'),
         )
       : row(
           'reviewed',
@@ -664,4 +707,207 @@ export function lifecycle(c: Catalog, s: Skill, t: T = tEn): LifecycleRow[] {
     verifiedRow(),
   ];
   return rows;
+}
+
+/** Discovery registered this skill with unresolved operational risks (scripts, downloads, licences, services). */
+export const hasDiscoveryWarnings = (s: Skill): boolean =>
+  s.discovery?.outcome === 'register-with-warnings';
+
+export const SOURCE_KIND_LABEL: Record<Source['kind'], string> = {
+  skill: 'Single skill',
+  'skill-collection': 'Skill collection',
+  framework: 'Plugin or framework',
+  application: 'Application',
+  'design-reference': 'Design reference',
+  standard: 'Standard',
+  lead: 'Unverified lead',
+};
+export const SOURCE_DECISION_LABEL: Record<Source['decision'], string> = {
+  'register-for-review': 'Registered for review',
+  'register-with-warnings': 'Registered with warnings',
+  'reference-only': 'Reference only',
+  unresolved: 'Unresolved',
+  reject: 'Rejected',
+};
+export const SOURCE_DECISIONS_ORDER: Source['decision'][] = [
+  'register-for-review',
+  'register-with-warnings',
+  'reference-only',
+  'unresolved',
+  'reject',
+];
+export const SOURCE_RESOLUTION_LABEL: Record<Source['resolution'], string> = {
+  verified: 'Upstream verified',
+  ambiguous: 'Upstream ambiguous',
+  unresolved: 'Upstream unresolved',
+};
+export const SOURCE_BATCH_LABEL: Record<Source['batch'], string> = {
+  original: 'Original repositories',
+  'design-ui': 'Design and UI candidates',
+  'video-animation': 'Video and animation candidates',
+  discovered: 'Additional discoveries',
+};
+
+export function filterSources(
+  c: Catalog,
+  f: { q?: string; decision?: string; kind?: string },
+): Source[] {
+  const q = (f.q ?? '').trim().toLowerCase();
+  return c.sources.filter(
+    (x) =>
+      (!f.decision || x.decision === f.decision) &&
+      (!f.kind || x.kind === f.kind) &&
+      (!q ||
+        [
+          x.id,
+          x.name,
+          x.requestedAs ?? '',
+          x.publisher ?? '',
+          x.summary,
+          x.upstream?.url ?? '',
+        ].some((t) => t.toLowerCase().includes(q))),
+  );
+}
+
+/* ------------------------------------------------------------------ content availability (ES17) */
+
+export const availabilityOf = (c: Catalog, s: Skill): Availability =>
+  contentAvailability(s, c.releases);
+
+/** Short labels. "Source reference only" is the state of a skill without a local curated copy. */
+export const CONTENT_LABEL: Record<ContentState, string> = {
+  'first-party': 'Kept in this repository',
+  'source-only': 'Source reference only',
+  'curation-pending': 'Curation pending',
+  'curated-unapproved': 'Curated, not approved',
+  'curated-approved': 'Curated, approved',
+  'curation-blocked': 'Curation blocked',
+};
+/** States offered by the Content filter, in display order. Pending is listed only when some skill is in it. */
+export function contentFilterStates(c: Catalog): ContentState[] {
+  const base: ContentState[] = [
+    'source-only',
+    'curated-unapproved',
+    'curated-approved',
+    'curation-blocked',
+  ];
+  return c.skills.some((s) => availabilityOf(c, s).state === 'curation-pending')
+    ? [...base, 'curation-pending']
+    : base;
+}
+
+export const REVIEW_OUTCOME_LABEL: Record<Release['review']['outcome'], string> = {
+  'not-evaluated': 'Not evaluated',
+  'no-blocking-issues': 'No blocking issues identified in the reviewed scope',
+  'requires-changes': 'Requires changes',
+  'requires-manual-review': 'Requires further manual review',
+  blocked: 'Blocked',
+};
+export const RELEASE_APPROVAL_LABEL: Record<Release['approval']['status'], string> = {
+  unapproved: 'Not approved',
+  approved: 'Approved',
+  withdrawn: 'Withdrawn',
+};
+
+/** Why a skill without a curated release is only a source reference, as translated sentences. */
+export function reasonText(r: Reason, t: T = tEn): string {
+  switch (r.code) {
+    case 'awaiting-review':
+      return t(
+        'Awaiting security review: it was only discovered, and a discovery scan is not a review.',
+      );
+    case 'reviewed-not-approved':
+      return t('Reviewed, but not approved by the owner.');
+    case 'approved-upstream-only':
+      return t(
+        'Approved for installation directly from its pinned upstream revision (the existing install command). No curated copy exists.',
+      );
+    case 'rejected':
+      return t('Rejected: it will not be curated or installed.');
+    case 'approval-blocker':
+      return t('Approval blocker: {detail}', { detail: r.detail ?? '' });
+    case 'license-unknown':
+      return t(
+        'Unknown licence: redistribution rights are not established, so it cannot be copied.',
+      );
+    case 'root-level':
+      return t('SKILL.md is at the repository root: curating a whole repository is not supported.');
+    case 'has-warnings':
+      return t('{n} recorded warning(s) must be resolved or accepted during curation.', {
+        n: r.detail ?? '',
+      });
+    case 'curation-note':
+      return t('Curation note: {detail}', { detail: r.detail ?? '' });
+  }
+}
+
+export function installProblemText(p: InstallProblem, t: T = tEn): string {
+  switch (p.code) {
+    case 'release-not-approved':
+      return t('The release is not approved.');
+    case 'review-incomplete':
+      return t('Its security review has not recorded “no blocking issues” for a stated scope.');
+    case 'skill-rejected':
+      return t('The skill is rejected.');
+    case 'approval-blocker':
+      return t('Unresolved approval blocker: {detail}', { detail: p.detail ?? '' });
+    case 'license-unknown':
+      return t('The licence is unknown.');
+    case 'root-level':
+      return t('It is a repository-root skill.');
+  }
+}
+
+export const releaseInstallProblemsOf = (s: Skill, r: Release): InstallProblem[] =>
+  releaseInstallProblems(s, r);
+
+/** Links back to the original source: homepage, the folder at the pinned commit, and the commit itself. */
+export function upstreamLinks(
+  skill: Skill,
+  pin?: { revision: string; path: string },
+): { home?: string; folder?: string; commit?: string } {
+  if (skill.source.type !== 'external') return {};
+  const base = skill.source.upstream.url.replace(/\.git$/, '').replace(/\/$/, '');
+  if (!/^https:\/\/github\.com\//.test(base)) return { home: skill.source.upstream.url };
+  const rev = pin?.revision ?? skill.source.revision;
+  const path = pin?.path ?? skill.source.path;
+  return {
+    home: base,
+    folder: path === '.' ? `${base}/tree/${rev}` : `${base}/tree/${rev}/${path}`,
+    commit: `${base}/commit/${rev}`,
+  };
+}
+
+/* ------------------------------------------------------------------ evaluations (ES19) */
+export const RECOMMENDATION_LABEL: Record<Evaluation['recommendation'], string> = {
+  'prioritize-review': 'Prioritize review',
+  review: 'Review',
+  'static-only': 'Keep in static review',
+  'not-recommended': 'Not recommended',
+  'keep-approved': 'Keep approved',
+};
+
+/* ------------------------------------------------------------------ upstream checks (ES20) */
+export const UPDATE_STATUS_LABEL: Record<string, string> = {
+  'up-to-date': 'Up to date',
+  'update-available': 'Update available',
+  'review-required': 'Review required',
+  'source-unavailable': 'Source unavailable',
+  'check-failed': 'Check failed',
+  'never-checked': 'Never checked',
+};
+
+/* ------------------------------------------------------------------ consumer versions (ES21) */
+/** The newest installable (approved, reviewed, unblocked) release newer than what an assignment uses. */
+export function approvedUpgrade(c: Catalog, s: Skill, current?: string): string | undefined {
+  const newer = availabilityOf(c, s).releases.filter(
+    (r) =>
+      releaseInstallProblems(s, r).length === 0 &&
+      (!current ||
+        r.version
+          .split('.')
+          .map(Number)
+          .reduce((acc, n, i) => acc || n - Number(current.split('.')[i]), 0) > 0),
+  );
+  return newer[0]?.version;
 }

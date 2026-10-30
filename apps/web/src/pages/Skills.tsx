@@ -3,12 +3,16 @@ import { useT } from '../i18n.tsx';
 import {
   AGENT_OPTION_LABEL,
   agentName,
+  availabilityOf,
+  CONTENT_LABEL,
   consumersOf,
+  contentFilterStates,
   explainEmpty,
   FILTER_KEYS,
   filterSkills,
   groupOf,
   groupsInUse,
+  hasDiscoveryWarnings,
   ORIGIN_LABEL,
   skillHref,
   skillsPath,
@@ -29,12 +33,29 @@ import { SourceBadge, StageBadge } from './shared.tsx';
 const control =
   'h-10 w-full min-w-0 rounded-xl border border-zinc-300 bg-white/90 px-3 text-sm text-zinc-900 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100';
 
+/** One badge for the content states that matter; plain source references (the default) carry none. */
+function ContentBadge({ catalog, skill }: { catalog: Catalog; skill: Skill }) {
+  const t = useT();
+  const a = availabilityOf(catalog, skill);
+  if (a.release)
+    return (
+      <Badge tone={a.state === 'curated-approved' ? 'green' : 'amber'}>
+        {a.state === 'curated-approved'
+          ? t('Curated v{version} · approved', { version: a.release.version })
+          : t('Curated v{version} · not approved', { version: a.release.version })}
+      </Badge>
+    );
+  if (a.state === 'curation-blocked' || a.state === 'curation-pending')
+    return <Badge>{t(CONTENT_LABEL[a.state])}</Badge>;
+  return null;
+}
+
 export function SkillCard({ catalog, skill }: { catalog: Catalog; skill: Skill }) {
   const t = useT();
   const verified = verifiedAgents(catalog, skill);
   const assigned = consumersOf(catalog, skill.id).length;
   return (
-    <li className="relative flex">
+    <li className="relative flex min-w-0">
       <div className="surface surface-hover relative flex w-full flex-col p-4 focus-within:ring-2 focus-within:ring-indigo-500">
         <h2 className="text-base font-semibold tracking-tight [overflow-wrap:anywhere]">
           {/* Stretched link: the whole card is one focusable target. */}
@@ -49,8 +70,10 @@ export function SkillCard({ catalog, skill }: { catalog: Catalog; skill: Skill }
           <SourceBadge skill={skill} />
           <StageBadge skill={skill} />
           <Badge>{t(groupOf(skill))}</Badge>
+          {hasDiscoveryWarnings(skill) && <Badge tone="amber">{t('Has warnings')}</Badge>}
+          <ContentBadge catalog={catalog} skill={skill} />
         </div>
-        <p className="mt-3 line-clamp-3 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-3 line-clamp-3 text-sm [overflow-wrap:anywhere] text-zinc-600 dark:text-zinc-400">
           {skill.description}
         </p>
         <div className="mt-auto pt-3">
@@ -123,7 +146,7 @@ export function SkillsExplorer({ catalog, query }: { catalog: Catalog; query?: Q
           <form
             role="search"
             aria-label={t('Filter skills')}
-            className="mb-4 grid grid-cols-2 gap-2 lg:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))]"
+            className="mb-4 grid grid-cols-2 gap-2 lg:grid-cols-[minmax(0,2fr)_repeat(5,minmax(0,1fr))]"
             onSubmit={(e) => e.preventDefault()}
           >
             <label className="relative col-span-2 lg:col-span-1">
@@ -179,6 +202,21 @@ export function SkillsExplorer({ catalog, query }: { catalog: Catalog; query?: Q
                       {t(STAGE_LABEL[k])}
                     </option>
                   ))}
+              </select>
+            </label>
+            <label>
+              <span className="sr-only">{t('Content availability')}</span>
+              <select
+                value={f.content ?? ''}
+                onChange={(e) => set('content')(e.target.value)}
+                className={control}
+              >
+                <option value="">{t('Any content availability')}</option>
+                {contentFilterStates(catalog).map((k) => (
+                  <option key={k} value={k}>
+                    {t(CONTENT_LABEL[k])}
+                  </option>
+                ))}
               </select>
             </label>
             <label>

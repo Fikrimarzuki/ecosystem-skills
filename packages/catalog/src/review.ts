@@ -60,6 +60,26 @@ export const RISK_RULES: { category: string; label: string; re: RegExp }[] = [
     re: /\b(always run|run (this|these) automatically|auto-?approve)\b/i,
   },
   {
+    category: 'instructions',
+    label: 'approval / registry tampering (ES22)',
+    re: /(registry\/(skills|releases|consumers|evidence)\.json|"approvedBy"|"status"\s*:\s*"approved"|mark (it|this|yourself|the skill|this skill) (as )?approved|set (its |the |your )?(review |approval )?status to "?approved|approve (yourself|this skill|it) without)/i,
+  },
+  {
+    category: 'instructions',
+    label: 'installs other skills (ES22)',
+    re: /(npx\s+skills?\s+add|skills:install|\/plugin\s+(install|marketplace\s+add)|install (this|another|other|more|additional|these|the following) (agent )?skills?\b)/i,
+  },
+  {
+    category: 'credentials',
+    label: 'asks for secrets (ES22)',
+    re: /\b(reveal|print|show|output|paste|send|upload|share|leak|exfiltrat\w*)\b[^.\n]{0,60}\b(api[_ -]?keys?|tokens?|passwords?|secrets?|credentials?|\.env\b|~\/\.ssh|id_rsa|private keys?)/i,
+  },
+  {
+    category: 'network',
+    label: 'sends data to a URL (ES22)',
+    re: /\b(send|post|upload|transmit|exfiltrat\w*|forward)\b[^\n]{0,80}?\bto\s+https?:\/\//i,
+  },
+  {
     category: 'hidden',
     label: 'invisible / bidi unicode',
     re: /[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/,

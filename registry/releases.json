@@ -1,0 +1,1069 @@
+[
+  {
+    "skill": "grilling",
+    "version": "1.0.0",
+    "createdAt": "2026-10-30",
+    "path": "library/grilling/1.0.0",
+    "upstream": {
+      "url": "https://github.com/mattpocock/skills",
+      "path": "skills/productivity/grilling",
+      "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+      "contentHash": "sha256-f8441dadff0662905d89dba1ef5204e45fc848ea138570525af474c9a1ed8837"
+    },
+    "curatedHash": "sha256-2cb2b9f64a43b7dbfb1fd5ce3cd5b22e9edf4aa4f14ec9f371db08f565d6d4e2",
+    "license": "MIT",
+    "attribution": "Matt Pocock (mattpocock/skills), MIT. Copyright (c) 2026 Matt Pocock; the licence text travels with the copy as LICENSE.",
+    "modifications": [
+      {
+        "kind": "added",
+        "path": "LICENSE",
+        "summary": "Added the upstream MIT licence text, copied unchanged from the repository root at the pinned commit.",
+        "why": "MIT requires the copyright and permission notice to accompany copies; the upstream skill folder does not contain it.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      },
+      {
+        "kind": "added",
+        "path": "ATTRIBUTION.md",
+        "summary": "Added an attribution file naming the author, upstream repository, folder, commit, folder hash and licence.",
+        "why": "Keeps provenance next to the content so a copied folder never loses its source.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      }
+    ],
+    "review": {
+      "outcome": "no-blocking-issues",
+      "reviewedAt": "2026-10-30",
+      "reviewer": "Claude (ES18 agent review, recorded for the owner; not an approval)",
+      "scope": "All 4 files of library/grilling/1.0.0, read in full: SKILL.md (30 lines), agents/openai.yaml (3 lines), LICENSE (MIT text) and ATTRIBUTION.md. Checked against all 13 categories for the instructions and for the supporting files. Not covered: how an agent behaves when it follows the skill (no agent run was made for this release) and the host features it relies on.",
+      "contentHash": "sha256-2cb2b9f64a43b7dbfb1fd5ce3cd5b22e9edf4aa4f14ec9f371db08f565d6d4e2",
+      "checks": [
+        {
+          "category": "prompt-injection",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No hidden or concealed text. The only non-ASCII characters are the ❓ and ➡️ emoji (with variation selector U+FE0F) in the round-format example."
+        },
+        {
+          "category": "prompt-injection",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "agents/openai.yaml holds two display strings; LICENSE is the standard MIT text; ATTRIBUTION.md is provenance text written for this release."
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Claims no priority over system or user instructions; it leaves every decision to the user and says not to act until the user confirms."
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "supporting-files",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "instructions",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "supporting-files",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "network-requests",
+          "scope": "instructions",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "network-requests",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "URLs appear only as provenance text in ATTRIBUTION.md, not as instructions."
+        },
+        {
+          "category": "shell-execution",
+          "scope": "instructions",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "shell-execution",
+          "scope": "supporting-files",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "hooks",
+          "scope": "instructions",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "hooks",
+          "scope": "supporting-files",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "install-scripts",
+          "scope": "instructions",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "install-scripts",
+          "scope": "supporting-files",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "instructions",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "supporting-files",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Asks the agent to dispatch a sub-agent to look up facts in the environment (filesystem, tools). That is read-only lookup; nothing tells the agent to write files."
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "supporting-files",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "instructions",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "supporting-files",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Assumes the host can dispatch sub-agents; this is a host capability, not a package or service dependency."
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "supporting-files",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "instructions",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "supporting-files",
+          "result": "no-issue-found"
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Frontmatter has only name and description: no allowed-tools, hooks or model overrides."
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "supporting-files",
+          "result": "no-issue-found"
+        }
+      ],
+      "evidence": [
+        {
+          "method": "static-scan",
+          "summary": "pnpm skills:library review grilling: content hash matches the release record; 0 automated signals across the 4 files (no scripts, binaries, frontmatter tool grants or load-time shell injection)."
+        },
+        {
+          "method": "manual-read",
+          "summary": "Every file read in full, and the non-ASCII characters of SKILL.md enumerated: U+2753, U+27A1, U+FE0F only. SKILL.md and agents/openai.yaml are byte-identical to the upstream folder whose hash the owner reviewed in ES6."
+        }
+      ],
+      "notes": "A clean review in the stated scope is not an approval and says nothing about behaviour. The release stays unapproved until the owner approves it."
+    },
+    "approval": {
+      "status": "unapproved"
+    },
+    "supportedAgents": ["claude-code", "codex"],
+    "dependencies": [],
+    "restrictions": [
+      "Not approved as a library release: installation from the library is refused until the owner approves this release after a recorded security review.",
+      "The skill itself is approved only for installation from upstream at its pinned revision (the existing, legacy install path); that approval does not extend to this release."
+    ],
+    "notes": "ES17 proof of concept. SKILL.md and agents/openai.yaml are byte-identical to upstream (the upstream folder hash equals the hash the owner reviewed in ES6). Supported agents are those documented for the upstream skill; the ES6 agent evidence was recorded against the upstream copy, not this release."
+  },
+  {
+    "skill": "gsap-react",
+    "version": "1.0.0",
+    "createdAt": "2026-10-30",
+    "path": "library/gsap-react/1.0.0",
+    "upstream": {
+      "url": "https://github.com/greensock/gsap-skills",
+      "path": "skills/gsap-react",
+      "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+      "contentHash": "sha256-91dc61a096430fa593c991949905d646c2597d5a2964b24682a39235565d0fe0"
+    },
+    "curatedHash": "sha256-2f66650b6e674766941342b3b496191464a44aaa7d30309de19c10b291cf1558",
+    "license": "MIT",
+    "attribution": "GreenSock (official) (greensock/gsap-skills), MIT.",
+    "modifications": [
+      {
+        "kind": "added",
+        "path": "LICENSE",
+        "summary": "Added the upstream licence text, copied unchanged from the repository root at this revision.",
+        "why": "The licence notice must accompany copies; the upstream skill folder does not contain it.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      },
+      {
+        "kind": "added",
+        "path": "ATTRIBUTION.md",
+        "summary": "Added an attribution file naming the author, upstream repository, folder, commit, folder hash and licence.",
+        "why": "Keeps provenance next to the content.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      }
+    ],
+    "references": [],
+    "review": {
+      "outcome": "no-blocking-issues",
+      "reviewedAt": "2026-10-30",
+      "reviewer": "Claude (ES22 agent review, recorded for the owner; not an approval)",
+      "scope": "All 3 files of library/gsap-react/1.0.0, read in full: SKILL.md (135 lines), LICENSE (MIT text) and ATTRIBUTION.md. Checked against all 13 categories for the instructions and for the supporting files. Not covered: how an agent behaves when it follows the skill (no agent run was made), the correctness of the GSAP guidance, and the npm packages it recommends.",
+      "contentHash": "sha256-2f66650b6e674766941342b3b496191464a44aaa7d30309de19c10b291cf1558",
+      "checks": [
+        {
+          "category": "prompt-injection",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No hidden or concealed text: no HTML comments, no invisible or bidi characters. Non-ASCII is typographic punctuation and the ✅/❌ markers and 👍."
+        },
+        {
+          "category": "prompt-injection",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No wording that overrides the user, system or other skills. The description steers toward GSAP (\"Recommend GSAP for React animation unless the user has chosen another library\"), which explicitly defers to the user's choice."
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No reference to secrets, tokens, environment variables or credential files."
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "network-requests",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No instruction to fetch, download or send data. The Installation section runs npm install against the public npm registry (see install-scripts)."
+        },
+        {
+          "category": "network-requests",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "shell-execution",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "The only shell commands are \"npm install gsap\" and \"npm install @gsap/react\" (SKILL.md:19, :21), shown as the setup for the library the skill is about."
+        },
+        {
+          "category": "shell-execution",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "hooks",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No hooks, frontmatter hook declarations or load-time shell injection."
+        },
+        {
+          "category": "hooks",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "install-scripts",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Adds two unpinned project dependencies (gsap, @gsap/react) when the user follows the Installation section. These are the declared subject of the skill, visible to the user and run through the agent's normal permission prompts; recorded as a restriction, not hidden."
+        },
+        {
+          "category": "install-scripts",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No binaries in the folder and no instruction to download one."
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Only writes the agent would make anyway when editing the user's code; no writes outside the project."
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No changes to global, home-directory or agent configuration."
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Works standalone. Mentions sibling skills (gsap-core, gsap-timeline, gsap-scrolltrigger, gsap-frameworks) by name only, as optional further reading; there are no file links outside the folder."
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "One documentation URL (https://gsap.com/resources/React) under \"Learn More\"; the skill does not tell the agent to fetch instructions from it."
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Frontmatter has name, description and license only: no allowed-tools or permission grants."
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        }
+      ],
+      "evidence": [
+        {
+          "method": "static-scan",
+          "summary": "pnpm skills:library review gsap-react --version 1.0.0: content hash matches the release record; 4 automated signals, all the two npm install lines (SKILL.md:19, :21). No scripts, binaries, symlinks, frontmatter tool grants or out-of-folder links."
+        },
+        {
+          "method": "manual-read",
+          "summary": "Every file read in full and the non-ASCII characters enumerated (typographic punctuation and emoji markers only). The upstream folder hash recorded in the release equals the discovery hash of the pinned registry entry (aed9cfd), and the GreenSock root LICENSE is MIT."
+        }
+      ],
+      "notes": "A clean review in the stated scope is not an approval and says nothing about behaviour. The release stays unapproved until the owner approves it."
+    },
+    "approval": {
+      "status": "unapproved"
+    },
+    "supportedAgents": [],
+    "dependencies": [],
+    "restrictions": [
+      "Prepared from upstream aed9cfd32777. It does not inherit the review or approval of any earlier version or of the discovery record.",
+      "Following the Installation section adds the gsap and @gsap/react npm packages (unpinned) to the project; the user should approve that dependency change."
+    ]
+  },
+  {
+    "skill": "gsap-timeline",
+    "version": "1.0.0",
+    "createdAt": "2026-10-30",
+    "path": "library/gsap-timeline/1.0.0",
+    "upstream": {
+      "url": "https://github.com/greensock/gsap-skills",
+      "path": "skills/gsap-timeline",
+      "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+      "contentHash": "sha256-31f4db79a92276e2ac39f02b99f5fe79da6217c4b5e4476cbbc552064246f71f"
+    },
+    "curatedHash": "sha256-7efc4044d8047694a53f5f8850cf7200b69b168762576740864f83d758a5fcf9",
+    "license": "MIT",
+    "attribution": "GreenSock (official) (greensock/gsap-skills), MIT.",
+    "modifications": [
+      {
+        "kind": "added",
+        "path": "LICENSE",
+        "summary": "Added the upstream licence text, copied unchanged from the repository root at this revision.",
+        "why": "The licence notice must accompany copies; the upstream skill folder does not contain it.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      },
+      {
+        "kind": "added",
+        "path": "ATTRIBUTION.md",
+        "summary": "Added an attribution file naming the author, upstream repository, folder, commit, folder hash and licence.",
+        "why": "Keeps provenance next to the content.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      }
+    ],
+    "references": [],
+    "review": {
+      "outcome": "no-blocking-issues",
+      "reviewedAt": "2026-10-30",
+      "reviewer": "Claude (ES22 agent review, recorded for the owner; not an approval)",
+      "scope": "All 3 files of library/gsap-timeline/1.0.0, read in full: SKILL.md (107 lines), LICENSE (MIT text) and ATTRIBUTION.md. Checked against all 13 categories for the instructions and for the supporting files. Not covered: how an agent behaves when it follows the skill (no agent run was made), the correctness of the GSAP guidance, and the npm packages it recommends.",
+      "contentHash": "sha256-7efc4044d8047694a53f5f8850cf7200b69b168762576740864f83d758a5fcf9",
+      "checks": [
+        {
+          "category": "prompt-injection",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No hidden or concealed text: no HTML comments, no invisible or bidi characters. Non-ASCII is typographic punctuation and the ✅/❌ markers."
+        },
+        {
+          "category": "prompt-injection",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No wording that overrides the user, system or other skills. The description steers toward GSAP; it does not override a user's choice."
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No reference to secrets, tokens, environment variables or credential files."
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "network-requests",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No instruction to fetch, download or send data."
+        },
+        {
+          "category": "network-requests",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "shell-execution",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No shell commands; all code samples are browser JavaScript or CSS."
+        },
+        {
+          "category": "shell-execution",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "hooks",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No hooks, frontmatter hook declarations or load-time shell injection."
+        },
+        {
+          "category": "hooks",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "install-scripts",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No package installs or install scripts."
+        },
+        {
+          "category": "install-scripts",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No binaries in the folder and no instruction to download one."
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Only writes the agent would make anyway when editing the user's code; no writes outside the project."
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No changes to global, home-directory or agent configuration."
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Works standalone. Mentions sibling skills (gsap-core, gsap-scrolltrigger, gsap-react) by name only, as optional further reading; there are no file links outside the folder."
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No URLs and no instruction to fetch remote guidance."
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Frontmatter has name, description and license only: no allowed-tools or permission grants."
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        }
+      ],
+      "evidence": [
+        {
+          "method": "static-scan",
+          "summary": "pnpm skills:library review gsap-timeline --version 1.0.0: content hash matches the release record; 0 automated signals. No scripts, binaries, symlinks, frontmatter tool grants or out-of-folder links."
+        },
+        {
+          "method": "manual-read",
+          "summary": "Every file read in full and the non-ASCII characters enumerated (typographic punctuation and emoji markers only). The upstream folder hash recorded in the release equals the discovery hash of the pinned registry entry (aed9cfd), and the GreenSock root LICENSE is MIT."
+        }
+      ],
+      "notes": "A clean review in the stated scope is not an approval and says nothing about behaviour. The release stays unapproved until the owner approves it."
+    },
+    "approval": {
+      "status": "unapproved"
+    },
+    "supportedAgents": [],
+    "dependencies": [],
+    "restrictions": [
+      "Prepared from upstream aed9cfd32777. It does not inherit the review or approval of any earlier version or of the discovery record."
+    ]
+  },
+  {
+    "skill": "gsap-performance",
+    "version": "1.0.0",
+    "createdAt": "2026-10-30",
+    "path": "library/gsap-performance/1.0.0",
+    "upstream": {
+      "url": "https://github.com/greensock/gsap-skills",
+      "path": "skills/gsap-performance",
+      "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+      "contentHash": "sha256-c6625d9b2139438f23093aae1051aaa81d7c6f6ca2f232a71d8c1c1a6b4e4ea2"
+    },
+    "curatedHash": "sha256-eb9b48763feaca1ca8a7fd980c45c7db905be79a7580455204491b7c82c9a4e9",
+    "license": "MIT",
+    "attribution": "GreenSock (official) (greensock/gsap-skills), MIT.",
+    "modifications": [
+      {
+        "kind": "added",
+        "path": "LICENSE",
+        "summary": "Added the upstream licence text, copied unchanged from the repository root at this revision.",
+        "why": "The licence notice must accompany copies; the upstream skill folder does not contain it.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      },
+      {
+        "kind": "added",
+        "path": "ATTRIBUTION.md",
+        "summary": "Added an attribution file naming the author, upstream repository, folder, commit, folder hash and licence.",
+        "why": "Keeps provenance next to the content.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      }
+    ],
+    "references": [],
+    "review": {
+      "outcome": "no-blocking-issues",
+      "reviewedAt": "2026-10-30",
+      "reviewer": "Claude (ES22 agent review, recorded for the owner; not an approval)",
+      "scope": "All 3 files of library/gsap-performance/1.0.0, read in full: SKILL.md (79 lines), LICENSE (MIT text) and ATTRIBUTION.md. Checked against all 13 categories for the instructions and for the supporting files. Not covered: how an agent behaves when it follows the skill (no agent run was made), the correctness of the GSAP guidance, and the npm packages it recommends.",
+      "contentHash": "sha256-eb9b48763feaca1ca8a7fd980c45c7db905be79a7580455204491b7c82c9a4e9",
+      "checks": [
+        {
+          "category": "prompt-injection",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No hidden or concealed text: no HTML comments, no invisible or bidi characters. Non-ASCII is typographic punctuation and the ✅/❌ markers."
+        },
+        {
+          "category": "prompt-injection",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No wording that overrides the user, system or other skills. The description steers toward GSAP; it does not override a user's choice."
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No reference to secrets, tokens, environment variables or credential files."
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "network-requests",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No instruction to fetch, download or send data."
+        },
+        {
+          "category": "network-requests",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "shell-execution",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No shell commands; all code samples are browser JavaScript or CSS."
+        },
+        {
+          "category": "shell-execution",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "hooks",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No hooks, frontmatter hook declarations or load-time shell injection."
+        },
+        {
+          "category": "hooks",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "install-scripts",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No package installs or install scripts."
+        },
+        {
+          "category": "install-scripts",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No binaries in the folder and no instruction to download one."
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Only writes the agent would make anyway when editing the user's code; no writes outside the project."
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No changes to global, home-directory or agent configuration."
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Works standalone. Mentions sibling skills (gsap-core, gsap-timeline, gsap-scrolltrigger) by name only, as optional further reading; there are no file links outside the folder."
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "No URLs and no instruction to fetch remote guidance."
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "instructions",
+          "result": "no-issue-found",
+          "note": "Frontmatter has name, description and license only: no allowed-tools or permission grants."
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "supporting-files",
+          "result": "no-issue-found",
+          "note": "LICENSE is the standard MIT text (Copyright (c) 2026 GreenSock, byte-identical across the three GSAP releases); ATTRIBUTION.md is provenance text written for this release. Neither holds instructions."
+        }
+      ],
+      "evidence": [
+        {
+          "method": "static-scan",
+          "summary": "pnpm skills:library review gsap-performance --version 1.0.0: content hash matches the release record; 0 automated signals. No scripts, binaries, symlinks, frontmatter tool grants or out-of-folder links."
+        },
+        {
+          "method": "manual-read",
+          "summary": "Every file read in full and the non-ASCII characters enumerated (typographic punctuation and emoji markers only). The upstream folder hash recorded in the release equals the discovery hash of the pinned registry entry (aed9cfd), and the GreenSock root LICENSE is MIT."
+        }
+      ],
+      "notes": "A clean review in the stated scope is not an approval and says nothing about behaviour. The release stays unapproved until the owner approves it."
+    },
+    "approval": {
+      "status": "unapproved"
+    },
+    "supportedAgents": [],
+    "dependencies": [],
+    "restrictions": [
+      "Prepared from upstream aed9cfd32777. It does not inherit the review or approval of any earlier version or of the discovery record."
+    ]
+  },
+  {
+    "skill": "web-quality-accessibility",
+    "version": "1.0.0",
+    "createdAt": "2026-10-30",
+    "path": "library/web-quality-accessibility/1.0.0",
+    "upstream": {
+      "url": "https://github.com/addyosmani/web-quality-skills",
+      "path": "skills/accessibility",
+      "revision": "afa8da942115f2961fdbfa80807ea0b232ff6c00",
+      "contentHash": "sha256-3903ee59a525e80b469d846660c76d5a95628779b3c344a342e2c1799f100588"
+    },
+    "curatedHash": "sha256-8fd47249e6fba3d03a0b21570d43663a088e3c9d0f25340adf2d25fce6ea8b06",
+    "license": "MIT",
+    "attribution": "Addy Osmani (addyosmani/web-quality-skills), MIT.",
+    "modifications": [
+      {
+        "kind": "added",
+        "path": "LICENSE",
+        "summary": "Added the upstream licence text, copied unchanged from the repository root at this revision.",
+        "why": "The licence notice must accompany copies; the upstream skill folder does not contain it.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      },
+      {
+        "kind": "added",
+        "path": "ATTRIBUTION.md",
+        "summary": "Added an attribution file naming the author, upstream repository, folder, commit, folder hash and licence.",
+        "why": "Keeps provenance next to the content.",
+        "affectsBehavior": false,
+        "affectsDependencies": false,
+        "affectsPermissions": false
+      }
+    ],
+    "references": [
+      {
+        "path": "SKILL.md",
+        "target": "../web-quality-audit/SKILL.md",
+        "resolution": "unresolved",
+        "note": "Found at preparation (line 462). Resolve by curating the sibling skill and declaring requires-release, or by a declared modification of the link."
+      }
+    ],
+    "review": {
+      "outcome": "requires-changes",
+      "reviewedAt": "2026-10-30",
+      "reviewer": "Claude (ES22 agent review, recorded for the owner; not an approval)",
+      "scope": "Partial review of library/web-quality-accessibility/1.0.0 (SKILL.md 464 lines, references/WCAG.md 191, references/A11Y-PATTERNS.md 233, LICENSE, ATTRIBUTION.md): the install-scripts, global-config-changes and hidden-dependencies categories for the instructions, every automated signal, every HTML comment and all non-ASCII characters in the three content files. The other categories are not evaluated; a full read is needed once the changes are made.",
+      "contentHash": "sha256-8fd47249e6fba3d03a0b21570d43663a088e3c9d0f25340adf2d25fce6ea8b06",
+      "checks": [
+        {
+          "category": "prompt-injection",
+          "scope": "instructions",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "prompt-injection",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "instructions",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "instruction-hierarchy",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "instructions",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "credential-exfiltration",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "network-requests",
+          "scope": "instructions",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "network-requests",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "shell-execution",
+          "scope": "instructions",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "shell-execution",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "hooks",
+          "scope": "instructions",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "hooks",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "install-scripts",
+          "scope": "instructions",
+          "result": "issue-found",
+          "note": "SKILL.md:416 runs \"npm install @axe-core/cli -g\" (a global, unpinned install) and SKILL.md:413 runs \"npx lighthouse\" (downloads and executes an unpinned package). Both should be optional, project-local or pinned, and presented for the user to approve."
+        },
+        {
+          "category": "install-scripts",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "instructions",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "downloaded-binaries",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "instructions",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "filesystem-writes",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "instructions",
+          "result": "issue-found",
+          "note": "The -g install at SKILL.md:416 changes the global npm environment, outside the project."
+        },
+        {
+          "category": "global-config-changes",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "instructions",
+          "result": "issue-found",
+          "note": "SKILL.md:462 links to ../web-quality-audit/SKILL.md, a sibling folder that is not part of this release; recorded as an unresolved reference. The link is optional reading, so the skill works standalone, but the link is broken once installed alone."
+        },
+        {
+          "category": "hidden-dependencies",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "instructions",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "unpinned-remote-instructions",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "instructions",
+          "result": "not-evaluated"
+        },
+        {
+          "category": "tool-permissions",
+          "scope": "supporting-files",
+          "result": "not-evaluated"
+        }
+      ],
+      "evidence": [
+        {
+          "method": "static-scan",
+          "summary": "pnpm skills:library review web-quality-accessibility --version 1.0.0: content hash matches the release record; 57 automated signals. 50 are HTML comments, all visible example comments inside fenced code blocks (checked line by line). SKILL.md:368 (\"Allow paste in password fields\") is a false positive of the ES22 secrets rule. The rest are the npm/npx lines and the sibling link."
+        },
+        {
+          "method": "manual-read",
+          "summary": "Read the Testing checklist (SKILL.md:405-420), the References section (SKILL.md:455-464), the contrast table (SKILL.md:100-125) and every flagged line. Non-ASCII characters are × — → ≥ ✅ ❌ and arrow/⌘ glyphs only; no invisible or bidi characters."
+        }
+      ],
+      "notes": "Requested changes: make the axe/Lighthouse tooling optional and project-local or pinned instead of a global install; remove or resolve the ../web-quality-audit link (curate web-quality-audit as a dependency release, or drop the link as a declared modification). Accuracy, not security: SKILL.md:105-106 gives the WCAG large-text threshold as \"18px / 14px bold\", but WCAG defines it as 18pt / 14pt bold (about 24px / 18.66px CSS). The release stays unapproved."
+    },
+    "approval": {
+      "status": "unapproved"
+    },
+    "supportedAgents": [],
+    "dependencies": [],
+    "restrictions": [
+      "Prepared from upstream afa8da942115. It does not inherit the review or approval of any earlier version or of the discovery record."
+    ]
+  }
+]

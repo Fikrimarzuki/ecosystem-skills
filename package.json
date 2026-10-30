@@ -14,6 +14,7 @@
     "catalog:validate": "pnpm --filter @ecosystem-skills/catalog validate",
     "catalog:build": "pnpm --filter @ecosystem-skills/catalog build",
     "skills:links": "pnpm --filter @ecosystem-skills/catalog links",
+    "skills:library": "pnpm --filter @ecosystem-skills/catalog ext library",
     "skills:review": "pnpm --filter @ecosystem-skills/catalog ext review",
     "skills:install": "pnpm --filter @ecosystem-skills/catalog ext install",
     "skills:rollback": "pnpm --filter @ecosystem-skills/catalog ext rollback",

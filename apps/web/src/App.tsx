@@ -5,6 +5,7 @@ import { GATEWAY_URL, REPO_URL, SUPPORT_URL } from './links.ts';
 import { Consumers } from './pages/Consumers.tsx';
 import { Home } from './pages/Home.tsx';
 import { Integrations } from './pages/Integrations.tsx';
+import { Sources } from './pages/Sources.tsx';
 import { Overview } from './pages/Overview.tsx';
 import { SkillDetail } from './pages/SkillDetail.tsx';
 import { SkillsExplorer } from './pages/Skills.tsx';
@@ -23,6 +24,7 @@ export const NAV = [
   { path: '/', label: 'Home', page: 'home' },
   { path: '/overview', label: 'Overview', page: 'dashboard' },
   { path: '/skills', label: 'Skills', page: 'skills' },
+  { path: '/sources', label: 'Sources', page: 'sources' },
   { path: '/consumers', label: 'Consumers', page: 'consumers' },
   { path: '/integrations', label: 'Agents & tools', short: 'Agents', page: 'integrations' },
 ] as const;
@@ -39,6 +41,8 @@ export function Page({ route, catalog }: { route: Route; catalog: Catalog }) {
       return <Consumers catalog={catalog} />;
     case 'integrations':
       return <Integrations catalog={catalog} />;
+    case 'sources':
+      return <Sources catalog={catalog} />;
     case 'dashboard':
       return <Overview catalog={catalog} />;
     case 'notfound':
@@ -83,6 +87,8 @@ function pageTitle(route: Route, catalog: Catalog | undefined, t: ReturnType<typ
       return `${t('Consumers')} · ${base}`;
     case 'integrations':
       return `${t('Agents & tools')} · ${base}`;
+    case 'sources':
+      return `${t('Sources')} · ${base}`;
     default:
       return `${t('Page not found')} · ${base}`;
   }

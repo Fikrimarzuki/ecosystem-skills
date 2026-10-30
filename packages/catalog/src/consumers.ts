@@ -9,10 +9,20 @@ import {
   type AtomicWriteOptions,
 } from './fsguard.ts';
 import { PROJECT_SKILL_DIRS } from './links.ts';
-import type { Agent, Catalog, Consumer, Skill } from './schema.ts';
+import type { Agent, Catalog, Consumer, Release, Skill } from './schema.ts';
+import { releaseInstallBlocker } from './availability.ts';
 import { buildCatalog } from './validate.ts';
 
-const NAMES = ['skills', 'consumers', 'integrations', 'evidence'] as const;
+const NAMES = [
+  'skills',
+  'consumers',
+  'integrations',
+  'evidence',
+  'sources',
+  'releases',
+  'evaluations',
+  'updates',
+] as const;
 type RawConsumer = Record<string, unknown> & {
   id: string;
   assignments?: Record<string, unknown>[];
@@ -22,7 +32,16 @@ export interface LoadedRegistry {
   root: string;
   /** Exact file contents, used to detect concurrent edits before writing. */
   text: Record<(typeof NAMES)[number], string>;
-  raw: { skills: unknown; consumers: RawConsumer[]; integrations: unknown; evidence: unknown };
+  raw: {
+    skills: unknown;
+    consumers: RawConsumer[];
+    integrations: unknown;
+    evidence: unknown;
+    sources: unknown;
+    releases: unknown;
+    evaluations: unknown;
+    updates: unknown;
+  };
   catalog: Catalog;
 }
 
@@ -30,7 +49,15 @@ export function loadRegistry(root: string): LoadedRegistry {
   const text = {} as LoadedRegistry['text'];
   for (const n of NAMES) {
     const p = join(root, 'registry', `${n}.json`);
-    text[n] = existsSync(p) ? readFileSync(p, 'utf8') : n === 'evidence' ? '[]\n' : '';
+    text[n] = existsSync(p)
+      ? readFileSync(p, 'utf8')
+      : n === 'evidence' ||
+          n === 'sources' ||
+          n === 'releases' ||
+          n === 'evaluations' ||
+          n === 'updates'
+        ? '[]\n'
+        : '';
     if (!text[n]) throw new ConsumerError(`missing registry/${n}.json`);
   }
   const raw = Object.fromEntries(
@@ -65,8 +92,10 @@ export function findSkill(reg: LoadedRegistry, id: string): Skill {
  * validator already ties approval to the pin). First-party skills follow their own policy: they need no
  * third-party approval, but a rejected skill is never assignable.
  */
-export function assignmentPolicy(skill: Skill): string | undefined {
+export function assignmentPolicy(skill: Skill, release?: Release): string | undefined {
   if (skill.review.status === 'rejected') return `${skill.id} is rejected`;
+  // A curated release has its own gate: approved release, complete security review, no blockers.
+  if (release) return releaseInstallBlocker(skill, release);
   if (skill.origin === 'external' && skill.review.status !== 'approved')
     return `${skill.id} is an external skill with review status "${skill.review.status}"; only approved external skills can be assigned`;
   return undefined;

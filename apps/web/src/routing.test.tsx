@@ -14,6 +14,10 @@ const built = buildCatalog({
   consumers: read('consumers'),
   integrations: read('integrations'),
   evidence: read('evidence'),
+  sources: read('sources'),
+  releases: read('releases'),
+  evaluations: read('evaluations'),
+  updates: read('updates'),
 });
 if (!built.ok) throw new Error(built.errors.join('\n'));
 const catalog: Catalog = built.catalog;
@@ -74,7 +78,9 @@ describe('rendering every route', () => {
       'One place to manage the skills your AI agents use',
     );
     expect(text(html({ page: 'dashboard' }))).toContain('Third-party review status');
-    expect(text(html({ page: 'skills' }))).toContain('29 of 29 skills');
+    expect(text(html({ page: 'skills' }))).toContain(
+      `${catalog.skills.length} of ${catalog.skills.length} skills`,
+    );
     expect(text(html({ page: 'consumers' }))).toContain('With assigned skills');
     expect(text(html({ page: 'integrations' }))).toContain('Agent compatibility');
     expect(text(html({ page: 'skill', id: 'caveman' }))).toContain('Lifecycle');
@@ -93,6 +99,7 @@ describe('rendering every route', () => {
       { page: 'skills' },
       { page: 'consumers' },
       { page: 'integrations' },
+      { page: 'sources' },
       { page: 'notfound', path: '/x' },
       ...catalog.skills.map((s) => ({ page: 'skill', id: s.id }) as Route),
     ];
@@ -101,7 +108,7 @@ describe('rendering every route', () => {
       expect(out, JSON.stringify(r)).not.toMatch(/href="#\//);
       for (const m of out.matchAll(/href="(\/[^"]*)"/g))
         expect(m[1], m[1]).toMatch(
-          /^\/(skills|overview|consumers|integrations)?(\/[^/]+)?(\?.*)?$/,
+          /^\/(skills|overview|consumers|integrations|sources)?(\/[^/]+)?(\?.*)?(#.*)?$/,
         );
     }
     // The shell (header, mobile nav, footer) too, with the active page marked.
@@ -126,14 +133,16 @@ describe('rendering every route', () => {
   it('opening a filtered URL restores the filters, and unknown parameters are ignored', () => {
     const planning = text(html({ page: 'skills', query: { group: 'Planning' } }));
     expect(planning).toContain(
-      `${filterSkills(catalog, { group: 'Planning' }).length} of 29 skills`,
+      `${filterSkills(catalog, { group: 'Planning' }).length} of ${catalog.skills.length} skills`,
     );
     expect(planning).toContain('Clear filters');
     const both = text(html({ page: 'skills', query: { group: 'Planning', status: 'approved' } }));
     expect(both).toContain(
-      `${filterSkills(catalog, { group: 'Planning', status: 'approved' }).length} of 29 skills`,
+      `${filterSkills(catalog, { group: 'Planning', status: 'approved' }).length} of ${catalog.skills.length} skills`,
     );
-    expect(text(html({ page: 'skills', query: { utm_source: 'x' } }))).toContain('29 of 29 skills');
+    expect(text(html({ page: 'skills', query: { utm_source: 'x' } }))).toContain(
+      `${catalog.skills.length} of ${catalog.skills.length} skills`,
+    );
     expect(text(html({ page: 'skills', query: { q: 'zzzz' } }))).toContain(
       'No skills match these filters',
     );

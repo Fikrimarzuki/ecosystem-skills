@@ -37,6 +37,22 @@ Agent evidence lives in `registry/evidence.json` and is published in the catalog
 skill × agent run, with the agent version, pinned revision, content hash, and a pass/fail for discovery,
 instructions and invocation. It is separate from consumer verification.
 
+**ES16 (2026-10-30):** discovery was extended to 29 requested sources plus additional ones. 216 more candidates were registered as
+**discovered** (`unreviewed`) with a `discovery` record and a link to a source record (`registry/sources.json`); applications,
+reference collections, standards and unresolved names are recorded as sources only. None is approved, installed, assigned or
+activated. Full results: [es16-discovery.md](es16-discovery.md). The discovery scan is the same heuristic scan as section 3 over
+every file, without the manual reading that a _reviewed_ status requires.
+
+**ES16.1 hardening:** a discovered candidate cannot become executable just by existing. Approval is refused while
+`discovery.approvalBlockers` remain, `installBlocker()` refuses unapproved, blocked and repository-root skills before any file or
+network access, and consumer assignments to non-approved external skills are a registry error. Skills whose SKILL.md sits at the
+repository root (`source.path: "."`) can be registered and reviewed (`pnpm skills:review --dir <folder>`) but not installed until a
+subset install strategy exists. Details: [es16-discovery.md](es16-discovery.md#es161--discovery-hardening-and-pre-commit-verification-2026-10-30).
+
+**ES17:** discovery records can now be complemented by locally stored, versioned curated releases (`library/`, `registry/releases.json`). This does
+not change the lifecycle above or the install path in section 5: `skills:install` still installs an approved skill from its pinned upstream revision, and
+nothing installs from `library/`. See [library.md](library.md).
+
 ## 1. Discovery
 
 Method used in ES4 (repeatable):
