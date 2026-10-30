@@ -22,3 +22,13 @@ export {
   type InventoryRow,
 } from './curated.ts';
 export { readCuratedLock, storeState, CURATED_LOCK } from './store.ts';
+export {
+  DEFAULT_SITE_URL,
+  RESOURCE_CATEGORY_LABEL,
+  RESOURCE_EXPORT_FORMAT,
+  RESOURCE_EXPORT_VERSION,
+  llmsTxt,
+  provenanceOf,
+  resourceExport,
+  resourceExportToJson,
+} from './public.ts';

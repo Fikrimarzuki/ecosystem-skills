@@ -30,6 +30,15 @@ Array of skills. Key fields (schema: `packages/catalog/src/schema.ts`):
   - external `reviewed`/`approved` must carry `revision` equal to `source.revision` and the `contentHash` of the
     reviewed folder; changing the pin forces a re-review
   - `approved` needs `approvedBy` (never set automatically) and all `requiresSkills` approved
+  - `audit?` (ES27): a structured security audit of exactly `revision` / `contentHash` —
+    `{ round, completeness, scope, recommendation, rationale, issues[], checks[] }`. `completeness` is `complete` or
+    `partial`; `recommendation` is `controlled-evaluation` | `after-remediation` | `reference-only` | `defer` |
+    `do-not-adopt` (advice for the next step, never an approval state); `issues[]` are
+    `{ severity: critical|high|medium|low|info, title, evidence, exposure?, mitigation? }`; `checks[]` are the 13 review
+    categories × `instructions`/`supporting-files` used by curated-release reviews. Validation: an audit requires a
+    status other than `unreviewed` and the discovery `contentHash`; a partial audit can never back `approved`; a complete
+    audit addresses all 26 checks with none `not-evaluated`; `controlled-evaluation` needs a complete audit without
+    critical or high issues. See [es27-security-audit.md](es27-security-audit.md).
 
 - `discovery` (optional, external only; added by ES16): how a candidate entered the registry —
   `{ discoveredAt, outcome, source, contentHash, warnings[], dependencies[], audit }`. `outcome` is
@@ -50,8 +59,8 @@ the registry nor in the public catalog; see [external-skills.md](external-skills
 
 Repositories, applications, standards and leads that were examined (ES16). A source is not a skill; it records what a
 name resolved to and what was decided. Fields: `id`, `name`, `requestedAs?`, `batch` (`original` | `design-ui` |
-`video-animation` | `discovered`), `kind` (`skill` | `skill-collection` | `framework` | `application` |
-`design-reference` | `standard` | `lead`), `resolution` (`verified` | `ambiguous` | `unresolved`), `decision`
+`video-animation` | `discovered` | `es26`), `kind` (`skill` | `skill-collection` | `framework` | `application` |
+`design-reference` | `standard` | `lead` | `mcp-server` | `toolkit` | `developer-resource`), `resolution` (`verified` | `ambiguous` | `unresolved`), `decision`
 (`register-for-review` | `register-with-warnings` | `reference-only` | `unresolved` | `reject`), `upstream?`,
 `revision?` (the commit examined), `publisher?`, `license?`, `lastCommit?`, `skillsFound`, `skills[]` (registered
 skill ids), `summary`, `warnings[]`, `alternatives[]` (other candidates considered), `needs?`, `discoveredAt`.
@@ -60,7 +69,28 @@ Rules enforced by validation: a verified source needs `upstream`; a source that 
 least one listed skill, and every listed skill must come from the same upstream; `reference-only`, `unresolved` and
 `reject` sources list no skills; a non-verified source must be `unresolved` or `reject`, carries no `revision`, and an
 `unresolved` one must say what would resolve it (`needs`); a source with any skill registered _with warnings_ must itself
-be `register-with-warnings`. See [es16-discovery.md](es16-discovery.md) for the ES16 results.
+be `register-with-warnings`. ES26 adds: **one source per repository** (two sources with the same upstream are
+rejected). See [es16-discovery.md](es16-discovery.md) for the ES16 results and [es26-discovery.md](es26-discovery.md)
+for ES26.
+
+## `resources.json` (ES26)
+
+Catalogued items that are not skills: MCP servers, agent toolkits, agent development tools, agent references and other
+developer resources. They are never approved, installed or assigned and never count as skills. Fields: `id`, `name`,
+`category` (`mcp-servers` | `agent-toolkits` | `agent-dev-tools` | `agent-references` | `developer-resources`), `type`
+(must belong to the category), `summary`, `tags[]`, `source` (the `sources.json` id that holds provenance), `license?`
+(only when the source's licence does not cover the item, e.g. a hosted service), `path?`, `homepage?`,
+`discovery` (`status`: `discovered` | `verified` | `unresolved`, `discoveredAt`, `lastVerified?`), `security`
+(`status`: `not-reviewed` | `notes-recorded` | `reviewed`, `concerns[]`; there is no approved state), `mcp?` (required
+for, and only allowed on, MCP servers: `deployment`, `transport[]`, `auth`, `toolScope`, `dataAccess`,
+`officialEndpoint?`), `related` (`skills[]`, `resources[]`, `projects[]`).
+
+Rules enforced by validation: the source must exist, and a resource is `verified` exactly when its source is (with
+`lastVerified`); a resource id may not equal a skill id; related skills and resources must exist; `notes-recorded`
+needs at least one concern. `security.audit?` (ES27) has the same shape as a skill's `review.audit` plus `reviewedAt`,
+`reviewer` and `revision` (the source revision read; absent only for a hosted service with nothing to read): `reviewed`
+requires a complete audit, a partial audit stays `notes-recorded`, and the audit revision must equal the source's.
+Policy and export format: [resources.md](resources.md).
 
 ## `releases.json`
 

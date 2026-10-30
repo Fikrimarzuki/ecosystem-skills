@@ -1,5 +1,7 @@
 import { compareVersions, curationBlockers, releaseInstallProblems } from './availability.ts';
+import { distributionOf, isRestricted, ownershipOf } from './ownership.ts';
 import {
+  RESOURCE_TYPES_BY_CATEGORY,
   REVIEW_CATEGORIES,
   REVIEW_SCOPES,
   registrySchema,
@@ -38,8 +40,62 @@ export const catalogToJson = (catalog: Catalog): string => JSON.stringify(catalo
 
 export type ValidationResult = { ok: true; catalog: Catalog } | { ok: false; errors: string[] };
 
+export interface BuildOptions {
+  /**
+   * public (default): the public registry, where every record must be public. workspace: the public registry merged
+   * with the private root on this machine (private.ts); never used to generate anything that is published.
+   */
+  scope?: 'public' | 'workspace';
+}
+
+/** Visibility of a record; absent means public (the private loader labels every private record explicitly). */
+export const visibilityOf = (x: { visibility?: 'public' | 'private' | 'local' }) =>
+  x.visibility ?? 'public';
+
 /** Validate raw registry data and, if valid, produce the normalized catalog. */
-export function buildCatalog(raw: unknown): ValidationResult {
+
+/** ES27 audit rules shared by skills and resources. An audit is evidence for a decision, never the decision. */
+function auditProblems(
+  at: string,
+  a: {
+    completeness: 'complete' | 'partial';
+    recommendation: string;
+    issues: { severity: string }[];
+    checks: { category: string; scope: string; result: string }[];
+  },
+  requireAllChecks: boolean,
+): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const c of a.checks) {
+    const k = `${c.category}/${c.scope}`;
+    if (seen.has(k)) out.push(`${at}: audit check ${k} listed more than once`);
+    seen.add(k);
+  }
+  if (a.completeness === 'complete') {
+    if (requireAllChecks)
+      for (const cat of REVIEW_CATEGORIES)
+        for (const scope of REVIEW_SCOPES)
+          if (!seen.has(`${cat}/${scope}`))
+            out.push(`${at}: a complete audit must address ${cat}/${scope}`);
+    if (a.checks.some((c) => c.result === 'not-evaluated'))
+      out.push(`${at}: a complete audit cannot leave checks "not-evaluated"; mark it partial`);
+  }
+  if (a.recommendation === 'controlled-evaluation') {
+    if (a.completeness !== 'complete')
+      out.push(`${at}: "controlled-evaluation" needs a complete audit`);
+    if (a.issues.some((i) => i.severity === 'critical' || i.severity === 'high'))
+      out.push(
+        `${at}: "controlled-evaluation" is not possible with open critical or high findings`,
+      );
+  }
+  return out;
+}
+
+export function buildCatalog(
+  raw: unknown,
+  { scope = 'public' }: BuildOptions = {},
+): ValidationResult {
   const parsed = registrySchema.safeParse(raw);
   if (!parsed.success) {
     return {
@@ -58,6 +114,79 @@ export function buildCatalog(raw: unknown): ValidationResult {
     for (const [p, s] of strings(items, kind))
       for (const [re, label] of FORBIDDEN)
         if (re.test(s)) errors.push(`${p}: contains ${label}; not allowed in public catalog`);
+  }
+
+  // ---- visibility (ES24): the public registry holds public records only; exclusion happens here, before any output
+  if (scope === 'public')
+    for (const [kind, items] of [
+      ['skill', reg.skills.map((x) => [x.id, x] as const)],
+      ['source', reg.sources.map((x) => [x.id, x] as const)],
+      ['release', reg.releases.map((x) => [`${x.skill}@${x.version}`, x] as const)],
+    ] as const)
+      for (const [key, x] of items)
+        if (visibilityOf(x) !== 'public')
+          errors.push(
+            `${kind} ${key}: visibility "${visibilityOf(x)}" is not allowed in the public registry; private records belong in the private root`,
+          );
+  for (const r of reg.releases) {
+    const sk = reg.skills.find((k) => k.id === r.skill);
+    if (sk && visibilityOf(sk) === 'public' && visibilityOf(r) !== 'public')
+      errors.push(
+        `release ${r.skill}@${r.version}: a private release of a public skill would leak through public assignments; register the private copy as a private skill`,
+      );
+    if (sk && visibilityOf(sk) !== 'public' && visibilityOf(r) === 'public')
+      errors.push(
+        `release ${r.skill}@${r.version}: ${r.skill} is ${visibilityOf(sk)}, so its releases cannot be public`,
+      );
+  }
+
+  // ---- ownership and distribution (ES25): explicit, consistent with the source, never inferred from a name
+  for (const s of reg.skills) {
+    const at = `skill ${s.id}`;
+    if (s.ownership === 'third-party' && s.origin !== 'external')
+      errors.push(`${at}: ownership "third-party" requires an external skill`);
+    if (s.ownership && s.ownership !== 'third-party' && s.origin !== 'first-party')
+      errors.push(
+        `${at}: ownership "${s.ownership}" requires a first-party skill whose content is maintained here or in the private root; an external upstream cannot establish ownership`,
+      );
+    const d = distributionOf(s);
+    if (d.policy === 'restricted' && !d.access)
+      errors.push(`${at}: a restricted distribution needs an "access" policy`);
+    if (d.policy !== 'restricted' && d.access)
+      errors.push(`${at}: "access" applies to restricted distribution only`);
+    if (d.access === 'owner-only' && ownershipOf(s) === 'third-party')
+      errors.push(
+        `${at}: owner-only access applies to skills the owner maintains, not third-party`,
+      );
+    if (visibilityOf(s) !== 'public' && d.policy === 'open')
+      errors.push(
+        `${at}: a ${visibilityOf(s)} skill cannot be open; installing it always needs an authorization`,
+      );
+  }
+  for (const c of reg.consumers)
+    if (c.kind === 'global' && c.ownership)
+      errors.push(`consumer ${c.id}: global consumers have no ownership and are never authorized`);
+
+  // ---- integrations with a repository contract (ES24)
+  const repoNames = new Map<string, string>();
+  for (const i of reg.integrations) {
+    const at = `integration ${i.id}`;
+    const sourceType = i.type === 'asset-catalog' || i.type === 'config-registry';
+    if (sourceType && (!i.repository || !i.contract))
+      errors.push(`${at}: an ${i.type} needs "repository" and "contract"`);
+    if (!sourceType && (i.repository || i.contract))
+      errors.push(
+        `${at}: "repository" and "contract" apply to asset-catalog and config-registry only`,
+      );
+    if (i.repository) {
+      if (i.repository.visibility === 'private' && i.repository.url)
+        errors.push(`${at}: a private repository is named only, never linked`);
+      for (const n of [i.repository.name, ...i.repository.formerNames]) {
+        const other = repoNames.get(n.toLowerCase());
+        if (other) errors.push(`${at}: repository name "${n}" is also used by ${other}`);
+        repoNames.set(n.toLowerCase(), i.id);
+      }
+    }
   }
 
   const skillIds = new Set(reg.skills.map((s) => s.id));
@@ -90,6 +219,21 @@ export function buildCatalog(raw: unknown): ValidationResult {
           errors.push(`${at}: review of an external skill requires "contentHash"`);
       }
     }
+    if (r.audit) {
+      // ES27: an audit records findings for exactly the reviewed content; it never approves, and an incomplete one
+      // can never back an approval.
+      if (r.status === 'unreviewed')
+        errors.push(
+          `${at}: an audit records findings, so the review status must be "reviewed" (or a decision)`,
+        );
+      if (r.audit.completeness === 'partial' && r.status === 'approved')
+        errors.push(`${at}: approved on a partial audit; complete the review first`);
+      if (s.source.type === 'external' && s.discovery && r.contentHash !== s.discovery.contentHash)
+        errors.push(
+          `${at}: the audit covers ${r.contentHash ?? '(no content hash)'} but discovery recorded ${s.discovery.contentHash}`,
+        );
+      errors.push(...auditProblems(at, r.audit, true));
+    }
     if (r.status === 'approved' && !r.approvedBy)
       errors.push(`${at}: approved review requires "approvedBy"`);
     if (r.status !== 'approved' && r.approvedBy)
@@ -107,6 +251,19 @@ export function buildCatalog(raw: unknown): ValidationResult {
 
   for (const c of reg.consumers) {
     const at = `consumer ${c.id}`;
+    for (const src of c.ecosystem?.sources ?? []) {
+      const i = integrations.get(src);
+      if (!i) errors.push(`${at}: ecosystem source "${src}" is not a registered integration`);
+      else if (i.type !== 'asset-catalog' && i.type !== 'config-registry')
+        errors.push(
+          `${at}: ecosystem source "${src}" is a ${i.type}, not an asset catalog or config registry`,
+        );
+    }
+    if (
+      c.ecosystem?.project &&
+      !c.ecosystem.sources.some((x) => integrations.get(x)?.type === 'config-registry')
+    )
+      errors.push(`${at}: an Ecosystem Config project id needs a config-registry source`);
     for (const d of duplicates(c.assignments.map((a) => a.skill)))
       errors.push(`${at}: skill "${d}" assigned more than once`);
     for (const a of c.assignments) {
@@ -120,12 +277,27 @@ export function buildCatalog(raw: unknown): ValidationResult {
       if (v.status === 'verified' && (!v.verifiedAt || !v.method))
         errors.push(`${at}: verified assignment "${a.skill}" requires "verifiedAt" and "method"`);
       const target = reg.skills.find((s) => s.id === a.skill);
+      // ES25: restricted skills are authorized only by private access records, never by a public assignment;
+      // not-distributable skills are never assigned at all (in the workspace, access records become assignments)
+      if (target && distributionOf(target).policy === 'not-distributable')
+        errors.push(`${at}: "${a.skill}" is not distributable; it cannot be assigned or installed`);
+      else if (target && scope === 'public' && isRestricted(target))
+        errors.push(
+          `${at}: "${a.skill}" is restricted; it is authorized only by an access record in the private root, never assigned in registry/consumers.json`,
+        );
       if (a.release) {
         // curated assignment: the approved release, not the skill's legacy approval, is the gate
         const rel = reg.releases.find((r) => r.skill === a.skill && r.version === a.release);
-        if (!target || target.source.type !== 'external')
+        // open public first-party skills live in this repository and are not released; private and restricted
+        // ones are (ES24, ES25)
+        if (
+          !target ||
+          (target.source.type !== 'external' &&
+            visibilityOf(target) === 'public' &&
+            !isRestricted(target))
+        )
           errors.push(
-            `${at}: assignment "${a.skill}" pins a curated release, but only external skills have releases`,
+            `${at}: assignment "${a.skill}" pins a curated release, but only external or private skills have releases`,
           );
         else if (!rel)
           errors.push(`${at}: assignment "${a.skill}" pins unknown release ${a.release}`);
@@ -217,6 +389,15 @@ export function buildCatalog(raw: unknown): ValidationResult {
     if (!registers && x.skills.length > 0)
       errors.push(`${at}: decision "${x.decision}" cannot list registered skills`);
     for (const d of duplicates(x.skills)) errors.push(`${at}: skill "${d}" listed more than once`);
+    if (
+      x.upstream &&
+      reg.sources.some(
+        (o) => o !== x && o.upstream?.url.toLowerCase() === x.upstream!.url.toLowerCase(),
+      )
+    )
+      errors.push(
+        `${at}: another source already records ${x.upstream.url}; one source per repository`,
+      );
     for (const sid of x.skills) {
       const sk = reg.skills.find((k) => k.id === sid);
       if (!sk) errors.push(`${at}: lists unknown skill "${sid}"`);
@@ -505,6 +686,56 @@ export function buildCatalog(raw: unknown): ValidationResult {
     if (i.transport && i.type !== 'mcp-server')
       errors.push(`integration ${i.id}: "transport" only applies to mcp-server`);
 
+  // ---- resources (ES26): catalogued references, never skills, never installable, provenance through a source record
+  const resourceIds = new Set(reg.resources.map((r) => r.id));
+  const knownSkills = new Set(reg.skills.map((k) => k.id));
+  for (const r of reg.resources) {
+    const at = `resource ${r.id}`;
+    if (knownSkills.has(r.id))
+      errors.push(`${at}: id is also a skill id; a resource must never be mistaken for a skill`);
+    if (!RESOURCE_TYPES_BY_CATEGORY[r.category].includes(r.type))
+      errors.push(`${at}: type "${r.type}" does not belong to category "${r.category}"`);
+    if (r.category === 'mcp-servers' && !r.mcp)
+      errors.push(
+        `${at}: an MCP server needs "mcp" metadata (deployment, auth, tool scope, data access)`,
+      );
+    if (r.category !== 'mcp-servers' && r.mcp)
+      errors.push(`${at}: "mcp" metadata applies to mcp-servers only`);
+    const src = sources.get(r.source);
+    if (!src) errors.push(`${at}: unknown source "${r.source}"`);
+    else {
+      if (r.discovery.status === 'verified' && src.resolution !== 'verified')
+        errors.push(`${at}: verified, but its source ${src.id} is ${src.resolution}`);
+      if (r.discovery.status !== 'verified' && src.resolution === 'verified')
+        errors.push(
+          `${at}: its source ${src.id} is verified, so the resource must be verified too`,
+        );
+      if (r.discovery.status === 'verified' && !r.discovery.lastVerified)
+        errors.push(`${at}: a verified resource needs "lastVerified"`);
+    }
+    if (r.path && !src?.upstream) errors.push(`${at}: "path" needs a source with an upstream`);
+    if (r.security.status === 'notes-recorded' && r.security.concerns.length === 0)
+      errors.push(`${at}: "notes-recorded" needs at least one concern`);
+    const au = r.security.audit;
+    if (r.security.status === 'reviewed' && au?.completeness !== 'complete')
+      errors.push(`${at}: "reviewed" needs a complete audit; a partial one stays "notes-recorded"`);
+    if (au) {
+      if (r.security.status === 'not-reviewed')
+        errors.push(`${at}: an audit records findings, so the status cannot be "not-reviewed"`);
+      if (au.revision && src?.revision && au.revision !== src.revision)
+        errors.push(`${at}: audit covers ${au.revision} but the source pins ${src.revision}`);
+      if (!au.revision && au.completeness === 'complete')
+        errors.push(`${at}: a complete audit names the revision it read`);
+      errors.push(...auditProblems(at, au, false));
+    }
+    for (const d of duplicates(r.tags)) errors.push(`${at}: tag "${d}" listed more than once`);
+    for (const sid of r.related.skills)
+      if (!knownSkills.has(sid)) errors.push(`${at}: related skill "${sid}" does not exist`);
+    for (const rid of r.related.resources)
+      if (!resourceIds.has(rid) || rid === r.id)
+        errors.push(`${at}: related resource "${rid}" does not exist or is itself`);
+  }
+
   if (errors.length) return { ok: false, errors };
 
   // Normalize: stable ordering so output is deterministic regardless of authoring order.
@@ -532,6 +763,17 @@ export function buildCatalog(raw: unknown): ValidationResult {
     evidence: [...reg.evidence].sort(byId),
     sources: reg.sources.map((x) => ({ ...x, skills: sortedUnique(x.skills) })).sort(byId),
     evaluations: [...reg.evaluations].sort(byId),
+    resources: reg.resources
+      .map((r) => ({
+        ...r,
+        tags: sortedUnique(r.tags),
+        related: {
+          skills: sortedUnique(r.related.skills),
+          resources: sortedUnique(r.related.resources),
+          projects: sortedUnique(r.related.projects),
+        },
+      }))
+      .sort(byId),
     updates: [...reg.updates].sort((a, b) => (a.skill < b.skill ? -1 : 1)),
     releases: [...reg.releases].sort((a, b) =>
       a.skill === b.skill ? compareVersions(a.version, b.version) : a.skill < b.skill ? -1 : 1,

@@ -1,4 +1,12 @@
-import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  realpathSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { formatJson } from '../src/fsguard.ts';
@@ -6,6 +14,8 @@ import { scanTree } from '../src/tree.ts';
 
 /* Shared by consumers.test.ts and cli.test.ts. */
 export const SHA = 'a'.repeat(40);
+/** macOS tar adds AppleDouble `._*` members for extended attributes; codeload archives never contain them. */
+export const NO_APPLEDOUBLE = { env: { ...process.env, COPYFILE_DISABLE: '1' } };
 export const tmp = (p: string) => realpathSync(mkdtempSync(join(tmpdir(), p)));
 export const write = (p: string, body: string) => {
   mkdirSync(join(p, '..'), { recursive: true });
@@ -77,4 +87,21 @@ export function makeRepo() {
   const project = tmp('es-proj-');
   mkdirSync(join(project, '.git'));
   return { root, project };
+}
+
+/**
+ * Make a disposable private root owner-only, as a real one must be (ES25 audit F2): folders 0700, files 0600.
+ * Symlinks are left as they are (tests use them as attacks).
+ */
+export function privatize(dir: string): string {
+  const walk = (p: string) => {
+    const st = lstatSync(p);
+    if (st.isSymbolicLink()) return;
+    if (st.isDirectory()) {
+      chmodSync(p, 0o700);
+      for (const n of readdirSync(p)) walk(join(p, n));
+    } else chmodSync(p, 0o600);
+  };
+  walk(dir);
+  return dir;
 }

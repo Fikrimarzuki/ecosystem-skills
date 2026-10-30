@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./availability": "./src/availability.ts"
+    "./availability": "./src/availability.ts",
+    "./ownership": "./src/ownership.ts"
   },
   "scripts": {
     "validate": "tsx src/cli.ts validate",
@@ -15,7 +16,9 @@
     "eval": "tsx evals/run.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "eval:es19": "tsx evals/es19/plan.ts"
+    "eval:es19": "tsx evals/es19/plan.ts",
+    "eval:es23": "tsx evals/es23/plan.ts",
+    "eval:es23:isolation": "tsx evals/es23/verify.ts --out evals/es23/results/isolation-2026-10-30.json"
   },
   "dependencies": {
     "zod": "^4.6.7"

@@ -4,7 +4,49 @@ export const AGENTS = ['claude-code', 'codex', 'cursor'] as const;
 /** unreviewed = discovered only; reviewed = findings recorded, no decision; approved/rejected = owner decision. */
 export const REVIEW_STATUSES = ['unreviewed', 'reviewed', 'approved', 'rejected'] as const;
 export const VERIFICATION_STATUSES = ['unverified', 'verified', 'failed'] as const;
-export const INTEGRATION_TYPES = ['mcp-server', 'cli-tool', 'dependency'] as const;
+export const INTEGRATION_TYPES = [
+  'mcp-server',
+  'cli-tool',
+  'dependency',
+  'asset-catalog',
+  'config-registry',
+] as const;
+/**
+ * Where a record may appear (ES24). public: the public registry and website. private: only in the configured private
+ * root (see private.ts), never in this repository or its build output. local: private metadata that stays on this
+ * machine (the private root's local/ folder). Absent means public in the public registry and private in the private
+ * root, so an unlabelled private input is never treated as public. Visibility is independent of discovery, review,
+ * approval, content availability and installation.
+ */
+export const VISIBILITIES = ['public', 'private', 'local'] as const;
+export type Visibility = (typeof VISIBILITIES)[number];
+/**
+ * Who maintains a skill (ES25). fm-ecosystem: built and maintained for FM Ecosystem projects by their owner;
+ * first-party: other skills maintained here; third-party: maintained upstream by someone else. Explicit metadata only,
+ * never inferred from an id or a name. Ownership describes; it grants no permission. Absent = derived from `origin`.
+ */
+export const OWNERSHIPS = ['fm-ecosystem', 'first-party', 'third-party'] as const;
+export type Ownership = (typeof OWNERSHIPS)[number];
+/** Consumer ownership: fm-ecosystem marks a project the owner controls (needed by owner-only skills). */
+export const CONSUMER_OWNERSHIPS = ['fm-ecosystem', 'third-party'] as const;
+/**
+ * Managed distribution (ES25), independent of visibility. open: installable under the approval and security rules;
+ * restricted: additionally needs an explicit private authorization; not-distributable: discovery and documentation
+ * only. Absent = open, so existing skills keep their eligibility.
+ */
+export const DISTRIBUTIONS = ['open', 'restricted', 'not-distributable'] as const;
+/**
+ * Who a restricted skill may be authorized for. authorized-consumers: any project consumer named by an access record
+ * (ES24 behaviour); owner-only: additionally, only consumers declared owner-controlled.
+ */
+export const ACCESS_POLICIES = ['owner-only', 'authorized-consumers'] as const;
+const distributionSchema = z.strictObject({
+  policy: z.enum(DISTRIBUTIONS),
+  /** Required for restricted; not allowed otherwise. */
+  access: z.enum(ACCESS_POLICIES).optional(),
+  note: z.string().trim().min(1).optional(),
+});
+export type Distribution = z.infer<typeof distributionSchema>;
 
 const id = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'must be kebab-case (a-z, 0-9, "-")');
 const text = z.string().trim().min(1);
@@ -43,6 +85,92 @@ const docRefSchema = z.strictObject({
   href: text,
 });
 
+/** Every category a review must address, once for the instructions and once for the supporting files. */
+export const REVIEW_CATEGORIES = [
+  'prompt-injection',
+  'instruction-hierarchy',
+  'credential-exfiltration',
+  'network-requests',
+  'shell-execution',
+  'hooks',
+  'install-scripts',
+  'downloaded-binaries',
+  'filesystem-writes',
+  'global-config-changes',
+  'hidden-dependencies',
+  'unpinned-remote-instructions',
+  'tool-permissions',
+] as const;
+export const REVIEW_SCOPES = ['instructions', 'supporting-files'] as const;
+export const CHECK_RESULTS = [
+  'not-evaluated',
+  'no-issue-found',
+  'issue-found',
+  'needs-manual-review',
+] as const;
+export const EVIDENCE_METHODS = ['static-scan', 'manual-read', 'behavioral-eval', 'other'] as const;
+
+const reviewCheckSchema = z.strictObject({
+  category: z.enum(REVIEW_CATEGORIES),
+  scope: z.enum(REVIEW_SCOPES),
+  result: z.enum(CHECK_RESULTS),
+  note: text.optional(),
+});
+
+/* ------------------------------------------------------------------ security audits (ES27) */
+
+/** Severity of one security finding. None of them is a verdict: the audit's completeness and scope say what was read. */
+export const FINDING_SEVERITIES = ['critical', 'high', 'medium', 'low', 'info'] as const;
+/** complete: everything in scope was read at the pinned revision; partial: some of it was not (see `scope`). */
+export const AUDIT_COMPLETENESS = ['complete', 'partial'] as const;
+/**
+ * An audit's recommendation for the NEXT step. It is advice to the owner, never an approval state: a candidate that is
+ * suitable for controlled evaluation stays unapproved until the owner decides, and resources are never approved.
+ */
+export const AUDIT_RECOMMENDATIONS = [
+  'controlled-evaluation',
+  'after-remediation',
+  'reference-only',
+  'defer',
+  'do-not-adopt',
+] as const;
+
+const securityFindingSchema = z.strictObject({
+  severity: z.enum(FINDING_SEVERITIES),
+  title: text,
+  /** Repository-relative path and line at the audited revision, with a short quote or description. */
+  evidence: text,
+  /** When it matters (what must be true for the risk to apply). */
+  exposure: text.optional(),
+  mitigation: text.optional(),
+});
+
+/**
+ * A structured security audit (ES27), attached to a skill's review or a resource's security record. Backward compatible:
+ * absent on every record audited before ES27. It records findings; it changes no approval, assignment or installation.
+ */
+const auditFields = {
+  /** Review round that produced it, e.g. "ES27". */
+  round: text,
+  completeness: z.enum(AUDIT_COMPLETENESS),
+  /** What was read (inspected), what is only documented upstream, and what was not examined. */
+  scope: text,
+  recommendation: z.enum(AUDIT_RECOMMENDATIONS),
+  /** Why, and what must happen before the next step. */
+  rationale: text,
+  issues: z.array(securityFindingSchema).default([]),
+  checks: z.array(reviewCheckSchema).default([]),
+};
+const skillAuditSchema = z.strictObject(auditFields);
+/** Resources carry their own date, reviewer and revision (they have no skill review record). */
+const resourceAuditSchema = z.strictObject({
+  ...auditFields,
+  reviewedAt: date,
+  reviewer: text,
+  /** The source revision read. Absent only for a hosted service with no source to read (then `completeness` is partial). */
+  revision: sha.optional(),
+});
+
 const reviewSchema = z.strictObject({
   status: z.enum(REVIEW_STATUSES),
   reviewedAt: date.optional(),
@@ -55,6 +183,8 @@ const reviewSchema = z.strictObject({
   contentHash: contentHash.optional(),
   findings: z.array(text).default([]),
   notes: text.optional(),
+  /** ES27: structured security audit of exactly `revision` / `contentHash`. Never an approval. */
+  audit: skillAuditSchema.optional(),
 });
 
 const firstPartySourceSchema = z.strictObject({
@@ -136,6 +266,12 @@ export const skillSchema = z.strictObject({
   discovery: discoverySchema.optional(),
   /** Curation intent while the skill has no curated release (ES17). A release makes this field invalid. */
   curation: curationSchema.optional(),
+  /** ES24: absent = public (public registry) or private (private root). */
+  visibility: z.enum(VISIBILITIES).optional(),
+  /** ES25: absent = derived from origin (third-party for external, first-party otherwise). */
+  ownership: z.enum(OWNERSHIPS).optional(),
+  /** ES25: absent = open (public registry) or restricted (private root). */
+  distribution: distributionSchema.optional(),
 });
 
 const verificationSchema = z.strictObject({
@@ -166,6 +302,23 @@ const assignmentSchema = z.strictObject({
   verification: verificationSchema.default({ status: 'unverified' }),
 });
 
+/** Project id in Ecosystem Config (`config/projects/<id>.json`), e.g. `fmStudios`. */
+const configProjectId = z
+  .string()
+  .regex(/^[a-z][A-Za-z0-9]*$/, 'must be an Ecosystem Config project id');
+
+/**
+ * How a project relates to the ecosystem's shared sources (ES24). References only: a mapping grants no permission
+ * to read, edit or install anything, and it is never inferred. `project` is the stable identity shared by Ecosystem
+ * Config and Ecosystem Assets; `sources` are integration ids (type asset-catalog or config-registry), never paths.
+ */
+const ecosystemMappingSchema = z.strictObject({
+  /** The project's record in Ecosystem Config, when one exists. Absent = no record (say why in `note`). */
+  project: configProjectId.optional(),
+  sources: z.array(id).default([]),
+  note: text.optional(),
+});
+
 export const consumerSchema = z.strictObject({
   id,
   name: text,
@@ -175,6 +328,33 @@ export const consumerSchema = z.strictObject({
   agents: z.array(agentSchema).default([]),
   /** Desired skills. An assignment is intent, not evidence of installation. */
   assignments: z.array(assignmentSchema).default([]),
+  /** Ecosystem source references (ES24). */
+  ecosystem: ecosystemMappingSchema.optional(),
+  /** ES25: fm-ecosystem = a project the owner controls. Absent = not declared (never owner-controlled). */
+  ownership: z.enum(CONSUMER_OWNERSHIPS).optional(),
+});
+
+/**
+ * The repository behind an integration, by stable integration id rather than by name (ES24). `name` is the current
+ * repository name; `formerNames` keeps old names resolvable after a rename, so renaming a repository is a one-record
+ * change here and nothing else refers to the name.
+ */
+const repositoryIdentitySchema = z.strictObject({
+  name: z.string().regex(/^[A-Za-z0-9_.-]+$/, 'must be a repository name'),
+  formerNames: z.array(z.string().regex(/^[A-Za-z0-9_.-]+$/)).default([]),
+  /** Public repositories may be linked; private ones are named only. */
+  visibility: z.enum(['public', 'private']),
+  url: url.optional(),
+});
+
+/** A documented, read-only interface of an integration: what an agent may read, and where it is documented. */
+const contractSchema = z.strictObject({
+  /** Repository-relative documentation of the interface. */
+  docs: z.array(relPath).min(1),
+  /** Repository-relative files the interface exposes, read-only. */
+  reads: z.array(relPath).default([]),
+  /** Commands the source documents for producing or validating those files (run in that repository, by its owner). */
+  commands: z.array(text).default([]),
 });
 
 export const integrationSchema = z.strictObject({
@@ -186,6 +366,9 @@ export const integrationSchema = z.strictObject({
   license: text.optional(),
   /** Only meaningful for `mcp-server`. */
   transport: z.enum(['stdio', 'http', 'sse']).optional(),
+  /** asset-catalog and config-registry: the repository and its read-only contract (ES24). */
+  repository: repositoryIdentitySchema.optional(),
+  contract: contractSchema.optional(),
 });
 
 export const SOURCE_KINDS = [
@@ -196,6 +379,12 @@ export const SOURCE_KINDS = [
   'design-reference',
   'standard',
   'lead',
+  /** ES26: a repository whose primary product is an MCP server (catalogued as a resource, never installed here). */
+  'mcp-server',
+  /** ES26: agent workflows, CLI tools, orchestration systems or plugin bundles that are not plain skills. */
+  'toolkit',
+  /** ES26: a library, engine or creative tool that is not primarily an AI-agent capability. */
+  'developer-resource',
 ] as const;
 export const SOURCE_RESOLUTIONS = ['verified', 'ambiguous', 'unresolved'] as const;
 export const SOURCE_DECISIONS = [
@@ -205,7 +394,14 @@ export const SOURCE_DECISIONS = [
   'unresolved',
   'reject',
 ] as const;
-export const SOURCE_BATCHES = ['original', 'design-ui', 'video-animation', 'discovered'] as const;
+export const SOURCE_BATCHES = [
+  'original',
+  'design-ui',
+  'video-animation',
+  'discovered',
+  /** ES26: skills, toolkits, MCP servers and developer resources examined in ES26. */
+  'es26',
+] as const;
 
 /**
  * A repository, application, standard or lead that was examined. Separate from skills: a source can be a
@@ -239,7 +435,122 @@ export const sourceSchema = z.strictObject({
   /** For ambiguous or unresolved sources: what information would settle it. */
   needs: text.optional(),
   discoveredAt: date,
+  /** ES24: absent = public (public registry) or private (private root). */
+  visibility: z.enum(VISIBILITIES).optional(),
 });
+
+/* ------------------------------------------------------------------ resources (ES26) */
+
+/**
+ * The five resource collections. A resource is something discovered and catalogued for reference: it is never a
+ * skill, never installable through this registry, and never counts toward the skill total. `developer-resources` is a
+ * temporary home for libraries and tools that are not primarily AI-agent capabilities (see docs/resources.md).
+ */
+export const RESOURCE_CATEGORIES = [
+  'mcp-servers',
+  'agent-toolkits',
+  'agent-dev-tools',
+  'agent-references',
+  'developer-resources',
+] as const;
+/** Finer type within a category. `mcp-server` is the only type allowed in, and required by, `mcp-servers`. */
+export const RESOURCE_TYPES = [
+  'mcp-server',
+  'cli-tool',
+  'workflow-kit',
+  'plugin-bundle',
+  'framework',
+  'spec-toolkit',
+  'standard',
+  'documentation',
+  'curated-list',
+  'library',
+  'engine',
+  'creative-tool',
+  'application',
+] as const;
+export const RESOURCE_TYPES_BY_CATEGORY: Record<
+  (typeof RESOURCE_CATEGORIES)[number],
+  readonly (typeof RESOURCE_TYPES)[number][]
+> = {
+  'mcp-servers': ['mcp-server'],
+  'agent-toolkits': ['cli-tool', 'workflow-kit', 'plugin-bundle', 'application'],
+  'agent-dev-tools': ['framework', 'spec-toolkit', 'cli-tool'],
+  'agent-references': ['standard', 'documentation', 'curated-list'],
+  'developer-resources': ['library', 'engine', 'creative-tool', 'application', 'cli-tool'],
+};
+/**
+ * discovered: named, upstream not yet confirmed; verified: upstream identity established by evidence (see its
+ * source); unresolved: no trustworthy upstream found. Discovery is not review and never approval.
+ */
+export const RESOURCE_DISCOVERY_STATUSES = ['discovered', 'verified', 'unresolved'] as const;
+/**
+ * not-reviewed: no security review yet; notes-recorded: concerns written down from a read-only look, not a review;
+ * reviewed: a security review was completed and its findings recorded. There is deliberately no "approved" state:
+ * resources are never approved for installation by this registry.
+ */
+export const RESOURCE_SECURITY_STATUSES = ['not-reviewed', 'notes-recorded', 'reviewed'] as const;
+
+const mcpSchema = z.strictObject({
+  /** local = runs on the user's machine (stdio); remote = a hosted endpoint. */
+  deployment: z.enum(['local', 'remote', 'both', 'unknown']),
+  transport: z.array(z.enum(['stdio', 'http', 'sse'])).default([]),
+  /** What it needs to run: none, an API key, OAuth, an account… as documented upstream. */
+  auth: text,
+  /** Tools it exposes and the permissions they imply. */
+  toolScope: text,
+  /** External services or data it reads or writes. */
+  dataAccess: text,
+  /** Only an endpoint the publisher documents. Never connected to by this registry. */
+  officialEndpoint: url.optional(),
+});
+
+export const resourceSchema = z.strictObject({
+  id,
+  name: text,
+  category: z.enum(RESOURCE_CATEGORIES),
+  type: z.enum(RESOURCE_TYPES),
+  summary: text,
+  tags: z.array(id).default([]),
+  /** Id in `sources.json` of the repository or site this resource comes from: the provenance record. */
+  source: id,
+  /**
+   * Licence of the resource itself, only when its source's licence does not cover it (for example a hosted service
+   * whose repository holds only client configuration). Absent = the source's licence applies.
+   */
+  license: text.optional(),
+  /** Folder inside the source repository, when the resource is one part of it. */
+  path: relPath.optional(),
+  /** An official website, when the publisher documents one (in addition to the source repository). */
+  homepage: url.optional(),
+  discovery: z.strictObject({
+    status: z.enum(RESOURCE_DISCOVERY_STATUSES),
+    discoveredAt: date,
+    /** Date the upstream identity and source facts were last checked. */
+    lastVerified: date.optional(),
+  }),
+  security: z.strictObject({
+    status: z.enum(RESOURCE_SECURITY_STATUSES),
+    /** Concrete concerns seen during discovery (scripts, keys, scraping, network access…). Not a review. */
+    concerns: z.array(text).default([]),
+    /** ES27: structured security audit. `reviewed` requires a complete one; a partial audit stays `notes-recorded`. */
+    audit: resourceAuditSchema.optional(),
+  }),
+  /** Required for, and only allowed on, `mcp-servers`. */
+  mcp: mcpSchema.optional(),
+  related: z
+    .strictObject({
+      skills: z.array(id).default([]),
+      resources: z.array(id).default([]),
+      /** Ecosystem project ids (ecosystem-config) this resource is relevant to. Descriptive only. */
+      projects: z.array(id).default([]),
+    })
+    .default({ skills: [], resources: [], projects: [] }),
+});
+export type Resource = z.infer<typeof resourceSchema>;
+export type SecurityFinding = z.infer<typeof securityFindingSchema>;
+export type SkillAudit = z.infer<typeof skillAuditSchema>;
+export type ResourceAudit = z.infer<typeof resourceAuditSchema>;
 
 /* ------------------------------------------------------------------ curated releases (ES17) */
 
@@ -253,37 +564,6 @@ export const REVIEW_OUTCOMES = [
   'requires-manual-review',
   'blocked',
 ] as const;
-/** Every category a review must address, once for the instructions and once for the supporting files. */
-export const REVIEW_CATEGORIES = [
-  'prompt-injection',
-  'instruction-hierarchy',
-  'credential-exfiltration',
-  'network-requests',
-  'shell-execution',
-  'hooks',
-  'install-scripts',
-  'downloaded-binaries',
-  'filesystem-writes',
-  'global-config-changes',
-  'hidden-dependencies',
-  'unpinned-remote-instructions',
-  'tool-permissions',
-] as const;
-export const REVIEW_SCOPES = ['instructions', 'supporting-files'] as const;
-export const CHECK_RESULTS = [
-  'not-evaluated',
-  'no-issue-found',
-  'issue-found',
-  'needs-manual-review',
-] as const;
-export const EVIDENCE_METHODS = ['static-scan', 'manual-read', 'behavioral-eval', 'other'] as const;
-
-const reviewCheckSchema = z.strictObject({
-  category: z.enum(REVIEW_CATEGORIES),
-  scope: z.enum(REVIEW_SCOPES),
-  result: z.enum(CHECK_RESULTS),
-  note: text.optional(),
-});
 const reviewEvidenceSchema = z.strictObject({
   method: z.enum(EVIDENCE_METHODS),
   summary: text,
@@ -366,6 +646,8 @@ export const releaseSchema = z.strictObject({
   dependencies: z.array(text).default([]),
   restrictions: z.array(text).default([]),
   notes: text.optional(),
+  /** ES24: absent = public (public registry) or private (private root). A private skill's releases are never public. */
+  visibility: z.enum(VISIBILITIES).optional(),
 });
 
 /* ------------------------------------------------------------------ evaluations (ES19) */
@@ -529,6 +811,7 @@ export const registrySchema = z.strictObject({
   releases: z.array(releaseSchema).default([]),
   evaluations: z.array(evaluationSchema).default([]),
   updates: z.array(upstreamCheckSchema).default([]),
+  resources: z.array(resourceSchema).default([]),
 });
 
 export type Release = z.infer<typeof releaseSchema>;
@@ -550,4 +833,30 @@ export interface Catalog {
   releases: Release[];
   evaluations: Evaluation[];
   updates: UpstreamCheck[];
+  resources: Resource[];
 }
+
+/* ------------------------------------------------------------------ private access (ES24) */
+
+/**
+ * Explicit authorization of one consumer for one private skill (private root only, `registry/access.json`). It names
+ * the exact versions and agents allowed; there are no wildcards and nothing is inherited from repository membership,
+ * project mappings or approval. `release` is the desired version (the private counterpart of `assignment.release`)
+ * and must be one of `releases`.
+ */
+export const accessSchema = z.strictObject({
+  consumer: id,
+  skill: id,
+  agents: z.array(agentSchema).min(1),
+  releases: z.array(z.string().regex(SEMVER, 'must be a semantic version')).min(1),
+  release: z.string().regex(SEMVER, 'must be a semantic version').optional(),
+  /**
+   * The agents this consumer actually has linked for `release` (ES25 audit F5): written by install, upgrade and
+   * rollback from the agents requested, never inferred from `agents`. Present exactly when `release` is.
+   */
+  activeAgents: z.array(agentSchema).min(1).optional(),
+  authorizedBy: text,
+  authorizedAt: date,
+  note: text.optional(),
+});
+export type Access = z.infer<typeof accessSchema>;

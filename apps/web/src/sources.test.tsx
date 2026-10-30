@@ -58,9 +58,10 @@ describe('Sources page', () => {
     expect(out).toContain('Reference only');
     expect(out).toContain('Unresolved');
     expect(out).toContain('Registered with warnings');
-    const anti = catalog.sources.find((x) => x.id === 'anti-slop-unresolved')!;
-    expect(anti.skills).toEqual([]);
-    expect(anti.needs).toBeTruthy();
+    // anti-slop-unresolved was resolved by the owner in ES26; Neuform AI remains an unresolved lead
+    const lead = catalog.sources.find((x) => x.id === 'neuform-ai')!;
+    expect(lead.skills).toEqual([]);
+    expect(lead.needs).toBeTruthy();
   });
 
   it('filters by decision, kind and text', () => {
@@ -76,6 +77,14 @@ describe('Sources page', () => {
   });
 });
 
+/** Discovered skills the owner approved for the Xpenz consumer (M0.6 onboarding, 2026-11-09). Exact list: any other approval fails. */
+const XPENZ_APPROVED = [
+  'threejs-asset-pipeline',
+  'threejs-lighting',
+  'threejs-loaders',
+  'threejs-react-three-fiber',
+];
+
 describe('discovered candidates', () => {
   const discovered = catalog.skills.filter((s) => s.discovery);
 
@@ -83,9 +92,25 @@ describe('discovered candidates', () => {
     expect(discovered.length).toBeGreaterThan(100);
     for (const s of discovered) {
       expect(s.origin, s.id).toBe('external');
-      expect(s.review.status, s.id).toBe('unreviewed');
+      if (XPENZ_APPROVED.includes(s.id)) {
+        // Approved by the owner for exactly the reviewed bytes, assigned to the Xpenz consumer only, never given evidence.
+        expect(stage(s), s.id).toBe('approved');
+        expect(s.review.approvedBy, s.id).toMatch(/^Owner/);
+        expect(s.review.contentHash, s.id).toBe(s.discovery!.contentHash);
+        expect(
+          catalog.consumers
+            .filter((c) => c.assignments.some((a) => a.skill === s.id))
+            .map((c) => c.id),
+          s.id,
+        ).toEqual(['web-xpenz']);
+        expect(catalog.evidence.some((e) => e.skill === s.id)).toBe(false);
+        continue;
+      }
+      // ES27 audited some candidates: "reviewed" records findings and only ever with that audit; nothing is approved.
+      const audited = s.review.audit?.round === 'ES27';
+      expect(s.review.status, s.id).toBe(audited ? 'reviewed' : 'unreviewed');
       expect(s.review.approvedBy, s.id).toBeUndefined();
-      expect(stage(s), s.id).toBe('discovered');
+      expect(stage(s), s.id).toBe(audited ? 'reviewed' : 'discovered');
       expect(catalog.consumers.flatMap((c) => c.assignments).some((a) => a.skill === s.id)).toBe(
         false,
       );
@@ -95,9 +120,21 @@ describe('discovered candidates', () => {
 
   it('show up under the "Candidate · discovered" status filter, not under Approved', () => {
     const d = filterSkills(catalog, { status: 'discovered' });
+    const r = filterSkills(catalog, { status: 'reviewed' });
     const a = filterSkills(catalog, { status: 'approved' });
-    for (const s of discovered) expect(d.map((x) => x.id)).toContain(s.id);
-    for (const s of discovered) expect(a.map((x) => x.id)).not.toContain(s.id);
+    for (const s of discovered.filter((x) => !XPENZ_APPROVED.includes(x.id)))
+      expect(
+        (s.review.audit ? r : d).map((x) => x.id),
+        s.id,
+      ).toContain(s.id);
+    for (const s of discovered.filter((x) => !XPENZ_APPROVED.includes(x.id)))
+      expect(a.map((x) => x.id)).not.toContain(s.id);
+    // The four owner-approved skills are listed as Approved and as neither kind of candidate.
+    for (const id of XPENZ_APPROVED) {
+      expect(a.map((x) => x.id)).toContain(id);
+      expect(d.map((x) => x.id)).not.toContain(id);
+      expect(r.map((x) => x.id)).not.toContain(id);
+    }
   });
 
   it('every skill page shows its discovery audit, warnings and the source link', () => {
@@ -125,7 +162,7 @@ describe('discovered candidates', () => {
 });
 
 describe('existing registry facts are preserved', () => {
-  it('keeps the six approved skills and their verified assignments', () => {
+  it('keeps the six originally approved skills (plus the four authorized for Xpenz) and their verified assignments', () => {
     const approved = catalog.skills.filter((s) => s.review.status === 'approved').map((s) => s.id);
     expect(approved.sort()).toEqual(
       [
@@ -133,12 +170,25 @@ describe('existing registry facts are preserved', () => {
         'frontend-design',
         'grilling',
         'ponytail',
+        ...XPENZ_APPROVED,
         'verification-before-completion',
         'writing-plans',
       ].sort(),
     );
     expect(catalog.consumers.flatMap((c) => c.assignments).length).toBeGreaterThan(0);
-    expect(catalog.evidence.length).toBe(24);
+    // The 24 records of ES6 to ES9.3 (up to 2026-10-27) are intact; later runs add exactly the four Gateway `gui*` records.
+    expect(catalog.evidence.filter((e) => e.date <= '2026-10-30')).toHaveLength(24);
+    expect(
+      catalog.evidence
+        .filter((e) => e.date > '2026-10-30')
+        .map((e) => e.id)
+        .sort(),
+    ).toEqual([
+      'gui12-verification-before-completion-claude-code-gateway',
+      'gui12-verification-before-completion-codex-gateway',
+      'gui2-gateway-mobile-checklist-claude-code-gateway',
+      'gui2-gateway-mobile-checklist-codex-gateway',
+    ]);
   });
 });
 
@@ -153,8 +203,21 @@ describe('warnings and blockers are never hidden', () => {
       for (const d of s.discovery!.dependencies) expect(out, s.id).toContain(d);
       if (s.discovery!.approvalBlockers.length)
         expect(out).toContain('Must be resolved before approval');
-      expect(out, s.id).toContain('Candidate · discovered');
-      expect(out, s.id).not.toMatch(/Candidate · reviewed|>Approved</);
+      if (XPENZ_APPROVED.includes(s.id)) {
+        // Warnings above are still shown for an approved skill; it just must no longer read as a candidate.
+        expect(out, s.id).toContain('Approved');
+        expect(out, s.id).not.toMatch(/Candidate · discovered|Candidate · reviewed/);
+      } else if (s.review.audit) {
+        // ES27: an audited candidate is "reviewed" and its review completeness is always stated.
+        expect(out, s.id).toContain('Candidate · reviewed');
+        expect(out, s.id).toContain(
+          s.review.audit.completeness === 'complete' ? 'Review complete' : 'Review incomplete',
+        );
+        expect(out, s.id).not.toMatch(/Candidate · discovered|>Approved</);
+      } else {
+        expect(out, s.id).toContain('Candidate · discovered');
+        expect(out, s.id).not.toMatch(/Candidate · reviewed|>Approved</);
+      }
       expect(out, s.id).toContain(s.license ?? 'unknown');
     }
   });
@@ -188,7 +251,9 @@ describe('warnings and blockers are never hidden', () => {
     for (const s of catalog.skills.filter((x) => x.review.status === 'approved')) {
       const out = text(html({ page: 'skill', id: s.id }));
       expect(out, s.id).toContain('Approved');
-      expect(out, s.id).not.toContain('Discovery scan');
+      expect(out, s.id).not.toMatch(/Candidate · discovered|Candidate · reviewed/);
+      // Skills that were never discovered carry no discovery scan. An approved skill that was discovered keeps its provenance.
+      if (!s.discovery) expect(out, s.id).not.toContain('Discovery scan');
     }
   });
 });

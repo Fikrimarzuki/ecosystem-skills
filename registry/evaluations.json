@@ -645,5 +645,294 @@
       "Unreviewed, with recorded warnings: a security review of its scripts must come before any agent run.",
       "Approval blocker: The downloaded engine binary (and any binary found in ~/.impeccable or on PATH) is not covered by this registry's content hash and has not been reviewed"
     ]
+  },
+  {
+    "id": "es23-grilling-v1-0-0",
+    "skill": "grilling",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES23 pilot: curated release files read as data; no agent was run)",
+    "revision": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+    "contentHash": "sha256-2cb2b9f64a43b7dbfb1fd5ce3cd5b22e9edf4aa4f14ec9f371db08f565d6d4e2",
+    "scope": "Curated release grilling@1.0.0 (curated hash, files and release review). ES23 isolation verified once, on 2026-10-30, without an agent (25 container probes in the saved report; this record first said 24 and was corrected from that report during the ES25 audit remediation, without re-running Docker: read-only root, non-root, no host paths, no capabilities, internal network, model-API-only egress with every attempt logged); see packages/catalog/evals/es23/results/isolation-2026-10-30.json. No agent behaviour was observed.",
+    "security": [
+      "Release review (ES18): no blocking issues in the stated scope; 26 checks recorded against the curated hash.",
+      "The instructions dispatch a sub-agent to look up facts; in an agent with shell access that sub-agent inherits the same tools."
+    ],
+    "compatibility": [
+      "Earlier live runs (ES6, ES7, ES8) used the same upstream content (sha256-f8441dad…) under weaker isolation: explicit invocation verified in Claude Code 2.1.310 and Codex 0.164.0; one unprompted invocation in Claude Code on a real project (ES7); in ES8 the skill loaded in 0 of 12 treatment runs, so no behavioural difference can be attributed to it.",
+      "Standard SKILL.md frontmatter (name, description); no tool grants or hooks."
+    ],
+    "strengths": [
+      "Clear round format (numbered questions with a recommended answer) that ES6 runs reproduced in both agents.",
+      "Small; stops before acting."
+    ],
+    "weaknesses": [
+      "Rarely triggered unprompted (once in ES7, 0 of 12 ES8 trials); it relies on being invoked explicitly.",
+      "Upstream has a newer wording (a496f55) not in this release."
+    ],
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 2049,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md in library/grilling/1.0.0"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 509,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the release",
+        "value": 4,
+        "unit": "files",
+        "method": "folder inventory of the curated release"
+      },
+      {
+        "name": "Release size",
+        "value": 4038,
+        "unit": "bytes",
+        "method": "sum of file sizes of the curated release"
+      }
+    ],
+    "comparison": {
+      "status": "not-run",
+      "summary": "Not run. The ES23 task es23-grilling-plan is defined (arm A without, arm B with this release, identical prompt, fixture, budget and criteria), plus three synthetic security tasks."
+    },
+    "recommendation": "review",
+    "blockers": [
+      "Live A/B runs not performed: no dedicated, revocable evaluation API key exists, and ES23 does not use personal logins (keychain, ~/.claude, ~/.codex) inside an evaluation sandbox.",
+      "No evaluation image with a pinned agent CLI has been built (to be built only after owner authorization).",
+      "The owner has not authorized live runs or their cost."
+    ],
+    "notes": "Covers release grilling@1.0.0 only. A recommendation is not an approval; approval stays with the owner."
+  },
+  {
+    "id": "es23-gsap-react-v1-0-0",
+    "skill": "gsap-react",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES23 pilot: curated release files read as data; no agent was run)",
+    "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+    "contentHash": "sha256-2f66650b6e674766941342b3b496191464a44aaa7d30309de19c10b291cf1558",
+    "scope": "Curated release gsap-react@1.0.0 (curated hash, files and release review). ES23 isolation verified once, on 2026-10-30, without an agent (25 container probes in the saved report; this record first said 24 and was corrected from that report during the ES25 audit remediation, without re-running Docker: read-only root, non-root, no host paths, no capabilities, internal network, model-API-only egress with every attempt logged); see packages/catalog/evals/es23/results/isolation-2026-10-30.json. No agent behaviour was observed.",
+    "security": [
+      "Release review (ES22): no blocking issues; following it adds the gsap and @gsap/react packages (unpinned) to a project."
+    ],
+    "compatibility": [
+      "Single SKILL.md, standard frontmatter; structurally compatible with Claude Code and Codex. No agent run."
+    ],
+    "strengths": ["Cleanup patterns (useGSAP scope, gsap.context revert) and SSR guidance."],
+    "weaknesses": ["Adds dependencies when followed; overlaps with gsap-core."],
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 6565,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md in library/gsap-react/1.0.0"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 1632,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the release",
+        "value": 3,
+        "unit": "files",
+        "method": "folder inventory of the curated release"
+      },
+      {
+        "name": "Release size",
+        "value": 8213,
+        "unit": "bytes",
+        "method": "sum of file sizes of the curated release"
+      }
+    ],
+    "comparison": {
+      "status": "not-run",
+      "summary": "Not run. The ES23 task es23-gsap-react-entrance is defined (arm A without, arm B with this release, identical prompt, fixture, budget and criteria), plus three synthetic security tasks."
+    },
+    "recommendation": "review",
+    "blockers": [
+      "Live A/B runs not performed: no dedicated, revocable evaluation API key exists, and ES23 does not use personal logins (keychain, ~/.claude, ~/.codex) inside an evaluation sandbox.",
+      "No evaluation image with a pinned agent CLI has been built (to be built only after owner authorization).",
+      "The owner has not authorized live runs or their cost."
+    ],
+    "notes": "Covers release gsap-react@1.0.0 only. A recommendation is not an approval; approval stays with the owner."
+  },
+  {
+    "id": "es23-gsap-timeline-v1-0-0",
+    "skill": "gsap-timeline",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES23 pilot: curated release files read as data; no agent was run)",
+    "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+    "contentHash": "sha256-7efc4044d8047694a53f5f8850cf7200b69b168762576740864f83d758a5fcf9",
+    "scope": "Curated release gsap-timeline@1.0.0 (curated hash, files and release review). ES23 isolation verified once, on 2026-10-30, without an agent (25 container probes in the saved report; this record first said 24 and was corrected from that report during the ES25 audit remediation, without re-running Docker: read-only root, non-root, no host paths, no capabilities, internal network, model-API-only egress with every attempt logged); see packages/catalog/evals/es23/results/isolation-2026-10-30.json. No agent behaviour was observed.",
+    "security": ["Release review (ES22): no blocking issues; no commands."],
+    "compatibility": [
+      "Single SKILL.md, standard frontmatter; structurally compatible with Claude Code and Codex. No agent run."
+    ],
+    "strengths": ["Position parameter, labels and defaults explained with short examples."],
+    "weaknesses": [
+      "Mentions sibling GSAP skills by name only; assumes GSAP is already a dependency."
+    ],
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 4394,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md in library/gsap-timeline/1.0.0"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 1084,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the release",
+        "value": 3,
+        "unit": "files",
+        "method": "folder inventory of the curated release"
+      },
+      {
+        "name": "Release size",
+        "value": 6051,
+        "unit": "bytes",
+        "method": "sum of file sizes of the curated release"
+      }
+    ],
+    "comparison": {
+      "status": "not-run",
+      "summary": "Not run. The ES23 task es23-gsap-timeline-intro is defined (arm A without, arm B with this release, identical prompt, fixture, budget and criteria), plus three synthetic security tasks."
+    },
+    "recommendation": "review",
+    "blockers": [
+      "Live A/B runs not performed: no dedicated, revocable evaluation API key exists, and ES23 does not use personal logins (keychain, ~/.claude, ~/.codex) inside an evaluation sandbox.",
+      "No evaluation image with a pinned agent CLI has been built (to be built only after owner authorization).",
+      "The owner has not authorized live runs or their cost."
+    ],
+    "notes": "Covers release gsap-timeline@1.0.0 only. A recommendation is not an approval; approval stays with the owner."
+  },
+  {
+    "id": "es23-gsap-performance-v1-0-0",
+    "skill": "gsap-performance",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES23 pilot: curated release files read as data; no agent was run)",
+    "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+    "contentHash": "sha256-eb9b48763feaca1ca8a7fd980c45c7db905be79a7580455204491b7c82c9a4e9",
+    "scope": "Curated release gsap-performance@1.0.0 (curated hash, files and release review). ES23 isolation verified once, on 2026-10-30, without an agent (25 container probes in the saved report; this record first said 24 and was corrected from that report during the ES25 audit remediation, without re-running Docker: read-only root, non-root, no host paths, no capabilities, internal network, model-API-only egress with every attempt logged); see packages/catalog/evals/es23/results/isolation-2026-10-30.json. No agent behaviour was observed.",
+    "security": ["Release review (ES22): no blocking issues; no commands."],
+    "compatibility": [
+      "Single SKILL.md, standard frontmatter; structurally compatible with Claude Code and Codex. No agent run."
+    ],
+    "strengths": [
+      "Concrete guidance (transforms over layout properties, quickTo for frequent updates)."
+    ],
+    "weaknesses": [
+      "Generic advice partly overlaps with what agents already do; benefit unmeasured."
+    ],
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 4139,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md in library/gsap-performance/1.0.0"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 1026,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the release",
+        "value": 3,
+        "unit": "files",
+        "method": "folder inventory of the curated release"
+      },
+      {
+        "name": "Release size",
+        "value": 5805,
+        "unit": "bytes",
+        "method": "sum of file sizes of the curated release"
+      }
+    ],
+    "comparison": {
+      "status": "not-run",
+      "summary": "Not run. The ES23 task es23-gsap-performance-follower is defined (arm A without, arm B with this release, identical prompt, fixture, budget and criteria), plus three synthetic security tasks."
+    },
+    "recommendation": "review",
+    "blockers": [
+      "Live A/B runs not performed: no dedicated, revocable evaluation API key exists, and ES23 does not use personal logins (keychain, ~/.claude, ~/.codex) inside an evaluation sandbox.",
+      "No evaluation image with a pinned agent CLI has been built (to be built only after owner authorization).",
+      "The owner has not authorized live runs or their cost."
+    ],
+    "notes": "Covers release gsap-performance@1.0.0 only. A recommendation is not an approval; approval stays with the owner."
+  },
+  {
+    "id": "es23-web-quality-accessibility-v1-0-1",
+    "skill": "web-quality-accessibility",
+    "kind": "static-assessment",
+    "date": "2026-10-30",
+    "assessor": "Claude (ES23 pilot: curated release files read as data; no agent was run)",
+    "revision": "afa8da942115f2961fdbfa80807ea0b232ff6c00",
+    "contentHash": "sha256-5d7134bd8e0af9a1c6a3abbbf0ce76ff7a4b315ae638cb85ac043655ba0ff478",
+    "scope": "Curated release web-quality-accessibility@1.0.1 (curated hash, files and release review). ES23 isolation verified once, on 2026-10-30, without an agent (25 container probes in the saved report; this record first said 24 and was corrected from that report during the ES25 audit remediation, without re-running Docker: read-only root, non-root, no host paths, no capabilities, internal network, model-API-only egress with every attempt logged); see packages/catalog/evals/es23/results/isolation-2026-10-30.json. No agent behaviour was observed.",
+    "security": [
+      "Release review (ES23): no blocking issues after the 1.0.1 corrections (no global install, no unpinned download, no out-of-folder link, corrected large-text definition)."
+    ],
+    "compatibility": [
+      "Frontmatter name is \"accessibility\" while the install folder is web-quality-accessibility; agents that require the name to match the folder may list it under a different name. Not tested.",
+      "Mentions Chrome DevTools MCP tools (lighthouse_audit, take_snapshot) when available; works without them."
+    ],
+    "strengths": ["Broad WCAG 2.2 coverage with copy-ready patterns."],
+    "weaknesses": [
+      "Long (about 3,700 tokens of instructions).",
+      "Minor accuracy issues remain in examples (contrast figures, one error-handling snippet); see the release review notes."
+    ],
+    "measurements": [
+      {
+        "name": "SKILL.md size",
+        "value": 14900,
+        "unit": "bytes",
+        "method": "byte count of SKILL.md in library/web-quality-accessibility/1.0.1"
+      },
+      {
+        "name": "Instructions loaded when triggered",
+        "value": 3702,
+        "unit": "tokens (estimate)",
+        "method": "SKILL.md characters / 4; an estimate, not a tokenizer count"
+      },
+      {
+        "name": "Files in the release",
+        "value": 5,
+        "unit": "files",
+        "method": "folder inventory of the curated release"
+      },
+      {
+        "name": "Release size",
+        "value": 31852,
+        "unit": "bytes",
+        "method": "sum of file sizes of the curated release"
+      }
+    ],
+    "comparison": {
+      "status": "not-run",
+      "summary": "Not run. No ES23 comparison task: the ES19 task a11y-signup-form applies; plus the three ES23 synthetic security tasks."
+    },
+    "recommendation": "review",
+    "blockers": [
+      "Live A/B runs not performed: no dedicated, revocable evaluation API key exists, and ES23 does not use personal logins (keychain, ~/.claude, ~/.codex) inside an evaluation sandbox.",
+      "No evaluation image with a pinned agent CLI has been built (to be built only after owner authorization).",
+      "The owner has not authorized live runs or their cost."
+    ],
+    "notes": "Covers release web-quality-accessibility@1.0.1 only. A recommendation is not an approval; approval stays with the owner."
   }
 ]

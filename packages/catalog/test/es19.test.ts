@@ -216,7 +216,7 @@ describe('evaluation records', () => {
     expect(errs(reg([ev(), ev()]))).toMatch(/duplicate evaluation id: e1/);
   });
 
-  it('the real registry: 11 static assessments, none claiming a run, none changing an approval', () => {
+  it('the real registry: 16 static assessments (11 ES19, 5 ES23), none claiming a run, none changing an approval', () => {
     const root = resolve(__dirname, '../../..');
     const read = (n: string) =>
       JSON.parse(readFileSync(join(root, 'registry', `${n}.json`), 'utf8'));
@@ -230,7 +230,15 @@ describe('evaluation records', () => {
       evaluations: read('evaluations'),
     });
     if (!r.ok) throw new Error(r.errors.join('\n'));
-    expect(r.catalog.evaluations).toHaveLength(11);
+    // 11 ES19 assessments of pinned upstream folders, plus 5 ES23 records bound to curated releases
+    expect(r.catalog.evaluations).toHaveLength(16);
+    const es23 = r.catalog.evaluations.filter((e) => e.id.startsWith('es23-'));
+    expect(es23).toHaveLength(5);
+    for (const e of es23)
+      expect(
+        r.catalog.releases.some((x) => x.skill === e.skill && x.curatedHash === e.contentHash),
+        e.id,
+      ).toBe(true);
     for (const e of r.catalog.evaluations) {
       expect(e.kind, e.id).toBe('static-assessment');
       expect(e.comparison.status, e.id).toBe('not-run');
@@ -247,6 +255,11 @@ describe('evaluation records', () => {
       'frontend-design',
       'grilling',
       'ponytail',
+      // Owner-authorized for the Xpenz consumer (M0.6 onboarding, 2026-11-09): each approval is bound to the reviewed hash below.
+      'threejs-asset-pipeline',
+      'threejs-lighting',
+      'threejs-loaders',
+      'threejs-react-three-fiber',
       'verification-before-completion',
       'writing-plans',
     ]);

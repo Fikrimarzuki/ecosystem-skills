@@ -5,22 +5,29 @@ import type {
   Evaluation,
   Evidence,
   Release,
+  Resource,
+  ResourceAudit,
+  SecurityFinding,
   Skill,
+  SkillAudit,
   Source,
 } from '@ecosystem-skills/catalog';
 import {
   contentAvailability,
   releaseInstallProblems,
+  releasesOf,
   type Availability,
   type ContentState,
   type InstallProblem,
   type Reason,
 } from '@ecosystem-skills/catalog/availability';
+import { distributionOf, isRestricted, ownershipOf } from '@ecosystem-skills/catalog/ownership';
 import { tEn, type T } from './i18n.tsx';
 import { currentUrl, href as routerHref, subscribe } from './router.ts';
 
-export type { Catalog, Consumer, Evaluation, Evidence, Release, Skill, Source };
+export type { Catalog, Consumer, Evaluation, Evidence, Release, Resource, Skill, Source };
 export type { Availability, ContentState, InstallProblem, Reason };
+export { distributionOf, isRestricted, ownershipOf, releasesOf };
 type Assignment = Consumer['assignments'][number];
 
 /**
@@ -74,6 +81,7 @@ export const GROUP_OF_CATEGORY: Record<string, (typeof GROUPS)[number]> = {
   debugging: 'Coding',
   documentation: 'Communication',
   devops: 'Coding',
+  'ecosystem-integration': 'Coding',
   'frontend-design': 'Design',
   'game-dev': 'Coding',
   'graphics-3d': 'Coding',
@@ -229,10 +237,13 @@ export type Route =
   | { page: 'consumers' }
   | { page: 'integrations' }
   | { page: 'sources' }
+  | { page: 'resources'; query?: Query }
+  | { page: 'resource'; id: string }
+  | { page: 'ecosystem' }
   | { page: 'notfound'; path: string };
 
 /**
- * Route for an app path with optional query ("/skills/caveman", "/skills?status=approved"). Query parameters only
+ * Route for an app path with optional query ("/skills/caveman", "/skills?status=approved", "/resources?category=mcp-servers"). Query parameters only
  * ever belong to the Skills page and are never read as path segments. A trailing slash is ignored; anything that is
  * not a known page is `notfound`.
  */
@@ -256,19 +267,43 @@ export function parseRoute(url: string): Route {
     }
     return notfound;
   }
+  if (a === 'resources') {
+    if (parts.length === 1) {
+      const query = Object.fromEntries(new URLSearchParams(search));
+      return Object.keys(query).length ? { page: 'resources', query } : { page: 'resources' };
+    }
+    if (parts.length === 2) {
+      try {
+        return { page: 'resource', id: decodeURIComponent(b!) };
+      } catch {
+        return notfound;
+      }
+    }
+    return notfound;
+  }
   if (parts.length === 1) {
     if (a === 'overview') return { page: 'dashboard' };
     if (a === 'consumers') return { page: 'consumers' };
     if (a === 'integrations') return { page: 'integrations' };
     if (a === 'sources') return { page: 'sources' };
+    if (a === 'ecosystem') return { page: 'ecosystem' };
   }
   return notfound;
 }
 
 /** Clean URLs for internal links; the deployment base path (if any) is added. */
 export const homeHref = () => routerHref('/');
-export const pageHref = (page: 'overview' | 'skills' | 'consumers' | 'integrations' | 'sources') =>
-  routerHref(`/${page}`);
+export const pageHref = (
+  page:
+    'overview' | 'skills' | 'consumers' | 'integrations' | 'sources' | 'resources' | 'ecosystem',
+) => routerHref(`/${page}`);
+export const resourceHref = (id: string) => routerHref(`/resources/${encodeURIComponent(id)}`);
+export const sourceHref = (id: string) => routerHref(`/sources#${encodeURIComponent(id)}`);
+/** App path (no base) for the Resources page with these filters. */
+export const resourcesPath = (q: Query) => {
+  const s = new URLSearchParams(q).toString();
+  return s ? `/resources?${s}` : '/resources';
+};
 export const skillHref = (id: string) => routerHref(`/skills/${encodeURIComponent(id)}`);
 export const skillsHref = (q: Query) => {
   const s = new URLSearchParams(q).toString();
@@ -288,14 +323,22 @@ export function useRoute(): Route {
   return useMemo(() => parseRoute(url), [url]);
 }
 
-export function useCatalog(): { catalog?: Catalog; error?: string } {
-  const [state, setState] = useState<{ catalog?: Catalog; error?: string }>({});
+/** Header the service worker adds when it answers from its offline cache (see the PWA notes in docs/website.md). */
+export const OFFLINE_HEADER = 'X-Ecosystem-Skills-Offline';
+
+export function useCatalog(): { catalog?: Catalog; error?: string; offline?: boolean } {
+  const [state, setState] = useState<{ catalog?: Catalog; error?: string; offline?: boolean }>({});
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}catalog.json`)
       .then((r) =>
-        r.ok ? (r.json() as Promise<Catalog>) : Promise.reject(new Error(`HTTP ${r.status}`)),
+        r.ok
+          ? (r.json() as Promise<Catalog>).then((catalog) => ({
+              catalog,
+              offline: r.headers.get(OFFLINE_HEADER) === '1',
+            }))
+          : Promise.reject(new Error(`HTTP ${r.status}`)),
       )
-      .then((catalog) => setState({ catalog }))
+      .then(({ catalog, offline }) => setState({ catalog, offline }))
       .catch((e: unknown) => setState({ error: e instanceof Error ? e.message : String(e) }));
   }, []);
   return state;
@@ -395,8 +438,21 @@ export interface SkillFilter {
   agent?: string;
   /** A content availability state (ES17): source-only, curated-unapproved, curated-approved, curation-blocked, curation-pending. */
   content?: string;
+  /** Ownership (ES25): fm-ecosystem, first-party or third-party; absent records are derived from their origin. */
+  owner?: string;
+  /** Distribution policy (ES25): open, restricted or not-distributable. */
+  distribution?: string;
 }
-export const FILTER_KEYS = ['q', 'group', 'origin', 'status', 'agent', 'content'] as const;
+export const FILTER_KEYS = [
+  'q',
+  'group',
+  'origin',
+  'owner',
+  'status',
+  'agent',
+  'content',
+  'distribution',
+] as const;
 
 export function filterSkills(c: Catalog, f: SkillFilter): Skill[] {
   const q = (f.q ?? '').trim().toLowerCase();
@@ -406,6 +462,8 @@ export function filterSkills(c: Catalog, f: SkillFilter): Skill[] {
       return (
         (!f.group || groupOf(s) === f.group) &&
         (!f.origin || s.origin === f.origin) &&
+        (!f.owner || ownershipOf(s) === f.owner) &&
+        (!f.distribution || distributionOf(s).policy === f.distribution) &&
         (!f.status || stage(s) === f.status) &&
         (!f.content || availabilityOf(c, s).state === f.content) &&
         (!f.agent ||
@@ -424,6 +482,7 @@ export function filterSkills(c: Catalog, f: SkillFilter): Skill[] {
             ...s.tags,
             s.author ?? '',
             sourceLabel(s),
+            OWNERSHIP_LABEL[ownershipOf(s)] ?? '',
           ].some((t) => t.toLowerCase().includes(q)))
       );
     })
@@ -434,6 +493,47 @@ export const ORIGIN_LABEL: Record<string, string> = {
   'first-party': 'First-party',
   external: 'Third-party',
 };
+/** Who maintains a skill (ES25). Unknown values (never valid in the registry) are shown as "Unknown". */
+export const OWNERSHIP_LABEL: Record<string, string> = {
+  'fm-ecosystem': 'FM Ecosystem',
+  'first-party': 'Other first-party',
+  'third-party': 'Third-party',
+};
+export const DISTRIBUTION_LABEL: Record<string, string> = {
+  open: 'Open',
+  restricted: 'Restricted',
+  'not-distributable': 'Not distributable',
+};
+export const ACCESS_LABEL: Record<string, string> = {
+  'owner-only': 'Owner-only',
+  'authorized-consumers': 'Authorized consumers',
+};
+export const ownershipLabel = (s: Skill, t: T = tEn) =>
+  t(OWNERSHIP_LABEL[ownershipOf(s)] ?? 'Unknown');
+export const distributionLabel = (s: Skill, t: T = tEn) => {
+  const d = distributionOf(s);
+  const p = t(DISTRIBUTION_LABEL[d.policy] ?? 'Unknown');
+  return d.access ? `${p} · ${t(ACCESS_LABEL[d.access] ?? 'Unknown')}` : p;
+};
+/**
+ * Review and approval in one phrase, from the registry. A restricted skill is installed only as an approved curated
+ * release, so its state is that of its releases; an open first-party skill has no review stage.
+ */
+export function reviewSummary(c: Catalog, s: Skill, t: T = tEn): string {
+  if (!isRestricted(s)) return t(STAGE_LABEL[stage(s)]);
+  const rels = releasesOf(c.releases, s.id);
+  const ok = rels.find((r) => r.approval.status === 'approved');
+  if (ok) return t('Release {version} approved', { version: ok.version });
+  return rels.length ? t('No approved release') : t('Not reviewed; no curated release');
+}
+/** FM Ecosystem skills: explicit ownership only, from the same catalog as every other page. */
+export const ecosystemSkills = (c: Catalog): Skill[] =>
+  c.skills
+    .filter((s) => s.ownership === 'fm-ecosystem')
+    .sort((a, b) => a.name.localeCompare(b.name));
+/** Projects mapped to the shared sources a skill reads (ES24 mappings; a reference, never a permission). */
+export const relatedProjects = (c: Catalog, s: Skill): Consumer[] =>
+  c.consumers.filter((x) => x.ecosystem?.sources.some((src) => s.requires.includes(src)));
 /** Short form for the dropdown, which must fit a 320px-wide screen once an option is selected. */
 export const AGENT_OPTION_LABEL = (v: string, t: T = tEn) =>
   v === 'any'
@@ -461,6 +561,10 @@ export function describeFilter(
       return t('Category {value}', { value: t(value) });
     case 'origin':
       return t('Source {value}', { value: t(ORIGIN_LABEL[value] ?? value) });
+    case 'owner':
+      return t('Owner {value}', { value: t(OWNERSHIP_LABEL[value] ?? value) });
+    case 'distribution':
+      return t('Distribution {value}', { value: t(DISTRIBUTION_LABEL[value] ?? value) });
     case 'status':
       return t('Status {value}', { value: t(STAGE_LABEL[value as Stage] ?? value) });
     case 'agent':
@@ -581,66 +685,122 @@ export function lifecycle(c: Catalog, s: Skill, t: T = tEn): LifecycleRow[] {
       ),
     );
   };
-  const reviewed = !external
-    ? row(
-        'reviewed',
-        'Reviewed',
-        'none',
-        t('Not applicable'),
-        t('First-party skills are authored here and need no third-party review.'),
-      )
-    : st === 'discovered'
-      ? row(
+  const latestRelease = releasesOf(c.releases, s.id)[0];
+  const reviewed =
+    !external && latestRelease
+      ? // a first-party skill with a curated release: that release's security review is the review (audit F6)
+        row(
           'reviewed',
           'Reviewed',
-          'none',
-          t('No'),
-          s.discovery
-            ? t(
-                'Discovered with a metadata and file scan (see Discovery scan). No review has been done and no decision made.',
+          latestRelease.review.outcome === 'no-blocking-issues'
+            ? 'ok'
+            : latestRelease.review.outcome === 'not-evaluated'
+              ? 'none'
+              : 'warn',
+          t(REVIEW_OUTCOME_LABEL[latestRelease.review.outcome]),
+          t('Security review of curated release {version}. A review is not a decision.', {
+            version: latestRelease.version,
+          }),
+        )
+      : !external
+        ? row(
+            'reviewed',
+            'Reviewed',
+            'none',
+            t('Not applicable'),
+            t('First-party skills are authored here and need no third-party review.'),
+          )
+        : st === 'discovered'
+          ? row(
+              'reviewed',
+              'Reviewed',
+              'none',
+              t('No'),
+              s.discovery
+                ? t(
+                    'Discovered with a metadata and file scan (see Discovery scan). No review has been done and no decision made.',
+                  )
+                : t('Discovered only. Its content has not been read or scanned.'),
+            )
+          : s.review.audit
+            ? // ES27: a structured audit says whether the review is complete; an incomplete one is never shown as done
+              row(
+                'reviewed',
+                'Reviewed',
+                s.review.audit.completeness === 'complete' ? 'ok' : 'warn',
+                `${s.review.audit.completeness === 'complete' ? t('Yes') : t('Incomplete')}${
+                  s.review.reviewedAt ? `, ${s.review.reviewedAt}` : ''
+                }`,
+                `${t('Security audit {round} of the pinned revision. Audit recommendation: {r}.', {
+                  round: s.review.audit.round,
+                  r: t(AUDIT_RECOMMENDATION_LABEL[s.review.audit.recommendation]),
+                })} ${t('A review is not a decision.')}`,
               )
-            : t('Discovered only. Its content has not been read or scanned.'),
-        )
-      : row(
-          'reviewed',
-          'Reviewed',
-          'ok',
-          `${t('Yes')}${s.review.reviewedAt ? `, ${s.review.reviewedAt}` : ''}`,
-          t('Findings are recorded for the pinned revision. A review is not a decision.'),
-        );
-  const approved = !external
-    ? row(
-        'approved',
-        'Approved',
-        'none',
-        t('Not applicable'),
-        t('No third-party approval is needed for first-party skills.'),
-      )
-    : st === 'approved'
-      ? row(
-          'approved',
-          'Approved',
-          'ok',
-          t('Yes'),
-          t(
-            'The owner allows installing this exact revision. Approval does not install, assign or activate it.',
-          ),
-        )
-      : st === 'rejected'
+            : row(
+                'reviewed',
+                'Reviewed',
+                'ok',
+                `${t('Yes')}${s.review.reviewedAt ? `, ${s.review.reviewedAt}` : ''}`,
+                t('Findings are recorded for the pinned revision. A review is not a decision.'),
+              );
+  const policy = distributionOf(s).policy;
+  const approvedRelease = releasesOf(c.releases, s.id).find(
+    (r) => r.approval.status === 'approved',
+  );
+  const approved =
+    policy === 'restricted'
+      ? approvedRelease
         ? row(
             'approved',
             'Approved',
-            'bad',
-            t('Rejected'),
-            t('The owner decided against it. It cannot be installed or assigned.'),
+            'ok',
+            t('Release {version} approved', { version: approvedRelease.version }),
+            t(
+              'Restricted skills are installed only as an approved, security-reviewed curated release. Approval does not authorize any project.',
+            ),
           )
         : row(
             'approved',
             'Approved',
             'none',
-            t('No'),
-            t('Needs an owner decision before it can be installed or assigned.'),
-          );
+            t('No approved release'),
+            t(
+              'Restricted skills are installed only as an approved, security-reviewed curated release, and none is approved yet.',
+            ),
+          )
+      : !external
+        ? row(
+            'approved',
+            'Approved',
+            'none',
+            t('Not applicable'),
+            t('No third-party approval is needed for first-party skills.'),
+          )
+        : st === 'approved'
+          ? row(
+              'approved',
+              'Approved',
+              'ok',
+              t('Yes'),
+              t(
+                'The owner allows installing this exact revision. Approval does not install, assign or activate it.',
+              ),
+            )
+          : st === 'rejected'
+            ? row(
+                'approved',
+                'Approved',
+                'bad',
+                t('Rejected'),
+                t('The owner decided against it. It cannot be installed or assigned.'),
+              )
+            : row(
+                'approved',
+                'Approved',
+                'none',
+                t('No'),
+                t('Needs an owner decision before it can be installed or assigned.'),
+              );
   const rows: LifecycleRow[] = [
     row(
       'registered',
@@ -706,6 +866,20 @@ export function lifecycle(c: Catalog, s: Skill, t: T = tEn): LifecycleRow[] {
         ),
     verifiedRow(),
   ];
+  // ES25: restricted installs are authorized privately and never published; not-distributable skills are never installed
+  if (policy !== 'open') {
+    const hidden = policy === 'restricted';
+    const value = hidden ? t('Not published') : t('Not distributable');
+    const detail = hidden
+      ? t(
+          'Restricted skills are never assigned in the public registry. Authorizations and installs are recorded on the owner’s machine and never appear on this site.',
+        )
+      : t('This skill is published for discovery and documentation only; it is never installed.');
+    for (const k of ['installed', 'assigned', 'activated'] as const) {
+      const i = rows.findIndex((r) => r.key === k);
+      rows[i] = { ...rows[i]!, kind: hidden ? 'unknown' : 'none', value, detail };
+    }
+  }
   return rows;
 }
 
@@ -714,6 +888,9 @@ export const hasDiscoveryWarnings = (s: Skill): boolean =>
   s.discovery?.outcome === 'register-with-warnings';
 
 export const SOURCE_KIND_LABEL: Record<Source['kind'], string> = {
+  'mcp-server': 'MCP server',
+  toolkit: 'Agent toolkit',
+  'developer-resource': 'Developer resource',
   skill: 'Single skill',
   'skill-collection': 'Skill collection',
   framework: 'Plugin or framework',
@@ -746,6 +923,7 @@ export const SOURCE_BATCH_LABEL: Record<Source['batch'], string> = {
   'design-ui': 'Design and UI candidates',
   'video-animation': 'Video and animation candidates',
   discovered: 'Additional discoveries',
+  es26: 'ES26 discoveries',
 };
 
 export function filterSources(
@@ -844,7 +1022,9 @@ export function reasonText(r: Reason, t: T = tEn): string {
 export function installProblemText(p: InstallProblem, t: T = tEn): string {
   switch (p.code) {
     case 'release-not-approved':
-      return t('The release is not approved.');
+      return p.detail === 'withdrawn'
+        ? t('The release’s approval was withdrawn.')
+        : t('The release is not approved.');
     case 'review-incomplete':
       return t('Its security review has not recorded “no blocking issues” for a stated scope.');
     case 'skill-rejected':
@@ -910,4 +1090,207 @@ export function approvedUpgrade(c: Catalog, s: Skill, current?: string): string 
           .reduce((acc, n, i) => acc || n - Number(current.split('.')[i]), 0) > 0),
   );
   return newer[0]?.version;
+}
+
+/* ------------------------------------------------------------------ resources (ES26) */
+
+/** Display order. Agent capabilities first; "Other developer resources" last and visually separate. */
+export const RESOURCE_CATEGORIES: Resource['category'][] = [
+  'mcp-servers',
+  'agent-toolkits',
+  'agent-dev-tools',
+  'agent-references',
+  'developer-resources',
+];
+export const RESOURCE_CATEGORY_LABEL: Record<Resource['category'], string> = {
+  'mcp-servers': 'MCP servers',
+  'agent-toolkits': 'Agent toolkits',
+  'agent-dev-tools': 'Agent development tools',
+  'agent-references': 'Agent references',
+  'developer-resources': 'Other developer resources',
+};
+export const RESOURCE_CATEGORY_HINT: Record<Resource['category'], string> = {
+  'mcp-servers':
+    'Services that expose tools to AI agents through the Model Context Protocol. Listed for reference only: this site never connects to them.',
+  'agent-toolkits':
+    'Agent workflows, CLI tools, orchestration systems and plugin bundles. Discoverable resources, not approved skills.',
+  'agent-dev-tools': 'Frameworks and toolkits for building or specifying agent work.',
+  'agent-references':
+    'Standards, documentation and curated collections that support AI-agent work.',
+  'developer-resources':
+    'Useful libraries, engines and creative tools that are not AI-agent capabilities. A temporary collection; never installable as skills.',
+};
+export const RESOURCE_TYPE_LABEL: Record<Resource['type'], string> = {
+  'mcp-server': 'MCP server',
+  'cli-tool': 'CLI tool',
+  'workflow-kit': 'Workflow kit',
+  'plugin-bundle': 'Plugin bundle',
+  framework: 'Framework',
+  'spec-toolkit': 'Spec toolkit',
+  standard: 'Standard',
+  documentation: 'Documentation',
+  'curated-list': 'Curated list',
+  library: 'Library',
+  engine: 'Engine',
+  'creative-tool': 'Creative tool',
+  application: 'Application',
+};
+export const RESOURCE_DISCOVERY_LABEL: Record<Resource['discovery']['status'], string> = {
+  discovered: 'Discovered',
+  verified: 'Upstream verified',
+  unresolved: 'Unresolved',
+};
+export const RESOURCE_SECURITY_LABEL: Record<Resource['security']['status'], string> = {
+  'not-reviewed': 'Not security reviewed',
+  'notes-recorded': 'Concerns noted, not fully reviewed',
+  reviewed: 'Security reviewed',
+};
+export const MCP_DEPLOYMENT_LABEL: Record<NonNullable<Resource['mcp']>['deployment'], string> = {
+  local: 'Runs locally',
+  remote: 'Remote (hosted)',
+  both: 'Local or remote',
+  unknown: 'Not documented',
+};
+
+/** Filters on the Resources page; they live in the URL like the Skills filters. */
+export interface ResourceFilter {
+  q?: string;
+  category?: string;
+  type?: string;
+  security?: string;
+}
+export const RESOURCE_FILTER_KEYS = ['q', 'category', 'type', 'security'] as const;
+
+export function filterResources(c: Catalog, f: ResourceFilter): Resource[] {
+  const q = (f.q ?? '').trim().toLowerCase();
+  const sources = new Map(c.sources.map((s) => [s.id, s]));
+  return c.resources.filter((r) => {
+    if (f.category && r.category !== f.category) return false;
+    if (f.type && r.type !== f.type) return false;
+    if (f.security && r.security.status !== f.security) return false;
+    if (!q) return true;
+    const src = sources.get(r.source);
+    return [
+      r.id,
+      r.name,
+      r.summary,
+      ...r.tags,
+      src?.publisher ?? '',
+      src?.upstream?.url ?? '',
+    ].some((t) => t.toLowerCase().includes(q));
+  });
+}
+
+/** The provenance record a resource points to (never duplicated on the resource itself). */
+export const resourceSource = (c: Catalog, r: Resource): Source | undefined =>
+  c.sources.find((s) => s.id === r.source);
+/**
+ * The public page a card's external-link icon opens: the verified upstream repository, else the publisher's official
+ * website. Only https URLs qualify, and an MCP connection endpoint (`mcp.officialEndpoint`) is never used, so
+ * the site can never send a visitor, or itself, to a server endpoint.
+ */
+export function resourceExternalUrl(c: Catalog, r: Resource): string | undefined {
+  const src = resourceSource(c, r);
+  const candidates = [src?.resolution === 'verified' ? src.upstream?.url : undefined, r.homepage];
+  const endpoint = r.mcp?.officialEndpoint;
+  return candidates.find((u): u is string => !!u && u.startsWith('https://') && u !== endpoint);
+}
+/** Resource types that exist in a category (all categories when none is given), sorted. */
+export const resourceTypesIn = (c: Catalog, category?: string): Resource['type'][] =>
+  [
+    ...new Set(c.resources.filter((r) => !category || r.category === category).map((r) => r.type)),
+  ].sort();
+export const resourcesOfSource = (c: Catalog, sourceId: string): Resource[] =>
+  c.resources.filter((r) => r.source === sourceId);
+/** Resources that name a skill as related, for the skill page. */
+export const resourcesForSkill = (c: Catalog, skillId: string): Resource[] =>
+  c.resources.filter((r) => r.related.skills.includes(skillId));
+
+/* ------------------------------------------------------------------ security audits (ES27) */
+
+export type Audit = SkillAudit | ResourceAudit;
+export const AUDIT_COMPLETENESS_LABEL: Record<Audit['completeness'], string> = {
+  complete: 'Review complete',
+  partial: 'Review incomplete',
+};
+/** Audit recommendations are advice for the next step. The labels say so; none of them reads as an approval. */
+export const AUDIT_RECOMMENDATION_LABEL: Record<Audit['recommendation'], string> = {
+  'controlled-evaluation': 'Suitable for controlled evaluation',
+  'after-remediation': 'Suitable after remediation',
+  'reference-only': 'Manual or reference-only use',
+  defer: 'Defer pending more evidence',
+  'do-not-adopt': 'Do not adopt',
+};
+export const SEVERITY_ORDER: SecurityFinding['severity'][] = [
+  'critical',
+  'high',
+  'medium',
+  'low',
+  'info',
+];
+export const SEVERITY_LABEL: Record<SecurityFinding['severity'], string> = {
+  critical: 'Critical',
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
+  info: 'Info',
+};
+export const CHECK_RESULT_LABEL: Record<Audit['checks'][number]['result'], string> = {
+  'not-evaluated': 'Not evaluated',
+  'no-issue-found': 'No issue found',
+  'issue-found': 'Issue found',
+  'needs-manual-review': 'Needs manual review',
+};
+export const REVIEW_CATEGORY_LABEL: Record<Audit['checks'][number]['category'], string> = {
+  'prompt-injection': 'Prompt injection',
+  'instruction-hierarchy': 'Instruction hierarchy',
+  'credential-exfiltration': 'Credential exfiltration',
+  'network-requests': 'Network requests',
+  'shell-execution': 'Shell execution',
+  hooks: 'Hooks',
+  'install-scripts': 'Install scripts',
+  'downloaded-binaries': 'Downloaded binaries',
+  'filesystem-writes': 'Filesystem writes',
+  'global-config-changes': 'Global config changes',
+  'hidden-dependencies': 'Hidden dependencies',
+  'unpinned-remote-instructions': 'Unpinned remote instructions',
+  'tool-permissions': 'Tool permissions',
+};
+/** Findings ordered most severe first (stable within a severity). */
+export const sortedIssues = (a: Audit): SecurityFinding[] =>
+  [...a.issues].sort(
+    (x, y) => SEVERITY_ORDER.indexOf(x.severity) - SEVERITY_ORDER.indexOf(y.severity),
+  );
+export const auditOfResource = (r: Resource): ResourceAudit | undefined => r.security.audit;
+
+/**
+ * ES27.1: where a search matched when the match is in a field the List view does not show (tags, author, category,
+ * id). Returns a short, plain-text snippet for the Skill cell, or undefined when the name or description matched.
+ */
+export function hiddenMatch(
+  s: Skill,
+  q: string | undefined,
+): { field: 'Tags' | 'Skill ID' | 'Author' | 'Category'; value: string } | undefined {
+  const needle = (q ?? '').trim().toLowerCase();
+  if (!needle) return undefined;
+  if (s.name.toLowerCase().includes(needle) || s.description.toLowerCase().includes(needle))
+    return undefined;
+  const tags = s.tags.filter((t) => t.toLowerCase().includes(needle));
+  if (tags.length) return { field: 'Tags', value: `#${tags.join(' #')}` };
+  for (const [field, v] of [
+    ['Skill ID', s.id],
+    ['Author', s.author ?? ''],
+    ['Category', s.category],
+  ] as const)
+    if (v.toLowerCase().includes(needle)) return { field, value: v };
+  return undefined;
+}
+/** The source cell of the List view: a link only when the upstream is verified or registered with the skill. */
+export function skillSourceLink(c: Catalog, s: Skill): { label: string; url?: string } {
+  if (s.source.type !== 'external') return { label: s.source.path };
+  const rec = s.discovery
+    ? c.sources.find((x) => x.id === s.discovery!.source)
+    : c.sources.find((x) => x.skills.includes(s.id));
+  const unresolved = rec && rec.resolution !== 'verified';
+  return { label: sourceLabel(s), url: unresolved ? undefined : s.source.upstream.url };
 }

@@ -50,7 +50,18 @@ import {
 } from './upstream.ts';
 import { writeFileAtomic, formatJson } from './fsguard.ts';
 import { applyCurated, consumerInventory, formatPlan, planCurated, type Mode } from './curated.ts';
+import { readCuratedLock } from './store.ts';
 import { SUPPORTED_AGENTS } from './consumers.ts';
+import { loadWorkspace, PRIVATE_LABEL, resolvePrivateRoot } from './private.ts';
+import {
+  explainEligibility,
+  formatMappings,
+  formatVisibility,
+  validateMappings,
+  visibilityRows,
+} from './ecosystem.ts';
+import { visibilityOf } from './validate.ts';
+import { distributionOf, isRestricted } from './policy.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const readJson = (name: string) =>
@@ -71,6 +82,8 @@ const COMMANDS = [
   'sync',
   'verify',
   'library',
+  'visibility',
+  'map',
 ];
 const command = process.argv[2] ?? '';
 if (!COMMANDS.includes(command)) {
@@ -108,6 +121,7 @@ const result = buildCatalog({
     ? readJson('evaluations')
     : [],
   updates: existsSync(resolve(root, 'registry', 'updates.json')) ? readJson('updates') : [],
+  resources: existsSync(resolve(root, 'registry', 'resources.json')) ? readJson('resources') : [],
 });
 
 if (!result.ok) {
@@ -117,7 +131,7 @@ if (!result.ok) {
 }
 
 const { catalog } = result;
-const summary = `${catalog.skills.length} skills, ${catalog.consumers.length} consumers, ${catalog.integrations.length} integrations, ${catalog.evidence.length} evidence records, ${catalog.sources.length} sources, ${catalog.releases.length} curated releases, ${catalog.evaluations.length} evaluations, ${catalog.updates.length} upstream checks`;
+const summary = `${catalog.skills.length} skills, ${catalog.consumers.length} consumers, ${catalog.integrations.length} integrations, ${catalog.evidence.length} evidence records, ${catalog.sources.length} sources, ${catalog.releases.length} curated releases, ${catalog.evaluations.length} evaluations, ${catalog.updates.length} upstream checks, ${catalog.resources.length} resources (not skills)`;
 
 const skillArg = () => {
   const id = parsed.positional[0];
@@ -246,8 +260,9 @@ function consumers(): void {
     for (const s of reg.catalog.skills) {
       const canon = resolveCanonical(root, s);
       const status = s.origin === 'external' ? s.review.status : 'first-party';
-      const install =
-        s.origin === 'external'
+      const install = isRestricted(s)
+        ? distributionOf(s).policy // managed only through authorized curated releases (ES25)
+        : s.origin === 'external'
           ? canon.problems.some((p) => p.startsWith('not installed'))
             ? 'not installed'
             : canon.problems.length
@@ -487,6 +502,7 @@ async function libraryCommand(): Promise<void> {
       project: loc.path,
       agents,
       migrate: parsed.flags.has('--migrate'),
+      privateRoot: resolvePrivateRoot(root),
     });
     console.log(formatPlan(plan));
     if (!parsed.flags.has('--apply')) {
@@ -501,11 +517,22 @@ async function libraryCommand(): Promise<void> {
   }
   if (sub === 'status') {
     // Read-only inventory: legacy vs curated, desired vs installed, drift, upgrades and rollback availability.
-    const reg = loadRegistry(root);
+    // ES25: with a private root, restricted and private installs are listed too (never the root's path)
+    const privateRoot = resolvePrivateRoot(root);
+    const ws = loadWorkspace(root, privateRoot);
     const ids = a
       ? [a]
-      : reg.catalog.consumers
-          .filter((c) => c.kind === 'project' && c.assignments.length)
+      : ws.catalog.consumers
+          .filter(
+            (c) =>
+              c.kind === 'project' &&
+              (c.assignments.length ||
+                ws.access.some((x) => x.consumer === c.id) ||
+                // installs still tracked after their assignment or authorization was removed (audit 6)
+                [root, ...(privateRoot ? [privateRoot] : [])].some(
+                  (b) => readCuratedLock(b).lock.consumers[c.id],
+                )),
+          )
           .map((c) => c.id);
     for (const id of ids) {
       let project: string | undefined;
@@ -515,14 +542,17 @@ async function libraryCommand(): Promise<void> {
         project = undefined;
       }
       console.log(`${id}${project ? ` (${project})` : ' (location unknown: links not inspected)'}`);
-      const rows = consumerInventory(root, id, project);
-      if (!rows.length) console.log('  no third-party skills assigned');
+      const rows = consumerInventory(root, id, project, privateRoot);
+      if (!rows.length) console.log('  no third-party or restricted skills assigned');
       for (const r of rows) {
         console.log(
-          `  ${r.skill.padEnd(30)} ${r.kind.padEnd(7)} wants ${r.desired}${r.installed ? `, links ${r.installed}` : ''}${r.installedHash ? `, tracked ${r.installedHash.slice(0, 19)}…` : ''}`,
+          `  ${r.skill.padEnd(30)} ${r.kind.padEnd(7)}${r.restricted ? ' restricted (authorized in ' + PRIVATE_LABEL + ')' : ''} wants ${r.desired}${r.installed ? `, links ${r.installed}` : ''}${r.installedHash ? `, tracked ${r.installedHash.slice(0, 19)}…` : ''}`,
         );
         console.log(
-          `    upgrade: ${r.upgrade.why}${r.upgrade.eligible ? ` (preview: pnpm skills:library upgrade ${id} ${r.skill} --to ${r.upgrade.to}${r.desired === 'legacy' ? ' --migrate' : ''})` : ''}`,
+          `    authorization: ${r.authorization ?? 'not-needed'}; desired: ${r.desired}${r.agents.length ? ` for ${r.agents.join(', ')}` : ''}; installed: ${r.links ? (r.links.length ? r.links.map((l) => `${l.agent} → ${l.target}`).join(', ') : 'no links') : 'links not inspected'}`,
+        );
+        console.log(
+          `    upgrade: ${r.upgrade.why}${r.upgrade.eligible && r.desired !== 'none' ? ` (preview: pnpm skills:library upgrade ${id} ${r.skill} --to ${r.upgrade.to}${r.desired === 'legacy' ? ' --migrate' : ''})` : ''}`,
         );
         console.log(`    rollback: ${r.rollback.why}`);
         for (const d of r.drift) console.log(`    DRIFT: ${d}`);
@@ -580,6 +610,9 @@ async function libraryCommand(): Promise<void> {
           ? readJson('evaluations')
           : [],
         updates: merged,
+        resources: existsSync(resolve(root, 'registry', 'resources.json'))
+          ? readJson('resources')
+          : [],
       });
       if (!check.ok)
         throw new LibraryError(
@@ -635,6 +668,9 @@ async function libraryCommand(): Promise<void> {
           ? readJson('evaluations')
           : [],
         updates: existsSync(join(root, 'registry', 'updates.json')) ? readJson('updates') : [],
+        resources: existsSync(join(root, 'registry', 'resources.json'))
+          ? readJson('resources')
+          : [],
       };
       const path = applyPrepare(root, plan, {
         releases: existsSync(join(root, 'registry', 'releases.json'))
@@ -713,6 +749,60 @@ if (['list', 'assign', 'unassign', 'sync', 'verify'].includes(command)) {
     await libraryCommand();
   } catch (e) {
     if (!(e instanceof LibraryError) && !(e instanceof ConsumerError)) throw e;
+    console.error(`ERROR: ${e.message}`);
+    process.exit(1);
+  }
+} else if (command === 'visibility' || command === 'map') {
+  // Read-only views of this local context (ES24). The private root path is never printed.
+  try {
+    const privateRoot = resolvePrivateRoot(root);
+    const ws = loadWorkspace(root, privateRoot);
+    if (command === 'visibility') {
+      const id = parsed.positional[0];
+      if (id && !ws.catalog.skills.some((s) => s.id === id))
+        usageFail(`unknown skill id "${id}" in this local context`);
+      const consumerId = value('--consumer');
+      if (consumerId) {
+        // ES25: the installer's own eligibility decision, explained; read-only, never an override
+        if (!id) usageFail('--consumer needs a <skill-id>');
+        if (!ws.catalog.consumers.some((c) => c.id === consumerId))
+          usageFail(`unknown consumer id "${consumerId}"`);
+        const agentsArg = value('--agents');
+        const agents = agentsArg
+          ? (agentsArg.split(',').map((x) => x.trim()) as Agent[])
+          : undefined;
+        for (const ag of agents ?? [])
+          if (!SUPPORTED_AGENTS.includes(ag)) usageFail(`unsupported agent "${ag}"`);
+        const r = explainEligibility(ws, id!, consumerId, { version: value('--version'), agents });
+        console.log(r.lines.join('\n'));
+        process.exit(r.eligible ? 0 : 1);
+      }
+      if (value('--version') || value('--agents'))
+        usageFail('--version and --agents need --consumer');
+      console.log(formatVisibility(visibilityRows(ws, id), !!privateRoot));
+      if (privateRoot) {
+        const priv = ws.catalog.releases.filter((r) => visibilityOf(r) !== 'public');
+        const problems = verifyLibrary(privateRoot, { releases: priv });
+        for (const p of problems) console.error(`  - ${PRIVATE_LABEL}: ${p}`);
+        if (problems.length) process.exit(1);
+        console.log(`Private library valid: ${priv.length} release(s).`);
+      }
+    } else {
+      const id = parsed.positional[0];
+      if (id && !ws.catalog.consumers.some((c) => c.id === id))
+        usageFail(`unknown consumer id "${id}"`);
+      console.log(formatMappings(ws.catalog, ws, id));
+      if (parsed.flags.has('--validate')) {
+        const checks = validateMappings(root, ws.catalog, id);
+        for (const c of checks)
+          console.log(
+            `${c.status.toUpperCase().padEnd(5)} ${c.consumer}: ${c.check} (${c.detail})`,
+          );
+        if (checks.some((c) => c.status === 'error')) process.exit(1);
+      }
+    }
+  } catch (e) {
+    if (!(e instanceof ConsumerError)) throw e;
     console.error(`ERROR: ${e.message}`);
     process.exit(1);
   }

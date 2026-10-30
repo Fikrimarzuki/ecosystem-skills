@@ -1,0 +1,184 @@
+{
+  "verifiedAt": "2026-10-30T05:31:27.253Z",
+  "docker": "29.5.2",
+  "image": "node:24.18.0-bookworm",
+  "argsProblems": [],
+  "probes": [
+    {
+      "name": "runs as a non-root user",
+      "ok": true,
+      "detail": "uid 1000"
+    },
+    {
+      "name": "no host paths are visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "only the image's own home folders, with skeleton dotfiles only",
+      "ok": true,
+      "detail": "[\"agent\",\"node\"] node:[\".bash_logout\",\".bashrc\",\".profile\"]"
+    },
+    {
+      "name": "HOME starts empty",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "/root is not readable",
+      "ok": true,
+      "detail": "EACCES"
+    },
+    {
+      "name": "no credential-like environment variables",
+      "ok": true,
+      "detail": "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC CLAUDE_CONFIG_DIR DISABLE_AUTOUPDATER DISABLE_ERROR_REPORTING DISABLE_TELEMETRY ES23_EXPECT_ALLOWED HOME HOSTNAME HTTPS_PROXY HTTP_PROXY NODE_VERSION NO_PROXY "
+    },
+    {
+      "name": "no Docker socket",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "root filesystem is read-only",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "fixture workspace is writable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "/tmp is writable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no effective capabilities",
+      "ok": true,
+      "detail": "CapEff 0000000000000000"
+    },
+    {
+      "name": "no-new-privileges",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "memory limit 2 GiB",
+      "ok": true,
+      "detail": "2147483648"
+    },
+    {
+      "name": "PID limit 256",
+      "ok": true,
+      "detail": "256"
+    },
+    {
+      "name": "no direct route to the internet (1.1.1.1:443)",
+      "ok": true,
+      "detail": "ENETUNREACH"
+    },
+    {
+      "name": "external DNS does not resolve",
+      "ok": true,
+      "detail": "EAI_AGAIN"
+    },
+    {
+      "name": "proxy refuses plain HTTP",
+      "ok": true,
+      "detail": "403"
+    },
+    {
+      "name": "proxy refuses example.com:443",
+      "ok": true,
+      "detail": "{\"status\":\"403\"}"
+    },
+    {
+      "name": "proxy refuses github.com:443",
+      "ok": true,
+      "detail": "{\"status\":\"403\"}"
+    },
+    {
+      "name": "proxy refuses registry.npmjs.org:443",
+      "ok": true,
+      "detail": "{\"status\":\"403\"}"
+    },
+    {
+      "name": "proxy refuses api.anthropic.com:80",
+      "ok": true,
+      "detail": "{\"status\":\"403\"}"
+    },
+    {
+      "name": "proxy refuses 1.1.1.1:443",
+      "ok": true,
+      "detail": "{\"status\":\"403\"}"
+    },
+    {
+      "name": "proxy allows the model API api.anthropic.com (TLS verified, no credential sent)",
+      "ok": true,
+      "detail": "{\"status\":\"200\",\"tls\":\"verified\",\"cn\":\"api.anthropic.com\"}"
+    },
+    {
+      "name": "proxy allows the model API api.openai.com (TLS verified, no credential sent)",
+      "ok": true,
+      "detail": "{\"status\":\"200\",\"tls\":\"verified\",\"cn\":\"api.openai.com\"}"
+    },
+    {
+      "name": "every refused proxy request is logged",
+      "ok": true,
+      "detail": "6 denied, 2 allowed"
+    }
+  ],
+  "proxyLog": [
+    {
+      "method": "GET",
+      "target": "http://example.com/",
+      "allowed": false,
+      "reason": "only CONNECT is allowed"
+    },
+    {
+      "method": "CONNECT",
+      "target": "example.com:443",
+      "allowed": false,
+      "reason": "host not allowed"
+    },
+    {
+      "method": "CONNECT",
+      "target": "github.com:443",
+      "allowed": false,
+      "reason": "host not allowed"
+    },
+    {
+      "method": "CONNECT",
+      "target": "registry.npmjs.org:443",
+      "allowed": false,
+      "reason": "host not allowed"
+    },
+    {
+      "method": "CONNECT",
+      "target": "api.anthropic.com:80",
+      "allowed": false,
+      "reason": "port not allowed"
+    },
+    {
+      "method": "CONNECT",
+      "target": "1.1.1.1:443",
+      "allowed": false,
+      "reason": "IP literal"
+    },
+    {
+      "method": "CONNECT",
+      "target": "api.anthropic.com:443",
+      "allowed": true,
+      "reason": "allowlisted"
+    },
+    {
+      "method": "CONNECT",
+      "target": "api.openai.com:443",
+      "allowed": true,
+      "reason": "allowlisted"
+    }
+  ],
+  "passed": true
+}

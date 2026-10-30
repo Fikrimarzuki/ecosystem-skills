@@ -13,3 +13,6 @@ apps/web/public/catalog.json
 !/external/README.md
 # machine-specific consumer locations for skills:sync / skills:verify (never published)
 /consumers.local.json
+# ES24: where the private root lives and where source checkouts are (machine-specific, never published)
+/private.local.json
+/sources.local.json

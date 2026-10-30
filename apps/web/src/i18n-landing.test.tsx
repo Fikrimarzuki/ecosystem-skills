@@ -18,9 +18,23 @@ import {
   GROUPS,
   GROUP_OF_CATEGORY,
   STAGE_LABEL,
+  OWNERSHIP_LABEL,
+  DISTRIBUTION_LABEL,
+  ACCESS_LABEL,
   lifecycle,
   ORIGIN_LABEL,
   type Route,
+  MCP_DEPLOYMENT_LABEL,
+  AUDIT_COMPLETENESS_LABEL,
+  AUDIT_RECOMMENDATION_LABEL,
+  SEVERITY_LABEL,
+  CHECK_RESULT_LABEL,
+  REVIEW_CATEGORY_LABEL,
+  RESOURCE_CATEGORY_HINT,
+  RESOURCE_CATEGORY_LABEL,
+  RESOURCE_DISCOVERY_LABEL,
+  RESOURCE_SECURITY_LABEL,
+  RESOURCE_TYPE_LABEL,
 } from './lib.ts';
 import { GATEWAY_URL, REPO_URL, SUPPORT_URL } from './links.ts';
 import { ID } from './locales/id.ts';
@@ -91,10 +105,7 @@ function interfaceStrings(): Set<string> {
       found.add(m[1]!.replace(/\\'/g, "'"));
     for (const m of src.matchAll(/\brow\(\s*'[a-z]+',\s*'([^']+)'/g)) found.add(m[1]!); // lifecycle labels
   }
-  for (const n of NAV) {
-    found.add(n.label);
-    if ('short' in n) found.add(n.short);
-  }
+  for (const n of NAV) found.add(n.label);
   for (const [a, b] of [...STATES, ...TERMS]) {
     found.add(a);
     found.add(b);
@@ -106,6 +117,10 @@ function interfaceStrings(): Set<string> {
   for (const v of [
     ...Object.values(STAGE_LABEL),
     ...Object.values(ORIGIN_LABEL),
+    ...Object.values(OWNERSHIP_LABEL),
+    ...Object.values(DISTRIBUTION_LABEL),
+    ...Object.values(ACCESS_LABEL),
+    'Unknown',
     ...Object.values(CONTENT_LABEL),
     ...Object.values(UPDATE_STATUS_LABEL),
     ...Object.values(RECOMMENDATION_LABEL),
@@ -115,6 +130,17 @@ function interfaceStrings(): Set<string> {
     ...Object.values(SOURCE_DECISION_LABEL),
     ...Object.values(SOURCE_KIND_LABEL),
     ...Object.values(SOURCE_RESOLUTION_LABEL),
+    ...Object.values(RESOURCE_CATEGORY_LABEL),
+    ...Object.values(RESOURCE_CATEGORY_HINT),
+    ...Object.values(RESOURCE_TYPE_LABEL),
+    ...Object.values(RESOURCE_DISCOVERY_LABEL),
+    ...Object.values(RESOURCE_SECURITY_LABEL),
+    ...Object.values(MCP_DEPLOYMENT_LABEL),
+    ...Object.values(AUDIT_COMPLETENESS_LABEL),
+    ...Object.values(AUDIT_RECOMMENDATION_LABEL),
+    ...Object.values(SEVERITY_LABEL),
+    ...Object.values(CHECK_RESULT_LABEL),
+    ...Object.values(REVIEW_CATEGORY_LABEL),
     ...GROUPS,
     'Other',
   ])
@@ -261,12 +287,13 @@ describe('landing page', () => {
     }
   });
 
-  it('the dashboard still renders at its new route, and the nav marks Home and Overview separately', () => {
+  it('the dashboard still renders at its new route; ES26 nav has no Home entry (the brand links home) and adds Resources', () => {
     expect(NAV.map((n) => [n.page, n.path])).toEqual([
-      ['home', '/'],
       ['dashboard', '/overview'],
       ['skills', '/skills'],
+      ['resources', '/resources'],
       ['sources', '/sources'],
+      ['ecosystem', '/ecosystem'],
       ['consumers', '/consumers'],
       ['integrations', '/integrations'],
     ]);
@@ -307,10 +334,13 @@ describe('outbound links', () => {
       ),
     ].map((m) => m[0]);
 
-  it('contact: nav, hero, landing section and footer all go to the support site, with a message icon and no heart or donation wording', () => {
+  it('contact: hero, landing section and footer go to the support site (ES26: no longer in the header nav), with a message icon and no heart or donation wording', () => {
     const html = shell('/skills');
     const links = anchors(html, 'https://support.fikrimarzuki.work');
-    expect(links.length).toBeGreaterThanOrEqual(3); // nav (both layouts) + footer
+    expect(links.length).toBe(1); // footer only; the header nav no longer duplicates it
+    expect(html.slice(html.indexOf('<header'), html.indexOf('</header>'))).not.toContain(
+      'support.fikrimarzuki.work',
+    );
     for (const a of links) {
       expect(a).toContain('target="_blank"');
       expect(a).toMatch(/rel="noreferrer noopener"/);

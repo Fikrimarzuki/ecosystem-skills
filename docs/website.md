@@ -4,28 +4,32 @@ A static, read-only React app (Vite, TypeScript, Tailwind) over the generated ca
 authentication, or install/run capability. Pages have clean URLs (`/skills/caveman`) handled by browser-history
 routing; the host must serve `index.html` for them (see [deployment.md](deployment.md#clean-urls-and-the-spa-fallback)).
 
-| Page           | Route           | Purpose                                                                                                                                                                                 |
-| -------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Home (landing) | `/`             | What the site is for, live registry numbers, the seven lifecycle states, what it does and does not do, links to other projects and to Support                                           |
-| Overview       | `/overview`     | Registry totals, third-party review status counts, per-agent evidence totals, recent evidence                                                                                           |
-| Skills         | `/skills`       | Searchable library. Filters: category group, source, review status, explicit-run evidence. They combine (all must match) and live in the URL (`/skills?group=Planning&status=approved`) |
-| Skill detail   | `/skills/<id>`  | Lifecycle (seven separate states), agent status matrix, provenance, review notes and findings, evidence log, consumers                                                                  |
-| Consumers      | `/consumers`    | Consumers with assigned skills first: agents, install mode and verification per assignment; idle consumers listed compactly                                                             |
-| Agents & tools | `/integrations` | Agent compatibility totals, what each term means, platform limitations, tools and dependencies                                                                                          |
+| Page           | Route             | Purpose                                                                                                                                                                                      |
+| -------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home (landing) | `/`               | What the site is for, live registry numbers, the seven lifecycle states, what it does and does not do, links to other projects and to Support                                                |
+| Overview       | `/overview`       | Registry totals, third-party review status counts, per-agent evidence totals, recent evidence                                                                                                |
+| Skills         | `/skills`         | Searchable library. Filters: category group, source, review status, explicit-run evidence. They combine (all must match) and live in the URL (`/skills?group=Planning&status=approved`)      |
+| Skill detail   | `/skills/<id>`    | Source and provenance first (maintainer, repository, pinned revision, licence, source record), then lifecycle, content availability, review, distribution, agent status, evidence, consumers |
+| Resources      | `/resources`      | MCP servers, agent toolkits, agent development tools, references and other developer resources (ES26). Search, category, type and review-status filters in the URL; Cards or List            |
+| Resource       | `/resources/<id>` | Provenance (from the source record), security notes, MCP details (never connected), related skills and resources                                                                             |
+| Sources        | `/sources`        | Every repository examined, Cards or List                                                                                                                                                     |
+| Consumers      | `/consumers`      | Consumers with assigned skills first: agents, install mode and verification per assignment; idle consumers listed compactly                                                                  |
+| Agents & tools | `/integrations`   | Agent compatibility totals, what each term means, platform limitations, tools and dependencies                                                                                               |
 
 ## URLs and routing
 
 Routing is a small module, `apps/web/src/router.ts`, on the browser History API. There is no routing library.
 
-| URL                           | Shows                                                |
-| ----------------------------- | ---------------------------------------------------- |
-| `/`                           | Landing page                                         |
-| `/overview`                   | Dashboard                                            |
-| `/skills`                     | Skills catalog, with optional filter query (below)   |
-| `/skills/<id>`                | One skill (`/skills/caveman`); an unknown id says so |
-| `/sources`                    | Sources examined during discovery (ES16)             |
-| `/consumers`, `/integrations` | Consumers, Agents & tools                            |
-| anything else                 | "Page not found", with links home and to Skills      |
+| URL                             | Shows                                                                      |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| `/`                             | Landing page                                                               |
+| `/overview`                     | Dashboard                                                                  |
+| `/skills`                       | Skills catalog, with optional filter query (below)                         |
+| `/skills/<id>`                  | One skill (`/skills/caveman`); an unknown id says so                       |
+| `/sources`                      | Sources examined during discovery (ES16)                                   |
+| `/resources`, `/resources/<id>` | Resources (ES26); filters `q`, `category`, `type`, `security` in the query |
+| `/consumers`, `/integrations`   | Consumers, Agents & tools                                                  |
+| anything else                   | "Page not found", with links home and to Skills                            |
 
 - **Links are ordinary anchors** (`<a href="/skills">`), so they can be opened in a new tab, copied and crawled.
   A click on a same-site link is turned into `history.pushState` (no page reload); modified clicks (Ctrl/Cmd/Shift,
@@ -88,6 +92,11 @@ Statuses are derived from `registry/*.json` only (`apps/web/src/lib.ts`). They a
   operational risks, and the skill page has a **Discovery scan** block (warnings, runtime dependencies, content hash, what
   the scan did and did not cover) with a link to its source; unresolved conditions are listed under "Must be resolved before approval". The lifecycle row says the scan was a metadata and file scan,
   not a review.
+- **Security audit (ES27):** an audited skill or resource shows a "Security audit (ES27)" block in its Review or
+  Security notes section: "Review complete" or "Review incomplete", the audit recommendation (always labelled as advice,
+  "not an approval"), the scope read, findings most severe first with their evidence, and the 26 checks. A partial
+  audit also adds "Review incomplete" next to the stage badge in lists and headers, and the lifecycle "Reviewed" row
+  says "Incomplete". Resources with notes or a partial audit read "Concerns noted, not fully reviewed".
 - **Installed / activated:** never shown as yes or no. Installs and project links are per machine and not in the
   catalog, so the skill page says "Not tracked here" and names the command that checks it.
 - **Category** is a browsing group (Coding, Design, Planning, Communication, Verification, Project-specific); ES16 added the categories `motion-design`, `video` (Design), `game-dev`, `mobile`, `devops` (Coding) and `performance` (Verification). It is
@@ -167,10 +176,54 @@ run", with measurements and their method, findings, comparison status, the recom
 are shown. The Consumers page labels each third-party assignment "Legacy upstream install" or "Curated release vX", shows an approved curated
 upgrade only as a preview command, and points to `pnpm skills:library status` for installed state, which the site cannot see.
 
+## Navigation (ES26)
+
+The header lists Overview, Skills, Resources, Sources, FM Ecosystem, Consumers and Agents & tools. Home is not listed:
+the brand mark links to `/` (its accessible name is "Ecosystem Skills home"). Help & Contact moved to the footer (and
+stays on the landing page). Below 1280 px the links move into a **Menu** button (`aria-expanded`, `aria-controls`);
+Escape closes it and returns focus, and choosing a page closes it. Language and theme stay in the header at every
+width. The page of a detail view (a skill, a resource) is marked as current.
+
+## Cards and List views (ES26)
+
+Sources and Resources offer **Cards** (the existing visual cards) and **List** (a dense, scannable list). The toggle is
+two buttons with `aria-pressed`. Switching never touches the filters; the choice is remembered per page in
+`localStorage` (`view.sources`, `view.resources`) across navigation and reloads. The list is a real list of rows with
+column headers on wide screens; below 768 px each row stacks into labelled lines, so there is no horizontal scrolling.
+Warnings (sources) and recorded concerns (resources) stay visible as a count with text in both views.
+
+## Form controls (ES26)
+
+Every search box and dropdown uses the shared `.control` style: one height (40 px), padding, border, hover and disabled
+states, and the global focus ring. Selects remove the native arrow (`appearance: none`) and draw exactly one chevron at
+a fixed position, in a colour that follows the theme; search boxes reserve room for the leading icon.
+
+## Installable app and offline use
+
+The production build adds `manifest.webmanifest` (name, `standalone` display, theme colour, 192/512 px and maskable
+icons, scope and start URL that follow `BASE_PATH`) and `sw.js`, registered only in production builds:
+
+- the app shell (index.html, the hashed build files, icons) is cached when the worker installs; any route opened
+  offline falls back to that shell, so direct links keep working;
+- `catalog.json`, `llms.txt` and `resources.v1.json` are fetched from the network first; only if that fails is the saved
+  copy used, marked so the page shows: _"Offline: showing a saved copy of the catalog. It may be out of date and is not
+  authoritative for review, approval or installation."_;
+- hashed `/assets/` files are cache-first; other origins and non-GET requests are never intercepted; a new build gets a
+  new cache name, and old caches are deleted when it activates.
+
+Language and theme choices are stored in `localStorage` as before and apply offline. Nothing private exists in the
+public build, so nothing private can be cached. Limitations: there is no background sync or update prompt (a new
+version takes over on the next load), and an offline copy cannot show changes made since it was saved.
+
+## AI-readable files
+
+`/llms.txt`, `/catalog.json` and `/resources.v1.json` are generated at build time from the public registry. See
+[resources.md](resources.md#ai-readable-metadata).
+
 ## Sources page
 
 `/sources` lists the repositories, applications, standards and leads examined during discovery, grouped by batch, with
-filters for decision (chips), kind and text. Each card shows the decision (registered for review / with warnings,
+filters for decision (chips), kind and text, in Cards or List view. Each card shows the decision (registered for review / with warnings,
 reference only, unresolved), whether the upstream identity is verified, the pinned commit, skills found versus registered
 (linked to their pages), warnings, other candidates considered, and for unresolved names what would resolve them. The
 filters are local to the page; a source can be linked directly as `/sources#<source-id>`. A source is never presented as a

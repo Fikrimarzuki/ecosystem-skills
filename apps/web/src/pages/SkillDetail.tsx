@@ -1,5 +1,8 @@
 import { useT } from '../i18n.tsx';
+import { AuditSummary } from './Audit.tsx';
 import { ContentAvailability } from './ContentAvailability.tsx';
+import { Distribution } from './Distribution.tsx';
+import { EcosystemIntegration } from './EcosystemIntegration.tsx';
 import { Evaluations } from './Evaluations.tsx';
 import { Upstream } from './Upstream.tsx';
 import {
@@ -18,6 +21,10 @@ import {
   TESTED_AGENTS,
   type Catalog,
   type Evidence,
+  resourceHref,
+  resourcesForSkill,
+  SOURCE_RESOLUTION_LABEL,
+  sourceHref,
 } from '../lib.ts';
 import {
   Badge,
@@ -36,6 +43,8 @@ import {
 import {
   Behavior,
   Discovery,
+  DistributionBadge,
+  OwnershipBadge,
   Explicit,
   Natural,
   none,
@@ -117,6 +126,10 @@ export function SkillDetail({ catalog, id }: { catalog: Catalog; id: string }) {
   const agents = [...new Set<string>([...TESTED_AGENTS, ...ev.map((e) => e.agent)])];
   const rev = skill.review;
   const verifiedFor = users.filter((u) => u.assignment.verification.status === 'verified');
+  const sourceRecord = skill.discovery
+    ? catalog.sources.find((x) => x.id === skill.discovery!.source)
+    : catalog.sources.find((x) => x.skills.includes(skill.id));
+  const relatedResources = resourcesForSkill(catalog, skill.id);
 
   return (
     <>
@@ -130,6 +143,8 @@ export function SkillDetail({ catalog, id }: { catalog: Catalog; id: string }) {
         <PageHeader title={skill.name} subtitle={skill.description}>
           <div className="mt-4 flex flex-wrap items-center gap-1.5">
             <SourceBadge skill={skill} />
+            <OwnershipBadge skill={skill} />
+            <DistributionBadge skill={skill} />
             <StageBadge skill={skill} />
             <Badge>{t(groupOf(skill))}</Badge>
             <Badge>{skill.category}</Badge>
@@ -141,6 +156,138 @@ export function SkillDetail({ catalog, id }: { catalog: Catalog; id: string }) {
           </div>
         </PageHeader>
       </div>
+
+      <Section
+        id="provenance"
+        title={t('Source and provenance')}
+        hint={t(
+          'Who maintains it and exactly which code was examined, before any review or approval status.',
+        )}
+      >
+        <Card>
+          <dl className="grid gap-4 sm:grid-cols-2">
+            <Field label={t('Maintainer')}>{skill.author ?? none}</Field>
+            <Field label={t('License')}>{skill.license ?? none}</Field>
+            {src.type === 'external' ? (
+              <>
+                <Field label={t('Upstream repository')}>
+                  <ExternalLink href={src.upstream.url}>{src.upstream.url}</ExternalLink>
+                </Field>
+                <Field label={t('Skill folder at pinned revision')}>
+                  {tree ? (
+                    <ExternalLink href={tree}>{src.path}</ExternalLink>
+                  ) : (
+                    <code>{src.path}</code>
+                  )}
+                </Field>
+                <Field label={t('Pinned revision')}>
+                  <code className="break-all">{src.revision}</code>
+                </Field>
+                <Field label={t('Source record')}>
+                  {sourceRecord ? (
+                    <>
+                      <a
+                        href={sourceHref(sourceRecord.id)}
+                        className="underline-offset-2 hover:underline"
+                      >
+                        {sourceRecord.name}
+                      </a>
+                      <span className="block text-xs text-zinc-600 dark:text-zinc-400">
+                        {t(SOURCE_RESOLUTION_LABEL[sourceRecord.resolution])}
+                        {sourceRecord.publisher ? ` · ${sourceRecord.publisher}` : ''}
+                        {` · ${t('examined {date}', { date: sourceRecord.discoveredAt })}`}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-zinc-600 dark:text-zinc-400">
+                      {t(
+                        'No discovery source record (registered before source records were kept).',
+                      )}
+                    </span>
+                  )}
+                </Field>
+                <Field label={t('Fork')}>
+                  {src.fork ? (
+                    <ExternalLink href={src.fork.url}>{src.fork.url}</ExternalLink>
+                  ) : (
+                    none
+                  )}
+                </Field>
+              </>
+            ) : (
+              <Field label={t('Repository path')}>
+                <code className="break-all">{src.path}</code>
+              </Field>
+            )}
+            <Field label={t('Version')}>{skill.version ?? none}</Field>
+            <Field label={t('Skill ID')}>
+              <code>{skill.id}</code>
+            </Field>
+            <Field label={t('Required tools')}>
+              {tools.length ? (
+                <span className="flex flex-wrap gap-1">
+                  {tools.map((tool) => (
+                    <Badge key={tool}>{tool}</Badge>
+                  ))}
+                </span>
+              ) : (
+                none
+              )}
+            </Field>
+            <Field label={t('Requires skills')}>
+              <SkillLinks catalog={catalog} ids={skill.requiresSkills} />
+            </Field>
+            <Field label={t('Required by')}>
+              <SkillLinks catalog={catalog} ids={dependents.map((d) => d.id)} />
+            </Field>
+            <Field label={t('Agents documented upstream')}>
+              {skill.agents.length ? (
+                <span className="flex flex-wrap gap-1">
+                  {skill.agents.map((a) => (
+                    <Badge key={a}>{agentName(a)}</Badge>
+                  ))}
+                </span>
+              ) : (
+                none
+              )}
+            </Field>
+            <Field label={t('Documentation')}>
+              {skill.docs.length ? (
+                <ul className="list-inside list-disc">
+                  {skill.docs.map((d) => (
+                    <li key={d.label}>
+                      {/^https?:/.test(d.href) ? (
+                        <ExternalLink href={d.href}>{d.label}</ExternalLink>
+                      ) : (
+                        `${d.label} (${d.href})`
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                none
+              )}
+            </Field>
+          </dl>
+          {relatedResources.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-sm font-medium">{t('Related resources')}</h3>
+              <ul className="mt-1 flex flex-wrap gap-1.5">
+                {relatedResources.map((r) => (
+                  <li key={r.id}>
+                    <a
+                      href={resourceHref(r.id)}
+                      className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs underline-offset-2 hover:underline dark:bg-zinc-800"
+                    >
+                      {r.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </Card>
+      </Section>
 
       <Section
         id="lifecycle"
@@ -175,6 +322,58 @@ export function SkillDetail({ catalog, id }: { catalog: Catalog; id: string }) {
       </Section>
 
       <ContentAvailability catalog={catalog} skill={skill} />
+
+      <Section id="review" title={t('Review')}>
+        <Card>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              tone={
+                rev.status === 'approved' ? 'green' : rev.status === 'rejected' ? 'red' : 'indigo'
+              }
+            >
+              {rev.status === 'unreviewed' ? t('discovered (not reviewed)') : t(rev.status)}
+            </Badge>
+            {rev.audit?.completeness === 'partial' && (
+              <Badge tone="amber">{t('Review incomplete')}</Badge>
+            )}
+            {rev.reviewedAt && (
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">{rev.reviewedAt}</span>
+            )}
+          </div>
+          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+            {rev.reviewer && <Field label={t('Reviewer')}>{rev.reviewer}</Field>}
+            {rev.approvedBy && <Field label={t('Approved by')}>{rev.approvedBy}</Field>}
+            {rev.contentHash && (
+              <Field label={t('Reviewed content hash')}>
+                <code className="break-all">{rev.contentHash}</code>
+              </Field>
+            )}
+          </dl>
+          {rev.notes && (
+            <div className="mt-4">
+              <h3 className="text-sm font-medium">{t('Notes and limitations')}</h3>
+              <p className="mt-1 text-sm">{rev.notes}</p>
+            </div>
+          )}
+          {rev.findings.length > 0 && (
+            <details className="mt-4 text-sm" open={rev.findings.length <= 3}>
+              <summary className="cursor-pointer font-medium">
+                {t('Findings ({n})', { n: rev.findings.length })}
+              </summary>
+              <ul className="mt-2 list-disc space-y-1 pl-5">
+                {rev.findings.map((f) => (
+                  <li key={f}>{f}</li>
+                ))}
+              </ul>
+            </details>
+          )}
+          {rev.audit && <AuditSummary audit={rev.audit} />}
+        </Card>
+      </Section>
+
+      <Distribution catalog={catalog} skill={skill} />
+
+      <EcosystemIntegration catalog={catalog} skill={skill} />
 
       <Upstream catalog={catalog} skill={skill} />
 
@@ -330,136 +529,6 @@ export function SkillDetail({ catalog, id }: { catalog: Catalog; id: string }) {
           </Card>
         </Section>
       )}
-
-      <Section id="provenance" title={t('Source and provenance')}>
-        <Card>
-          <dl className="grid gap-4 sm:grid-cols-2">
-            {src.type === 'external' ? (
-              <>
-                <Field label={t('Upstream repository')}>
-                  <ExternalLink href={src.upstream.url}>{src.upstream.url}</ExternalLink>
-                </Field>
-                <Field label={t('Skill folder at pinned revision')}>
-                  {tree ? (
-                    <ExternalLink href={tree}>{src.path}</ExternalLink>
-                  ) : (
-                    <code>{src.path}</code>
-                  )}
-                </Field>
-                <Field label={t('Pinned revision')}>
-                  <code className="break-all">{src.revision}</code>
-                </Field>
-                <Field label={t('Fork')}>
-                  {src.fork ? (
-                    <ExternalLink href={src.fork.url}>{src.fork.url}</ExternalLink>
-                  ) : (
-                    none
-                  )}
-                </Field>
-              </>
-            ) : (
-              <Field label={t('Repository path')}>
-                <code className="break-all">{src.path}</code>
-              </Field>
-            )}
-            <Field label={t('Author')}>{skill.author ?? none}</Field>
-            <Field label={t('License')}>{skill.license ?? none}</Field>
-            <Field label={t('Version')}>{skill.version ?? none}</Field>
-            <Field label={t('Skill ID')}>
-              <code>{skill.id}</code>
-            </Field>
-            <Field label={t('Required tools')}>
-              {tools.length ? (
-                <span className="flex flex-wrap gap-1">
-                  {tools.map((tool) => (
-                    <Badge key={tool}>{tool}</Badge>
-                  ))}
-                </span>
-              ) : (
-                none
-              )}
-            </Field>
-            <Field label={t('Requires skills')}>
-              <SkillLinks catalog={catalog} ids={skill.requiresSkills} />
-            </Field>
-            <Field label={t('Required by')}>
-              <SkillLinks catalog={catalog} ids={dependents.map((d) => d.id)} />
-            </Field>
-            <Field label={t('Agents documented upstream')}>
-              {skill.agents.length ? (
-                <span className="flex flex-wrap gap-1">
-                  {skill.agents.map((a) => (
-                    <Badge key={a}>{agentName(a)}</Badge>
-                  ))}
-                </span>
-              ) : (
-                none
-              )}
-            </Field>
-            <Field label={t('Documentation')}>
-              {skill.docs.length ? (
-                <ul className="list-inside list-disc">
-                  {skill.docs.map((d) => (
-                    <li key={d.label}>
-                      {/^https?:/.test(d.href) ? (
-                        <ExternalLink href={d.href}>{d.label}</ExternalLink>
-                      ) : (
-                        `${d.label} (${d.href})`
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                none
-              )}
-            </Field>
-          </dl>
-        </Card>
-      </Section>
-
-      <Section id="review" title={t('Review')}>
-        <Card>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              tone={
-                rev.status === 'approved' ? 'green' : rev.status === 'rejected' ? 'red' : 'indigo'
-              }
-            >
-              {rev.status === 'unreviewed' ? t('discovered (not reviewed)') : t(rev.status)}
-            </Badge>
-            {rev.reviewedAt && (
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">{rev.reviewedAt}</span>
-            )}
-          </div>
-          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-            {rev.reviewer && <Field label={t('Reviewer')}>{rev.reviewer}</Field>}
-            {rev.approvedBy && <Field label={t('Approved by')}>{rev.approvedBy}</Field>}
-            {rev.contentHash && (
-              <Field label={t('Reviewed content hash')}>
-                <code className="break-all">{rev.contentHash}</code>
-              </Field>
-            )}
-          </dl>
-          {rev.notes && (
-            <div className="mt-4">
-              <h3 className="text-sm font-medium">{t('Notes and limitations')}</h3>
-              <p className="mt-1 text-sm">{rev.notes}</p>
-            </div>
-          )}
-          {rev.findings.length > 0 && (
-            <details className="mt-4 text-sm" open={rev.findings.length <= 3}>
-              <summary className="cursor-pointer font-medium">
-                {t('Findings ({n})', { n: rev.findings.length })}
-              </summary>
-              <ul className="mt-2 list-disc space-y-1 pl-5">
-                {rev.findings.map((f) => (
-                  <li key={f}>{f}</li>
-                ))}
-              </ul>
-            </details>
-          )}
-        </Card>
-      </Section>
 
       <Section
         id="evidence"

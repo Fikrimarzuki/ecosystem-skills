@@ -422,21 +422,28 @@
   },
   {
     "id": "anti-slop-unresolved",
-    "name": "Anti-slop",
-    "requestedAs": "Anti-slop",
+    "name": "miqdadbadjuber/anti-slop",
+    "requestedAs": "Anti-slop (ES16); miqdadbadjuber Anti-Slop (ES26)",
     "batch": "design-ui",
-    "kind": "lead",
-    "resolution": "ambiguous",
-    "decision": "unresolved",
-    "skillsFound": 0,
-    "skills": [],
-    "summary": "\"Anti-slop\" names no single project. miqdadbadjuber/anti-slop (6 skills, MIT, antislop.ai.id links to it) is one plausible meaning, but several other projects use the label, including Hallmark and Taste Skill (both requested separately) and prose-focused stop-slop. Nothing is registered until the intended project is named.",
-    "warnings": [],
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "skillsFound": 6,
+    "skills": [
+      "antislop",
+      "antislop-code",
+      "antislop-copywriting",
+      "antislop-human",
+      "antislop-layoutmobile",
+      "antislop-ui"
+    ],
+    "summary": "Anti Slop is a rulebook of agent skills that stops AI coding agents from shipping generic UI, copy and AI-shaped code; it filters slop but leaves visual direction to a project DESIGN.md. Resolved in ES26: the owner named miqdadbadjuber/anti-slop explicitly, settling the lead first recorded in ES16 on 2026-10-30 (the id is kept for stable links).",
+    "warnings": [
+      "Recommended installer is `npx antislop-ai` (npm package; copies folders and writes a pointer that reloads antislop every session)",
+      "Claude plugin auto-starts a local Python MCP server via node (spawns python3/python found on PATH)",
+      "skills antislop-human and antislop-ui carry LICENSE-web-quality-skills (derived content from another project)"
+    ],
     "alternatives": [
-      {
-        "url": "https://github.com/miqdadbadjuber/anti-slop",
-        "note": "Most likely single \"anti-slop\" design/code skill pack: MIT, 6 skills under skills/ (antislop, antislop-code, antislop-copywriting, antislop-human, antislop-layoutmobile, antislop-ui), HEAD 3005235d030b; ownership of the project is established by the site-repo link, but that this is the one requested is not. Its installer is an npx package."
-      },
       {
         "url": "https://github.com/Nutlope/hallmark",
         "note": "Describes itself as an anti-AI-slop design skill; already requested separately as Hallmark."
@@ -446,8 +453,14 @@
         "note": "Prose (writing) de-slop skill, not a design skill."
       }
     ],
-    "needs": "Where the name \"Anti-slop\" was seen (a URL, post or directory listing), or the exact owner/repository. If miqdadbadjuber/anti-slop is the intended project, say so and it can be registered from the audit already done.",
-    "discoveredAt": "2026-10-30"
+    "discoveredAt": "2026-11-08",
+    "upstream": {
+      "url": "https://github.com/miqdadbadjuber/anti-slop"
+    },
+    "revision": "9504989f162a92b1996853eccbb3d8a86e73df68",
+    "lastCommit": "2026-11-05",
+    "publisher": "Miqdad Badjuber (antislop)",
+    "license": "MIT"
   },
   {
     "id": "nextlevelbuilder-ui-ux-pro-max",
@@ -1450,5 +1463,507 @@
     "summary": "A community pack of 77 game-development skills (plus a router skill) (Godot, Unity, Unreal, Roblox, Phaser, PixiJS, Three.js, genres, disciplines). No official Godot skills exist. Six Godot skills are registered (GDScript, nodes and scenes, signals and groups, UI controls, animation, export); the rest are discovered but not registered. The pack has no Babylon.js skill.",
     "warnings": ["Community-made, not from the Godot project."],
     "discoveredAt": "2026-10-30"
+  },
+  {
+    "id": "frontendsupply-bots",
+    "name": "frontendsupply/bots",
+    "requestedAs": "frontendsupply Bots",
+    "batch": "es26",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/frontendsupply/bots"
+    },
+    "revision": "57812c1b9384758f744b5a3f6087a32c78331d2e",
+    "lastCommit": "2026-11-05",
+    "publisher": "frontendsupply (GitHub organization); LICENSE holder \"Dogukan\"",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["bots"],
+    "summary": "A Claude skill that turns a few words into an animated avatar character: the agent writes a JSON character file and a zero-dependency Node kit renders self-contained animated SVGs (idle, working, sleeping) plus a preview and frames screenshot.",
+    "warnings": [
+      "SKILL.md allowed-tools include WebSearch/WebFetch (research of named characters) and Bash limited to `node ${CLAUDE_SKILL_DIR}/kit/build.mjs *`; Write/Edit scoped to avatars/**",
+      "Build step launches a locally installed Chrome/Chromium/Brave/Edge for the frames screenshot if present",
+      "Section 0 tells the agent to faithfully reproduce famous/brand characters (cartoon characters, mascots, people) — IP/likeness risk in outputs",
+      "README quick start uses `npx skills add` (third-party installer); package.json has no install hooks (only test/lint scripts, biome devDependency)"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "anmolchandiok-claude-after-effects",
+    "name": "AnmolChandiok/claude-after-effects-skill",
+    "requestedAs": "AnmolChandiok Claude After Effects",
+    "batch": "es26",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/AnmolChandiok/claude-after-effects-skill"
+    },
+    "revision": "4c19026635250bfe5d742c116786a4d2b7e67254",
+    "lastCommit": "2026-11-05",
+    "publisher": "AnmolChandiok (individual GitHub user)",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["ae-editable-project"],
+    "summary": "Claude skill that rebuilds a video rendered from code (canvas/JS/Python/SVG) as a native, editable After Effects project (.aep) with live text, shape layers, precomps, a keyframed camera null, effect layers and audio, via a scene.json and generated ExtendScript.",
+    "warnings": [
+      "scripts/run_in_ae.sh uses osascript to make After Effects run a generated .jsx (DoScriptFile) — executes generated code inside AE",
+      "Requires the AE preference 'Allow Scripts to Write Files and Access Network' to be ON (grants ExtendScript file and network access)",
+      "Example project depends on @napi-rs/canvas and ffmpeg-static (native/binary npm packages) and uses macOS `say`",
+      "Distributes a prebuilt .skill bundle via GitHub Releases (contents not checked against repo)"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "brickystudios-ai-fact-checker",
+    "name": "BrickyStudios/ai-fact-checker-claude-skill",
+    "requestedAs": "brickystudios AI Fact Checker",
+    "batch": "es26",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/BrickyStudios/ai-fact-checker-claude-skill"
+    },
+    "revision": "97c7c6de49d1429b55bed552d05a92a88e884954",
+    "lastCommit": "2026-11-02",
+    "publisher": "BrickyStudios",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["fact-checker"],
+    "summary": "Claude skill that fact-checks reports, PDFs and AI drafts claim by claim; a Python script verifies quotes verbatim against the document or saved source snapshots, recomputes arithmetic, and enforces coverage, then writes report.md and an annotated PDF.",
+    "warnings": [
+      "factcheck.py `fetch` subcommand downloads arbitrary http(s) URLs (urllib) to snapshot sources",
+      "Uses PEP 723 inline deps (pdfplumber, pypdf) — running via uv fetches packages from PyPI at run time",
+      "Calls `pdftotext` via subprocess if installed",
+      "Standard/deep modes perform web searches on document claims (document content leaves the machine as search queries)"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "marwanashraf22-stack-architect",
+    "name": "MarwanAshraf22/stack-architect",
+    "requestedAs": "marwanashraf22 Stack Architect",
+    "batch": "es26",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/MarwanAshraf22/stack-architect"
+    },
+    "revision": "bf60fba666ce3290cc36769240000d01a316269f",
+    "lastCommit": "2026-10-31",
+    "publisher": "Marwan Ashraf",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["stack-architect"],
+    "summary": "Claude skill that asks a few questions and produces a Stack Decision Record covering frontend, backend, database, auth, hosting, CI/CD, backups, monitoring, security and cost, with reasons and alternatives; can also scaffold init files on request.",
+    "warnings": [
+      "scripts/check_versions.sh queries registry.npmjs.org / pypi.org with curl and pipes JSON to python3 (network access, read-only)",
+      "Opinionated 'house defaults' content; recommendations are time-sensitive"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "google-skills",
+    "name": "google/skills",
+    "requestedAs": "Google Skills",
+    "batch": "es26",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/google/skills"
+    },
+    "revision": "2194d3b8b1f31975fef2f1a0ae6b9ab55bd7ceee",
+    "lastCommit": "2026-11-07",
+    "publisher": "Google LLC",
+    "license": "Apache-2.0",
+    "skillsFound": 187,
+    "skills": [],
+    "summary": "Google's official Agent Skills repository for Google products (mainly Google Cloud, plus Ads, Analytics, Identity and developer tools), installable with `npx skills add google/skills`; it also bundles a plugin marketplace of Google product plugins (skills + MCP servers). 187 distinct skills were found at the pinned revision; registering them individually is deferred to a dedicated review batch (size, and 16 plugin submodules from other repositories were not inspected), so this source registers none yet.",
+    "warnings": [
+      "Many skills drive gcloud / Google Cloud APIs with the user's credentials (can create/modify billable cloud resources)",
+      "google-cloud-developer plugin connects to a remote Google MCP endpoint and needs DEVELOPERKNOWLEDGE_API_KEY",
+      "Bundled plugins are git submodules from other repos pinned by tag — contents outside this audit",
+      "Large: 1,400 files; 192 SKILL.md files (187 unique + 5 plugin copies)"
+    ],
+    "alternatives": [
+      {
+        "url": "https://github.com/google-gemini/gemini-skills",
+        "note": "Exists (git ls-remote HEAD 7cfc690ba9c8); Gemini-org skills repo, not inspected"
+      },
+      {
+        "url": "https://github.com/google/agents-cli",
+        "note": "Listed in google/skills README as 'Agent Development Kit (ADK) Skills'"
+      },
+      {
+        "url": "https://github.com/googlemaps/agent-skills",
+        "note": "Listed in README as Google Maps Platform Skills"
+      },
+      {
+        "url": "https://github.com/firebase/agent-skills",
+        "note": "Listed in README (Firestore skills)"
+      },
+      {
+        "url": "https://github.com/flutter/skills",
+        "note": "Listed in README; note catalog already has flutter/agent-plugins (flutter-agent-plugins)"
+      },
+      {
+        "url": "https://github.com/dart-lang/skills",
+        "note": "Listed in README"
+      },
+      {
+        "url": "https://github.com/android/skills",
+        "note": "Listed in README; already in catalog as android-skills"
+      }
+    ],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "feitangyuan-onetake",
+    "name": "feitangyuan/OneTake",
+    "requestedAs": "feitangyuan OneTake",
+    "batch": "es26",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/feitangyuan/OneTake"
+    },
+    "revision": "abb6d17279cdc749e27e99aa534a062d8fd01ced",
+    "lastCommit": "2026-11-04",
+    "publisher": "Patrick (GitHub feitangyuan)",
+    "license": "PolyForm-Noncommercial-1.0.0",
+    "skillsFound": 1,
+    "skills": ["onetake"],
+    "summary": "A Claude Agent Skill for short product launch films, teasers and feature demos built as one continuous take: a single HTML composition driven by time, a move library, recorded footage, synthesized sound, rendered frame by frame and checked by a continuity 'oracle'.",
+    "warnings": [
+      "License is PolyForm Noncommercial 1.0.0 — not usable for commercial/client work; README upsells a paid 'onetake Pro' commercial licence",
+      "Requires python3 with playwright + Chromium, numpy, scipy, Pillow, matplotlib, opencv-python, ffmpeg, node; narration adds faster-whisper and Kokoro TTS (model downloads)",
+      "scripts/record_footage.py drives real pages in a browser and records them (network access to supplied URLs)"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "pyang5166-gbro-collage-broll",
+    "name": "pyang5166/gbro-collage-broll",
+    "requestedAs": "pyang5166 gbro-collage-broll",
+    "batch": "es26",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/pyang5166/gbro-collage-broll"
+    },
+    "revision": "a1a4ee2e2abf7d44e460026b706d0c72c2cf8a91",
+    "lastCommit": "2026-07-15",
+    "publisher": "狗哥笔记 (GitHub user pyang5166)",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["gbro-collage-broll"],
+    "summary": "Skill (Chinese-language) that turns a ~5-second voiceover line into a halftone paper-collage 'assemble-from-empty' B-roll clip through a three-gate approval flow: visual metaphor, still frames, then first/last-frame video generation with gemini-omni-flash-preview.",
+    "warnings": [
+      "Needs GEMINI_API_KEY; video generation is billed per use",
+      "Uploads frames/files to Google's Gemini API (scripts/upload_file.py)",
+      "Guides creating a shared venv at ~/hyperframes-projects/.omni-venv and installing google-genai (writes outside the project)",
+      "Gate 2 depends on Codex's built-in image_gen tool — Codex-specific, not portable to Claude Code as-is",
+      "Requires ffmpeg/ffprobe"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "garrytan-gstack",
+    "name": "garrytan/gstack",
+    "requestedAs": "garrytan gstack",
+    "batch": "es26",
+    "kind": "toolkit",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/garrytan/gstack"
+    },
+    "revision": "d479c5bf1efed979297dc4498c60aef7b67aa639",
+    "lastCommit": "2026-11-08",
+    "publisher": "Garry Tan",
+    "license": "MIT",
+    "skillsFound": 72,
+    "skills": [],
+    "summary": "gstack turns Claude Code and other coding agents into a 'virtual engineering team' of slash-command roles (CEO review, eng manager, designer, reviewer, QA lead with a real browser, security officer, release engineer), all Markdown skills plus supporting tools. Catalogued as an agent toolkit: its 72 SKILL.md files depend on the setup script, hooks and bundled tools, so they are not registered as separate skills.",
+    "warnings": [
+      "Install = git clone + `./setup` (shell script that builds/installs tools with Bun, registers hooks, may build a bundled browser)",
+      "README install prompt tells Claude to add a CLAUDE.md section forbidding mcp__claude-in-chrome__* tools in favor of gstack's /browse",
+      "Team mode commits a required hook to the user's repo and auto-updates on every session (throttled hourly)",
+      "Update check on by default (git ls-remote + GitHub requests); telemetry off by default (opt-in); 'outside reviews' send code to Codex/Claude by default (disable with codex_reviews disabled)",
+      "Browser skills drive a real browser, optionally with the user's logged-in sessions (Aside browser) and setup-browser-cookies; scrape skill",
+      "/setup-gbrain can auto-provision a Supabase project via Management API",
+      "Large: 5,013 files"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "playcanvas-engine",
+    "name": "playcanvas/engine",
+    "requestedAs": "playcanvas Engine",
+    "batch": "es26",
+    "kind": "developer-resource",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/playcanvas/engine"
+    },
+    "revision": "597f7e999acc8f1298d96e74d3e4a2e1294b58ba",
+    "lastCommit": "2026-11-08",
+    "publisher": "PlayCanvas Ltd.",
+    "license": "MIT",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "PlayCanvas is an open-source game engine built on WebGL2 and WebGPU for interactive 3D apps, games and visualizations in the browser.",
+    "warnings": [
+      "Ordinary library; installed via npm (playcanvas). No agent-specific execution surface."
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "pmndrs-cannon-es",
+    "name": "pmndrs/cannon-es",
+    "requestedAs": "pmndrs cannon-es",
+    "batch": "es26",
+    "kind": "developer-resource",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/pmndrs/cannon-es"
+    },
+    "revision": "dd971c4a604acdbb211955382e7a80de1f31edfb",
+    "lastCommit": "2024-01-06",
+    "publisher": "pmndrs (Poimandres GitHub organization); LICENSE holder 'cannon.js Authors'",
+    "license": "MIT",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "cannon-es is a maintained, type-safe ESM/CJS fork of the cannon.js lightweight 3D physics engine for JavaScript.",
+    "warnings": [
+      "Ordinary library; no agent surface",
+      "Low activity: last commit 2024-01-06 (not archived per GitHub API)"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "nortikin-sverchok",
+    "name": "nortikin/sverchok",
+    "requestedAs": "nortikin Sverchok",
+    "batch": "es26",
+    "kind": "developer-resource",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/nortikin/sverchok"
+    },
+    "revision": "d61aeee8468368ed86131a10159e096a780dbe55",
+    "lastCommit": "2026-11-07",
+    "publisher": "nortikin (Sverchok project)",
+    "license": "GPL-3.0",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "Sverchok is a Blender add-on for parametric, node-based visual programming of geometry, aimed at architects and designers.",
+    "warnings": [
+      "Blender add-on executes Python inside Blender; some optional nodes require extra Python libraries (installed per wiki instructions)",
+      "Licence is inconsistent upstream: LICENSE is GPL v3, while the __init__.py header says GPL-2.0-or-later."
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "effekseer",
+    "name": "effekseer/Effekseer",
+    "requestedAs": "effekseer Effekseer",
+    "batch": "es26",
+    "kind": "developer-resource",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/effekseer/Effekseer"
+    },
+    "revision": "b5700082b49bc5f919610880dafddc90211a9a4e",
+    "lastCommit": "2026-10-30",
+    "publisher": "Effekseer Project",
+    "license": "MIT",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "Effekseer is a particle-effect editing tool for games; runtimes and plug-ins play back the created effects in applications.",
+    "warnings": ["Native desktop tool and runtimes (C++/C#); ordinary software, no agent surface"],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "doxas-twigl",
+    "name": "doxas/twigl",
+    "requestedAs": "doxas twigl",
+    "batch": "es26",
+    "kind": "developer-resource",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/doxas/twigl"
+    },
+    "revision": "fc09f1ecee8219b83bd1777844edb22a29d19ad2",
+    "lastCommit": "2026-03-04",
+    "publisher": "doxas (individual GitHub user)",
+    "license": "MIT",
+    "skillsFound": 0,
+    "skills": [],
+    "summary": "twigl.app is an online editor for one-tweet GLSL shaders, with GIF/WebM/image export, sound shaders and live-coding broadcast.",
+    "warnings": ["Ordinary web app; no agent surface"],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "github-spec-kit",
+    "name": "github/spec-kit",
+    "requestedAs": "github Spec Kit",
+    "batch": "es26",
+    "kind": "toolkit",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/github/spec-kit"
+    },
+    "revision": "c43849408ac0de2ca6a52f14eaae71449776057b",
+    "lastCommit": "2026-11-06",
+    "publisher": "GitHub, Inc.",
+    "license": "MIT",
+    "skillsFound": 2,
+    "skills": [],
+    "summary": "Spec Kit is an open-source toolkit that gives AI coding agents structured processes (Spec-Driven Development in core, plus bug-fixing and idea-assessment extensions), reusable templates and composable extensions, presets and workflows. Its two SKILL.md files are maintainer skills for the repository itself, so none is registered.",
+    "warnings": [
+      "CLI installs/updates templates and integrations into projects and coding-agent config; extensions/workflows can run shell tasks and hooks",
+      "Community catalogs let users install third-party extensions/presets (supply-chain surface)",
+      "MCP surface is experimental and may change"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "gosom-google-maps-scraper",
+    "name": "gosom/google-maps-scraper",
+    "requestedAs": "gosom Google Maps Scraper",
+    "batch": "es26",
+    "kind": "developer-resource",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/gosom/google-maps-scraper"
+    },
+    "revision": "903b96d7aa8863188022c04db220e44f3218c860",
+    "lastCommit": "2026-10-21",
+    "publisher": "Georgios Komninos (gosom)",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": [],
+    "summary": "Free open-source Go scraper (CLI, Web UI, REST API, optional self-hosted platform) that extracts Google Maps business data — names, emails, phones, websites, reviews, ratings, coordinates — for lead generation; ships an agent skill that runs it locally in Docker. Its bundled agent skill is not registered: the tool scrapes a third-party service whose terms it may violate, and the skill self-updates from the network.",
+    "warnings": [
+      "Scrapes Google Maps — README itself warns unauthorized scraping may violate terms of service; collects personal/business contact data (emails, phones)",
+      "Telemetry ON by default (PostHog client in tlmt/goposthog; opt out with DISABLE_TELEMETRY=1)",
+      "Skill's ensure-latest.sh runs `npx --yes skills update google-maps-scraper` (self-updates the skill from the network) and pulls the latest Docker image",
+      "Proxy setup flow presents paid proxy sponsors; README heavy with sponsored links",
+      "Integrates with third-party LeadsDB via API key (optional)"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "kaomei-stickman-video-director",
+    "name": "kaomei/stickman-video-director",
+    "requestedAs": "kaomei Stickman Video Director",
+    "batch": "es26",
+    "kind": "skill",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/kaomei/stickman-video-director"
+    },
+    "revision": "eb4bb378c4716a617f9ad7d98a60379b9d1fa54a",
+    "lastCommit": "2026-11-04",
+    "publisher": "kaomei (individual GitHub user); LICENSE holder 'Stickman Video Director contributors'",
+    "license": "MIT",
+    "skillsFound": 1,
+    "skills": ["directing-stickman-videos"],
+    "summary": "Agent skill that turns a topic, article or script into stickman videos: Director mode produces treatments, storyboards and per-scene video prompts; Autopilot mode generates illustrations, voiceover, captions and subtle animation and renders a finished video locally.",
+    "warnings": [
+      "Autopilot calls third-party generation APIs (README: e.g. Google Gemini, Claude, ElevenLabs) — needs user API keys and is billed per use; scripts/gemini-media.mjs",
+      "Runtime depends on @napi-rs/canvas (native npm package) and runs local Node/Python render scripts",
+      "README examples reference other tools (e.g. a 'Renoise MCP' example) — not part of this repo",
+      "Marketing language aimed at 'faceless YouTube channels' (mass content generation)"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "appllama-skills",
+    "name": "Appllama/appllama-skills",
+    "requestedAs": "Appllama Skills",
+    "batch": "es26",
+    "kind": "skill-collection",
+    "resolution": "verified",
+    "decision": "register-with-warnings",
+    "upstream": {
+      "url": "https://github.com/Appllama/appllama-skills"
+    },
+    "revision": "dd5caaec3d5d50ad7fc0324da238119c6b7c3707",
+    "lastCommit": "2026-09-06",
+    "publisher": "Antmind Ventures Private Limited (Appllama, appllama.io)",
+    "license": "MIT",
+    "skillsFound": 2,
+    "skills": ["appllama-app-design-skill", "appllama-usage"],
+    "summary": "Two agent skills for building mobile apps: appllama-usage (how to research top-grossing apps' screens and flows through the Appllama MCP) and appllama-app-design-skill (a native-quality Expo/React Native build bar with a simulator verification loop). The same publisher's hosted MCP server (Appllama MCP) has no public repository; it is catalogued as a resource of this source.",
+    "warnings": [
+      "Installing the plugin also registers a remote MCP server (mcp.appllama.io) that needs an Appllama Pro account and spends credits",
+      "Commercial upsell: appllama-usage only works with a paid Pro subscription",
+      "'Appllama' name/logo are trademarks; MIT does not grant them (README)",
+      "Remote closed-source service; no server code to audit",
+      "Paid credits consumed per tool call",
+      "Library content consists of screenshots of third-party commercial apps (rights of reuse not addressed)",
+      "appllama.io/mcp claims 'Official GitHub MCP Registry' listing and a Claude connector-directory listing — not verified"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
+  },
+  {
+    "id": "donchitos-claude-code-game-studios",
+    "name": "Donchitos/Claude-Code-Game-Studios",
+    "requestedAs": "Donchitos Claude Code Game Studios",
+    "batch": "es26",
+    "kind": "toolkit",
+    "resolution": "verified",
+    "decision": "reference-only",
+    "upstream": {
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios"
+    },
+    "revision": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+    "lastCommit": "2026-10-19",
+    "publisher": "Donchitos (individual GitHub user)",
+    "license": "MIT",
+    "skillsFound": 74,
+    "skills": [],
+    "summary": "A Claude Code project template that turns a session into a game-development 'studio' of 49 specialized agents (directors, leads, specialists) with 74 slash-command skills, hooks, rules and document templates from brainstorm to launch. Catalogued as an agent toolkit (a project template): its 74 skills are designed to run with its hooks, agents and rules, so they are not registered as separate skills.",
+    "warnings": [
+      "Ships .claude/settings.json with hooks that run shell scripts automatically on session start/stop, tool use, commits and pushes",
+      "update-check.sh hook contacts api.github.com (releases/latest) via curl/wget daily",
+      "settings.json allow-list is narrow (dir, pytest) and denies 130 patterns incl. rm -rf variants",
+      "Adopting means copying the whole .claude/ directory into a project (agents, hooks, rules apply to everything)"
+    ],
+    "alternatives": [],
+    "discoveredAt": "2026-11-08"
   }
 ]

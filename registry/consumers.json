@@ -57,7 +57,37 @@
   {
     "id": "fm-studios",
     "name": "FM Studios",
-    "kind": "project"
+    "kind": "project",
+    "ecosystem": {
+      "project": "fmStudios",
+      "sources": ["ecosystem-config"]
+    },
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "writing-plans",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      }
+    ]
   },
   {
     "id": "gateway",
@@ -71,23 +101,262 @@
         "verification": {
           "status": "unverified"
         }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "copy",
+        "verification": {
+          "status": "verified",
+          "verifiedAt": "2026-11-08",
+          "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+          "contentHash": "sha256-7ae5df5694cf8e59aeedee71ad8a6b1e93892a4963f25f93ace13e102d5454a7",
+          "method": "Gateway explicit-invocation verification on macOS arm64: existing Claude Code 2.1.309 session and fresh Codex CLI 0.164.0 read-only session both discovered and loaded their intended project-local copy and followed the skill by running fresh checks and separating unverified behavior. See gui12-verification-before-completion-claude-code-gateway and gui12-verification-before-completion-codex-gateway evidence records. Claude numeric exits were not captured; Codex static checks exited 0 with sandbox cache warnings. File integrity independently checked. This verifies skill usage only; application tests/build/browser behavior, natural triggering and behavioral improvement are not established."
+        }
+      },
+      {
+        "skill": "gateway-mobile-checklist",
+        "agents": ["claude-code", "codex"],
+        "install": "copy",
+        "verification": {
+          "status": "verified",
+          "verifiedAt": "2026-11-08",
+          "contentHash": "sha256-4209970ca142b3b77dbc118295c3754939f83cdeaf862e56c7411b0c8c74b1a1",
+          "method": "Gateway explicit-invocation verification on macOS arm64: a fresh Claude Code 2.1.309 session (Skill tool, from .claude/skills) and a fresh Codex CLI 0.164.0 read-only session (from .agents/skills) both loaded the project-local copy and followed the ten checks, labelling defects, preferences and unverified items. See gui2-gateway-mobile-checklist-claude-code-gateway and gui2-gateway-mobile-checklist-codex-gateway. This covers skill discovery/loading and instruction-following under explicit invocation only; it does not establish natural triggering, behavioral improvement, the accuracy of individual findings or application behavior. Caveat: Codex's skill list is not printed in its JSON trace, so its discovery is inferred from it opening the exact project-local SKILL.md path unprompted."
+        }
       }
-    ]
+    ],
+    "ecosystem": {
+      "project": "gateway",
+      "sources": ["ecosystem-config", "ecosystem-assets"]
+    }
   },
   {
     "id": "hearthside",
     "name": "Hearthside",
-    "kind": "project"
+    "kind": "project",
+    "ecosystem": {
+      "sources": ["ecosystem-config"],
+      "note": "Ecosystem Config documents app-hearthside as a build-time link consumer, but has no Hearthside project record yet."
+    },
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "writing-plans",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      }
+    ]
+  },
+  {
+    "id": "kodestep",
+    "name": "KodeStep",
+    "kind": "project",
+    "description": "Bilingual beginner programming learning app (porto-projects/learn-kodestep).",
+    "agents": ["claude-code", "codex"],
+    "ecosystem": {
+      "project": "kodeStep",
+      "sources": ["ecosystem-config"]
+    },
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "writing-plans",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      }
+    ]
+  },
+  {
+    "id": "javascriptia",
+    "name": "JavaScriptia",
+    "kind": "project",
+    "description": "RPG-style JavaScript learning game (porto-projects/game-javascriptia).",
+    "agents": ["claude-code", "codex"],
+    "ecosystem": {
+      "project": "javascriptia",
+      "sources": ["ecosystem-config"]
+    },
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "writing-plans",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      }
+    ]
   },
   {
     "id": "momee",
     "name": "Momee",
-    "kind": "project"
+    "kind": "project",
+    "ecosystem": {
+      "sources": ["ecosystem-assets"],
+      "note": "No Ecosystem Config record yet; Momee assets sit under the intake label momee in Ecosystem Assets, with the registry id still pending."
+    }
+  },
+  {
+    "id": "page-layr",
+    "name": "Page Layr",
+    "kind": "project",
+    "description": "Visual page builder with a puzzle game (porto-projects/app-pagelayr).",
+    "agents": ["claude-code", "codex"],
+    "ecosystem": {
+      "project": "pageLayr",
+      "sources": ["ecosystem-config"]
+    },
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "writing-plans",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      }
+    ]
   },
   {
     "id": "playdeck",
     "name": "Playdeck",
-    "kind": "project"
+    "kind": "project",
+    "ecosystem": {
+      "project": "playdeck",
+      "sources": ["ecosystem-config"]
+    },
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "writing-plans",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      }
+    ]
+  },
+  {
+    "id": "playground",
+    "name": "Playground",
+    "kind": "project",
+    "description": "Browser-based desktop OS with apps, experiments and games (porto-projects/web-playground).",
+    "agents": ["claude-code", "codex"],
+    "ecosystem": {
+      "project": "playground",
+      "sources": ["ecosystem-config"]
+    },
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "writing-plans",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      }
+    ]
   },
   {
     "id": "playnest",
@@ -104,6 +373,82 @@
           "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
           "contentHash": "sha256-7ae5df5694cf8e59aeedee71ad8a6b1e93892a4963f25f93ace13e102d5454a7",
           "method": "ES9.3: activated with skills:sync (relative symlinks in .claude/skills and .agents/skills); skills:verify 0 errors. Real agent runs from the Playnest root: Claude Code 2.1.310 listed and loaded it via the Skill tool from the project path; Codex 0.164.0 (read-only sandbox) read the linked SKILL.md. Verifies discovery and explicit invocation on macOS only; natural triggering and behavioral improvement are not established. See registry/evidence.json (es93-* records)."
+        }
+      }
+    ],
+    "ecosystem": {
+      "project": "playnest",
+      "sources": ["ecosystem-config"]
+    }
+  },
+  {
+    "id": "support",
+    "name": "Support",
+    "kind": "project",
+    "agents": ["claude-code", "codex"],
+    "ecosystem": {
+      "project": "support",
+      "sources": ["ecosystem-config"]
+    },
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      }
+    ]
+  },
+  {
+    "id": "watch",
+    "name": "FM Watch",
+    "kind": "project",
+    "agents": ["claude-code", "codex"],
+    "ecosystem": {
+      "project": "watch",
+      "sources": ["ecosystem-config"]
+    },
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "writing-plans",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "grilling",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
         }
       }
     ]
@@ -124,6 +469,149 @@
           "verifiedAt": "2026-10-26",
           "method": "ES5 real-agent runs from the ecosystem-assets root on macOS arm64 after switching both adapters to relative symlinks into ecosystem-skills. Claude Code 2.1.310 (-p): discovered once, SKILL.md via Skill tool, reference read, check-svg, Inkscape export and compare-sheet all succeeded. Codex CLI 0.164.0 (exec, read-only sandbox): discovered once, SKILL.md and reference read, check-svg succeeded; Inkscape and Chromium steps cannot run inside the Codex sandbox (known, also true of the original). Direct runs: export and comparison sheet byte-identical to pre-migration baselines. Windows and global discovery not verified. See docs/migrations/es3-momee-character-art.md.",
           "contentHash": "sha256-24c991af1692e04f3e269258aee0943ebeb8f8eb688942a1ed63e4ac82109217"
+        }
+      }
+    ]
+  },
+  {
+    "id": "tinyverse",
+    "name": "Tinyverse",
+    "kind": "project",
+    "description": "3D restore-a-world game with Adventure, Child and Code modes (porto-projects/game-tinyverse).",
+    "agents": ["claude-code", "codex"],
+    "ecosystem": {
+      "project": "tinyverse",
+      "sources": ["ecosystem-config"]
+    },
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "writing-plans",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      }
+    ]
+  },
+  {
+    "id": "urchin-relay",
+    "name": "Urchin Relay",
+    "kind": "project",
+    "description": "Local-first API testing and integration workspace (porto-projects/tool-urchin-relay).",
+    "agents": ["claude-code", "codex"],
+    "ecosystem": {
+      "project": "urchinRelay",
+      "sources": ["ecosystem-config"]
+    },
+    "assignments": [
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "writing-plans",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      }
+    ]
+  },
+  {
+    "id": "web-xpenz",
+    "name": "Xpenz",
+    "kind": "project",
+    "description": "Local-first personal money tracker with an interactive 3D wallet and piggy bank (porto-projects/web-xpenz).",
+    "agents": ["claude-code", "codex"],
+    "ecosystem": {
+      "sources": ["ecosystem-config"],
+      "note": "No Ecosystem Config record yet. A validated, ready-to-apply record is kept in web-xpenz/docs/ecosystem-config/xpenz.project.json; the project id is added here once the owner registers it."
+    },
+    "assignments": [
+      {
+        "skill": "threejs-asset-pipeline",
+        "agents": ["claude-code"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "threejs-loaders",
+        "agents": ["claude-code"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "threejs-lighting",
+        "agents": ["claude-code"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "threejs-react-three-fiber",
+        "agents": ["claude-code"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "frontend-design",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "writing-plans",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
+        }
+      },
+      {
+        "skill": "verification-before-completion",
+        "agents": ["claude-code", "codex"],
+        "install": "symlink",
+        "verification": {
+          "status": "unverified"
         }
       }
     ]

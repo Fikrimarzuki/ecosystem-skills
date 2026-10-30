@@ -33,6 +33,7 @@ const empty: Catalog = {
   releases: [],
   evaluations: [],
   updates: [],
+  resources: [],
 };
 
 const skill = (over: object) => ({

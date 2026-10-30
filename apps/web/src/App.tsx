@@ -1,34 +1,36 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { I18nProvider, LanguageSwitch, useT } from './i18n.tsx';
 import { homeHref, pageHref, useCatalog, useRoute, type Catalog, type Route } from './lib.ts';
 import { GATEWAY_URL, REPO_URL, SUPPORT_URL } from './links.ts';
 import { Consumers } from './pages/Consumers.tsx';
+import { Ecosystem } from './pages/Ecosystem.tsx';
 import { Home } from './pages/Home.tsx';
 import { Integrations } from './pages/Integrations.tsx';
+import { ResourceDetail, Resources } from './pages/Resources.tsx';
 import { Sources } from './pages/Sources.tsx';
 import { Overview } from './pages/Overview.tsx';
 import { SkillDetail } from './pages/SkillDetail.tsx';
 import { SkillsExplorer } from './pages/Skills.tsx';
-import {
-  Empty,
-  ExternalIcon,
-  LogoMark,
-  MessageIcon,
-  MoonIcon,
-  PageHeader,
-  SunIcon,
-} from './ui.tsx';
+import { Empty, ExternalIcon, LogoMark, MoonIcon, PageHeader, SunIcon } from './ui.tsx';
 
 /** Main navigation. `path` is the app path (clean URL); the rendered href adds the deployment base, if any. */
+/*
+ * ES26: Home is not listed (the brand mark links to "/"), and Help & Contact moved to the footer and the landing page.
+ * Catalog pages come first (Skills, Resources, Sources), then the ecosystem and usage pages.
+ */
 export const NAV = [
-  { path: '/', label: 'Home', page: 'home' },
   { path: '/overview', label: 'Overview', page: 'dashboard' },
   { path: '/skills', label: 'Skills', page: 'skills' },
+  { path: '/resources', label: 'Resources', page: 'resources' },
   { path: '/sources', label: 'Sources', page: 'sources' },
+  { path: '/ecosystem', label: 'FM Ecosystem', page: 'ecosystem' },
   { path: '/consumers', label: 'Consumers', page: 'consumers' },
-  { path: '/integrations', label: 'Agents & tools', short: 'Agents', page: 'integrations' },
+  { path: '/integrations', label: 'Agents & tools', page: 'integrations' },
 ] as const;
-const navHref = (path: string) => (path === '/' ? homeHref() : pageHref(path.slice(1) as 'skills'));
+const navHref = (path: string) => pageHref(path.slice(1) as 'skills');
+/** The nav entry that is "current" for a route (detail pages highlight their list page). */
+export const navPageOf = (route: Route): string =>
+  route.page === 'skill' ? 'skills' : route.page === 'resource' ? 'resources' : route.page;
 
 export function Page({ route, catalog }: { route: Route; catalog: Catalog }) {
   switch (route.page) {
@@ -43,8 +45,14 @@ export function Page({ route, catalog }: { route: Route; catalog: Catalog }) {
       return <Integrations catalog={catalog} />;
     case 'sources':
       return <Sources catalog={catalog} />;
+    case 'resources':
+      return <Resources catalog={catalog} query={route.query} />;
+    case 'resource':
+      return <ResourceDetail catalog={catalog} id={route.id} />;
     case 'dashboard':
       return <Overview catalog={catalog} />;
+    case 'ecosystem':
+      return <Ecosystem catalog={catalog} />;
     case 'notfound':
       return <NotFound path={route.path} />;
     default:
@@ -89,6 +97,12 @@ function pageTitle(route: Route, catalog: Catalog | undefined, t: ReturnType<typ
       return `${t('Agents & tools')} · ${base}`;
     case 'sources':
       return `${t('Sources')} · ${base}`;
+    case 'resources':
+      return `${t('Resources')} · ${base}`;
+    case 'resource':
+      return `${catalog?.resources.find((r) => r.id === route.id)?.name ?? route.id} · ${base}`;
+    case 'ecosystem':
+      return `${t('FM Ecosystem skills')} · ${base}`;
     default:
       return `${t('Page not found')} · ${base}`;
   }
@@ -122,45 +136,91 @@ function ThemeToggle() {
   );
 }
 
-function NavLinks({ current }: { current: string }) {
+function NavLinks({ current, vertical = false }: { current: string; vertical?: boolean }) {
   const t = useT();
-  // `relative` on the list: visually-hidden text inside is absolutely positioned and must be clipped by this
-  // scroller, not by the sticky header (otherwise it widens the whole page on narrow screens).
   return (
-    <ul className="relative flex items-center gap-1 overflow-x-auto">
+    <ul className={vertical ? 'grid gap-1' : 'flex items-center gap-0.5'}>
       {NAV.map((n) => (
         <li key={n.path}>
           <a
             href={navHref(n.path)}
             aria-current={current === n.page ? 'page' : undefined}
-            className="block rounded-xl px-3 py-1.5 text-sm whitespace-nowrap text-zinc-700 hover:bg-white/80 aria-[current=page]:bg-indigo-600 aria-[current=page]:font-medium aria-[current=page]:text-white dark:text-zinc-300 dark:hover:bg-zinc-800 dark:aria-[current=page]:bg-indigo-600 dark:aria-[current=page]:text-white"
+            className={`block rounded-xl text-sm whitespace-nowrap text-zinc-700 hover:bg-white/80 aria-[current=page]:bg-indigo-600 aria-[current=page]:font-medium aria-[current=page]:text-white dark:text-zinc-300 dark:hover:bg-zinc-800 dark:aria-[current=page]:bg-indigo-600 dark:aria-[current=page]:text-white ${
+              vertical ? 'px-3 py-2.5' : 'px-2.5 py-1.5'
+            }`}
           >
-            {'short' in n ? (
-              <>
-                <span className="sm:hidden">{t(n.short)}</span>
-                <span className="hidden sm:inline">{t(n.label)}</span>
-              </>
-            ) : (
-              t(n.label)
-            )}
+            {t(n.label)}
           </a>
         </li>
       ))}
-      <li>
-        {/* The help and contact site is a separate project: it opens in a new tab and is marked as external. */}
-        <a
-          href={SUPPORT_URL}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-medium whitespace-nowrap text-fuchsia-800 hover:bg-white/80 dark:text-fuchsia-300 dark:hover:bg-zinc-800"
-        >
-          <MessageIcon width={14} height={14} />
-          {t('Help & Contact')}
-          <ExternalIcon width={12} height={12} />
-          <span className="sr-only"> {t('(opens in a new tab)')}</span>
-        </a>
-      </li>
     </ul>
+  );
+}
+
+const MenuIcon = ({ open }: { open: boolean }) => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    {open ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+  </svg>
+);
+
+/**
+ * Below the xl breakpoint the primary links live in a disclosure menu: a real button (aria-expanded/aria-controls),
+ * Escape closes it and returns focus, and it closes on navigation. Every link stays an ordinary anchor.
+ */
+function MobileMenu({ current }: { current: string }) {
+  const t = useT();
+  // Open "for" the page it was opened on: navigating to another page closes it without an effect.
+  const [openFor, setOpenFor] = useState<string | null>(null);
+  const open = openFor === current;
+  const setOpen = (v: boolean) => setOpenFor(v ? current : null);
+  const button = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpenFor(null);
+        button.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+  return (
+    <div className="xl:hidden">
+      <button
+        ref={button}
+        type="button"
+        aria-expanded={open}
+        aria-controls="site-menu"
+        onClick={() => setOpen(!open)}
+        className="inline-flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-xl border border-zinc-300 bg-white/70 px-2.5 text-sm text-zinc-700 hover:bg-white dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:bg-zinc-800"
+      >
+        <MenuIcon open={open} />
+        <span className="sr-only sm:not-sr-only">{t('Menu')}</span>
+      </button>
+      <nav
+        id="site-menu"
+        aria-label={t('Primary')}
+        hidden={!open}
+        className="absolute inset-x-0 top-full border-b border-zinc-200/70 bg-white/95 px-4 py-3 shadow-lg backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/95"
+        onClick={(e) => {
+          if ((e.target as Element).closest('a')) setOpen(false);
+        }}
+      >
+        <div className="mx-auto max-w-6xl">
+          <NavLinks current={current} vertical />
+        </div>
+      </nav>
+    </div>
   );
 }
 
@@ -183,19 +243,18 @@ function Footer() {
   const t = useT();
   return (
     <footer className="mt-12 border-t border-zinc-200/80 bg-white/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/50">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 text-sm text-zinc-700 sm:grid-cols-3 dark:text-zinc-300">
+      <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 text-sm text-zinc-700 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] dark:text-zinc-300">
         <div>
           <p className="flex items-center gap-2 font-semibold">
             <LogoMark className="text-indigo-600 dark:text-indigo-300" />
             Ecosystem Skills
           </p>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            {t('A read-only registry of the AI-agent skills used across my projects.')}
+          <p className="mt-2 max-w-prose text-zinc-600 dark:text-zinc-400">
+            {t('AI-agent skills, MCP servers, agent toolkits, references, and related resources.')}
           </p>
         </div>
-        <nav aria-label={t('Ecosystem')}>
-          <h2 className="font-semibold">{t('Ecosystem')}</h2>
-          <ul className="mt-2 space-y-1">
+        <nav aria-label={t('More')}>
+          <ul className="space-y-1">
             <li>
               <a
                 href={GATEWAY_URL}
@@ -206,21 +265,6 @@ function Footer() {
                 {t('Explore more projects')}
                 <ExternalIcon width={12} height={12} />
                 <span className="sr-only"> {t('(opens in a new tab)')}</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-        <nav aria-label={t('This site')}>
-          <h2 className="font-semibold">{t('This site')}</h2>
-          <ul className="mt-2 space-y-1">
-            <li>
-              <a href={pageHref('skills')} className="underline-offset-2 hover:underline">
-                {t('Skills')}
-              </a>
-            </li>
-            <li>
-              <a href={pageHref('consumers')} className="underline-offset-2 hover:underline">
-                {t('Consumers')}
               </a>
             </li>
             <li>
@@ -244,11 +288,26 @@ function Footer() {
   );
 }
 
+/** Shown when the catalog came from the offline cache (PWA): it may be stale and is never authoritative. */
+function OfflineNotice() {
+  const t = useT();
+  return (
+    <p
+      role="status"
+      className="border-b border-amber-300 bg-amber-50 px-4 py-2 text-center text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200"
+    >
+      {t(
+        'Offline: showing a saved copy of the catalog. It may be out of date and is not authoritative for review, approval or installation.',
+      )}
+    </p>
+  );
+}
+
 function Shell() {
   const t = useT();
   const route = useRoute();
-  const { catalog, error } = useCatalog();
-  const current = route.page === 'skill' ? 'skills' : route.page;
+  const { catalog, error, offline } = useCatalog();
+  const current = navPageOf(route);
   useEffect(() => {
     document.title = pageTitle(route, catalog, t);
   }, [route, catalog, t]);
@@ -267,28 +326,28 @@ function Shell() {
         {t('Skip to content')}
       </a>
       <header className="sticky top-0 z-40 border-b border-zinc-200/70 bg-white/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/75">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5">
-          <a href={homeHref()} className="flex items-center gap-2 font-semibold tracking-tight">
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-linear-to-br from-indigo-600 to-fuchsia-600 text-white shadow-sm">
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5">
+          <a
+            href={homeHref()}
+            aria-label={t('Ecosystem Skills home')}
+            className="flex min-w-0 items-center gap-2 font-semibold tracking-tight"
+          >
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-linear-to-br from-indigo-600 to-fuchsia-600 text-white shadow-sm">
               <LogoMark width={18} height={18} />
             </span>
-            <span>Ecosystem Skills</span>
+            <span className="truncate">Ecosystem Skills</span>
           </a>
-          <nav aria-label={t('Primary')} className="hidden lg:block">
+          <nav aria-label={t('Primary')} className="hidden min-w-0 xl:block">
             <NavLinks current={current} />
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <LanguageSwitch />
             <ThemeToggle />
+            <MobileMenu current={current} />
           </div>
         </div>
-        <nav
-          aria-label={t('Primary (compact)')}
-          className="border-t border-zinc-200/70 px-4 py-1.5 lg:hidden dark:border-zinc-800/80"
-        >
-          <NavLinks current={current} />
-        </nav>
       </header>
+      {offline && <OfflineNotice />}
       <main
         id="main"
         tabIndex={-1}

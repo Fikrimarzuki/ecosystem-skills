@@ -30,6 +30,7 @@ const REGISTRY = [
   'releases',
   'evaluations',
   'updates',
+  'resources',
 ] as const;
 const readRegistry = (root: string) =>
   Object.fromEntries(
@@ -64,8 +65,13 @@ describe('catalog plugin', () => {
 
   it('emits catalog.json from the registry at build start, with counts taken from the registry', () => {
     const emitted = run(repo);
-    expect(emitted).toHaveLength(1);
-    expect(emitted[0]!.fileName).toBe('catalog.json');
+    // ES26: catalog.json plus the AI-readable files and the PWA manifest, all from the same registry
+    expect(emitted.map((f) => f.fileName)).toEqual([
+      'catalog.json',
+      'llms.txt',
+      'resources.v1.json',
+      'manifest.webmanifest',
+    ]);
     const catalog = JSON.parse(emitted[0]!.source) as Record<string, unknown[]>;
     const reg = readRegistry(repo);
     expect(catalog.skills).toHaveLength(reg.skills.length);
@@ -137,8 +143,11 @@ describe('production build (real vite build, nothing pre-generated)', () => {
       'evidence',
       'sources',
       'releases',
+      'resources',
     ] as const)
       expect(catalog[k], k).toHaveLength(reg[k].length);
+    for (const f of ['llms.txt', 'resources.v1.json', 'manifest.webmanifest', 'sw.js'])
+      expect(existsSync(join(dir, 'dist', f)), f).toBe(true);
     // The public catalog must carry no local paths or credential-like strings.
     expect(text).not.toMatch(
       /\/Users\/|\/private\/|\/home\/|C:\\|file:\/\/|consumers\.local|ghp_|sk-[A-Za-z0-9]{20}/,
