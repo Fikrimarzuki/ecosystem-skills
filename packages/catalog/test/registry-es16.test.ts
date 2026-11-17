@@ -1,0 +1,411 @@
+import { readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import {
+  buildCatalog,
+  contentAvailability,
+  releaseInstallBlocker,
+  verifyLibrary,
+} from '../src/index.ts';
+import { outOfFolderReferences } from '../src/library.ts';
+
+/* Invariants of the real registry after the ES16 discovery milestone. */
+const root = resolve(__dirname, '../../..');
+const read = (n: string) => JSON.parse(readFileSync(join(root, 'registry', `${n}.json`), 'utf8'));
+const built = buildCatalog({
+  skills: read('skills'),
+  consumers: read('consumers'),
+  integrations: read('integrations'),
+  evidence: read('evidence'),
+  sources: read('sources'),
+  releases: read('releases'),
+  evaluations: read('evaluations'),
+  updates: read('updates'),
+});
+if (!built.ok) throw new Error(built.errors.join('\n'));
+const c = built.catalog;
+const discovered = c.skills.filter((s) => s.discovery);
+/** Discovered skills the owner approved for the Xpenz consumer (M0.6 onboarding, 2026-11-09). Exact list: any other approval still fails. */
+const XPENZ_APPROVED = [
+  'threejs-asset-pipeline',
+  'threejs-lighting',
+  'threejs-loaders',
+  'threejs-react-three-fiber',
+];
+
+describe('ES16 registry', () => {
+  it('records every one of the 29 requested items as a source', () => {
+    const requested = c.sources.filter((s) => s.requestedAs);
+    const labels = requested.map((s) => s.requestedAs!).join('\n');
+    for (const needle of [
+      'addyosmani/agent-skills',
+      'mattpocock/skills',
+      'obra/superpowers',
+      'cloudflare/security-audit-skill',
+      'agentskills/agentskills',
+      'oil-oil/oil-ui',
+      'krillinai/OpenCreator',
+      'cloudai-x/threejs-skills',
+      'greensock/gsap-skills',
+      'zanwei/design-dna',
+      'lottiefiles/motion-design-skill',
+      'AThevon/genjutsu',
+      'pbakaus/impeccable',
+      'Hallmark',
+      'Taste Skill',
+      'Anti-slop',
+      'UI UX Pro Max',
+      'VoltAgent Awesome DESIGN.md',
+      'Nexu Open Design',
+      'Elaya AI Design Skills',
+      'Design MD — Hyperbrowser AI',
+      'Styles — Refero Design',
+      'DesignMD — Supply',
+      'TypeUI.sh',
+      'Neuform AI',
+      'MotionSites AI Claude Skill',
+      'Claude Animation Base',
+      'Video Shotcraft',
+      'MG Styles 15',
+    ])
+      expect(labels, needle).toContain(needle);
+    expect(c.sources.filter((s) => s.batch === 'original')).toHaveLength(13);
+    expect(c.sources.filter((s) => s.batch === 'design-ui').length).toBeGreaterThanOrEqual(13);
+    expect(c.sources.filter((s) => s.batch === 'video-animation')).toHaveLength(3);
+  });
+
+  it('never registers a skill from a reference, application, standard or unresolved source', () => {
+    for (const s of c.sources)
+      if (['reference-only', 'unresolved', 'reject'].includes(s.decision))
+        expect(s.skills, s.id).toEqual([]);
+    for (const id of [
+      'agentskills-standard',
+      'krillinai-opencreator',
+      'nexu-open-design',
+      'voltagent-awesome-design-md',
+      // anti-slop-unresolved was resolved by the owner in ES26 and now registers six unapproved candidates
+      'neuform-ai',
+      'motionsites-claude-skill',
+      'claude-animation-base',
+      'vincentwei1021-mg-styles-15',
+    ])
+      expect(c.sources.find((s) => s.id === id)!.skills, id).toEqual([]);
+  });
+
+  it('keeps ambiguous identities unresolved instead of inventing a source', () => {
+    // ES26: the owner named miqdadbadjuber/anti-slop, which resolved anti-slop-unresolved (see es26-resources.test.ts)
+    for (const id of ['motionsites-claude-skill', 'neuform-ai']) {
+      const s = c.sources.find((x) => x.id === id)!;
+      expect(s.decision).toBe('unresolved');
+      expect(s.upstream).toBeUndefined();
+      expect(s.revision).toBeUndefined();
+      expect(s.needs).toBeTruthy();
+    }
+  });
+
+  it('registers discovered skills as unreviewed candidates pinned to a commit, with a content hash', () => {
+    expect(discovered.length).toBeGreaterThanOrEqual(200);
+    for (const s of discovered) {
+      if (XPENZ_APPROVED.includes(s.id)) {
+        // An approval is valid only for the exact reviewed bytes: same hash as discovery, same pinned revision, a named owner.
+        expect(s.review.status, s.id).toBe('approved');
+        expect(s.review.approvedBy, s.id).toMatch(/^Owner/);
+        expect(s.review.contentHash, s.id).toBe(s.discovery!.contentHash);
+        expect(s.review.revision, s.id).toBe(
+          s.source.type === 'external' ? s.source.revision : undefined,
+        );
+      }
+      // ES27 audited the ES26 candidates: "reviewed" (findings recorded, no decision) is allowed only with that audit.
+      else if (s.review.status !== 'unreviewed') {
+        expect(s.review.status, s.id).toBe('reviewed');
+        expect(s.review.audit?.round, s.id).toBe('ES27');
+      }
+      expect(s.source.type, s.id).toBe('external');
+      if (s.source.type === 'external') expect(s.source.revision, s.id).toMatch(/^[0-9a-f]{40}$/);
+      expect(s.discovery!.contentHash, s.id).toMatch(/^sha256-[0-9a-f]{64}$/);
+      expect(s.license, s.id).toBeTruthy();
+    }
+  });
+
+  it('leaves the owner-approved set, assignments and evidence unchanged', () => {
+    expect(
+      c.skills
+        .filter((s) => s.review.status === 'approved')
+        .map((s) => s.id)
+        .sort(),
+    ).toEqual(
+      [
+        'caveman',
+        'frontend-design',
+        'grilling',
+        'ponytail',
+        ...XPENZ_APPROVED,
+        'verification-before-completion',
+        'writing-plans',
+      ].sort(),
+    );
+    // ES16 (2026-10-30) left the 24 evidence records of ES6 to ES9.3 as they were. Later runs add the four
+    // Gateway records and ten KodeStep LX discovery/explicit-invocation records. Other additions still fail here.
+    expect(c.evidence.filter((e) => e.date <= '2026-10-30')).toHaveLength(24);
+    expect(
+      c.evidence
+        .filter((e) => e.date > '2026-10-30')
+        .map((e) => e.id)
+        .sort(),
+    ).toEqual([
+      'gui12-verification-before-completion-claude-code-gateway',
+      'gui12-verification-before-completion-codex-gateway',
+      'gui2-gateway-mobile-checklist-claude-code-gateway',
+      'gui2-gateway-mobile-checklist-codex-gateway',
+      'lx-activation-frontend-design-claude-code-discovery',
+      'lx-activation-frontend-design-codex-discovery',
+      'lx-activation-playful-learning-ux-claude-code',
+      'lx-activation-playful-learning-ux-codex',
+      'lx-activation-stylized-game-art-claude-code',
+      'lx-activation-stylized-game-art-codex',
+      'lx-activation-verification-before-completion-claude-code-discovery',
+      'lx-activation-verification-before-completion-codex-discovery',
+      'lx-activation-writing-plans-claude-code-discovery',
+      'lx-activation-writing-plans-codex-discovery',
+    ]);
+    const assigned = new Set(c.consumers.flatMap((x) => x.assignments.map((a) => a.skill)));
+    for (const s of discovered.filter((x) => !XPENZ_APPROVED.includes(x.id)))
+      expect(assigned.has(s.id), s.id).toBe(false);
+    // The four owner-approved skills may be assigned to the Xpenz consumer and to no other consumer.
+    for (const id of XPENZ_APPROVED)
+      expect(
+        c.consumers.filter((x) => x.assignments.some((a) => a.skill === id)).map((x) => x.id),
+        id,
+      ).toEqual(['web-xpenz']);
+  });
+
+  it('has no duplicate skill: one entry per upstream repository and folder', () => {
+    const keys = c.skills
+      .filter((s) => s.source.type === 'external')
+      .map((s) =>
+        s.source.type === 'external'
+          ? `${s.source.upstream.url.toLowerCase()}#${s.source.path}`
+          : '',
+      );
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it('flags root-level skills and keeps their pin on the whole repository', () => {
+    const roots = c.skills.filter((s) => s.source.type === 'external' && s.source.path === '.');
+    expect(roots.map((s) => s.id).sort()).toEqual(
+      // ES26 adds bots, gbro-collage-broll, onetake and stack-architect
+      [
+        'bots',
+        'design-dna',
+        'gbro-collage-broll',
+        'oil-ui',
+        'onetake',
+        'stack-architect',
+        'video-shotcraft',
+      ],
+    );
+    for (const s of roots) expect(s.discovery!.warnings.join(' ')).toMatch(/repository root/);
+  });
+
+  it('requires entry skills of the genjutsu framework to carry the missing-modules warning', () => {
+    for (const id of ['genjutsu-cast', 'genjutsu-paint', 'genjutsu-bunshin'])
+      expect(c.skills.find((s) => s.id === id)!.discovery!.warnings.join(' ')).toMatch(/_jutsu/);
+  });
+
+  it('writes the unreviewed status explicitly on every discovered candidate (no reliance on schema defaults)', () => {
+    const raw = read('skills') as {
+      id: string;
+      review?: { status: string; findings: unknown[] };
+    }[];
+    const ids = new Set(discovered.map((s) => s.id));
+    for (const r of raw.filter((x) => ids.has(x.id)))
+      if (XPENZ_APPROVED.includes(r.id))
+        expect(r.review!.status, r.id).toBe('approved'); // explicit, with approvedBy (checked above)
+      else if ((r.review as { audit?: unknown } | undefined)?.audit === undefined)
+        expect(r.review, r.id).toEqual({ status: 'unreviewed', findings: [] });
+      else expect(r.review!.status, r.id).toBe('reviewed'); // ES27 audit: explicit, never a default
+  });
+
+  it('holds the skills with unresolved conditions behind explicit approval blockers', () => {
+    const blocked = discovered.filter((s) => s.discovery!.approvalBlockers.length).map((s) => s.id);
+    const expected = [
+      'design-dna',
+      'oil-ui',
+      'video-shotcraft', // repository-root SKILL.md
+      'genjutsu-cast',
+      'genjutsu-paint',
+      'genjutsu-bunshin', // incomplete without the _jutsu modules
+      'impeccable', // unreviewed downloaded engine binary
+      'eas-workflows',
+      'hf-cli',
+      'auditing-wcag',
+      'reviewing-a11y',
+      ...[
+        'best-practices',
+        'captions',
+        'create',
+        'docs',
+        'interactivity',
+        'maps',
+        'markup',
+        'multimedia',
+        'render',
+        'saas',
+        'studio',
+        'upgrade',
+      ].map((n) => `remotion-${n}`),
+      // ES26: four repository-root skills, a noncommercial licence (onetake) and a paid closed remote MCP (appllama-usage)
+      'bots',
+      'gbro-collage-broll',
+      'onetake',
+      'stack-architect',
+      'appllama-usage',
+    ];
+    expect(blocked.sort()).toEqual(expected.sort());
+    for (const s of discovered.filter((x) => x.discovery!.approvalBlockers.length))
+      expect(s.discovery!.warnings[0], s.id).toMatch(/^Approval blocked until resolved:/);
+  });
+
+  it('keeps the high-risk behaviours visible in the warnings', () => {
+    const w = (id: string) => c.skills.find((s) => s.id === id)!.discovery!.warnings.join(' ');
+    expect(w('impeccable')).toMatch(
+      /not checksum-verified[\s\S]*engine-checksums\.txt[\s\S]*not inspected/,
+    );
+    expect(w('oil-ui')).toMatch(/load-time shell injection[\s\S]*--update/);
+    expect(w('hallmark')).toMatch(/Optional, user-run installers[\s\S]*settings\.json/);
+    expect(w('eas-workflows')).toMatch(/unpinned[\s\S]*scripts\/\.cache[\s\S]*Bash\(node:\*\)/);
+    expect(w('hf-cli')).toMatch(/curl .* \| bash/);
+    expect(w('auditing-wcag')).toMatch(/pre-approves WebFetch and Playwright/);
+    expect(w('remotion-render')).toMatch(/licen[cs]e/i);
+    expect(c.skills.find((s) => s.id === 'remotion-render')!.license).toBe('unknown');
+    expect(w('video-shotcraft')).toMatch(/53 MB[\s\S]*not traceable/);
+  });
+
+  it('records every skill whose frontmatter pre-approves shell, write, web or agent tools', () => {
+    for (const id of [
+      'genjutsu-cast',
+      'genjutsu-bunshin',
+      'shadcn',
+      'eas-update',
+      'playwright-cli',
+      'sentry-security-review',
+    ])
+      expect(c.skills.find((s) => s.id === id)!.discovery!.warnings.join(' '), id).toMatch(
+        /allowed-tools pre-approves/,
+      );
+  });
+
+  it('ES17: the grilling release is unapproved, matching its files and the reviewed upstream hash', () => {
+    const r = c.releases.find((x) => x.skill === 'grilling')!;
+    expect(r.approval).toEqual({ status: 'unapproved' });
+    // ES18: a genuine, scoped review was recorded; it is bound to the content and does not approve anything
+    expect(r.review.outcome).toBe('no-blocking-issues');
+    expect(r.review.contentHash).toBe(r.curatedHash);
+    expect(r.review.reviewer).toMatch(/not an approval/);
+    expect(r.review.evidence.map((e) => e.method).sort()).toEqual(['manual-read', 'static-scan']);
+    expect(r.review.checks).toHaveLength(26);
+    expect(verifyLibrary(root, c)).toEqual([]);
+    // the skill's own approval is untouched, and the unmodified upstream content is exactly what the owner reviewed
+    const g = c.skills.find((x) => x.id === 'grilling')!;
+    expect(g.review.status).toBe('approved');
+    expect(r.upstream!.contentHash).toBe(g.review.contentHash);
+    expect(r.upstream!.revision).toBe(g.source.type === 'external' ? g.source.revision : '');
+    expect(releaseInstallBlocker(g, r)).toMatch(/not approved/);
+    // upstream files are byte-identical; only the declared notice files differ
+    expect(r.modifications.map((m) => `${m.kind}:${m.path}`).sort()).toEqual([
+      'added:ATTRIBUTION.md',
+      'added:LICENSE',
+    ]);
+  });
+
+  it('ES22: four candidates are staged as curated, unapproved releases; none inherits approval', () => {
+    expect(c.releases.map((r) => `${r.skill}@${r.version}`).sort()).toEqual([
+      'grilling@1.0.0',
+      'gsap-performance@1.0.0',
+      'gsap-react@1.0.0',
+      'gsap-timeline@1.0.0',
+      'web-quality-accessibility@1.0.0',
+      'web-quality-accessibility@1.0.1',
+    ]);
+    expect(verifyLibrary(root, c)).toEqual([]);
+    for (const r of c.releases) {
+      const s = c.skills.find((x) => x.id === r.skill)!;
+      expect(r.approval, r.skill).toEqual({ status: 'unapproved' });
+      expect(r.license, r.skill).toBe('MIT');
+      // provenance: the curated upstream folder is exactly the pinned registry content
+      expect(r.upstream!.revision, r.skill).toBe(
+        s.source.type === 'external' ? s.source.revision : '',
+      );
+      expect(r.upstream!.contentHash, r.skill).toBe(
+        s.discovery?.contentHash ?? s.review.contentHash,
+      );
+      expect(r.review.contentHash, r.skill).toBe(r.curatedHash);
+      expect(releaseInstallBlocker(s, r), r.skill).toMatch(/not approved/);
+    }
+    const byId = (id: string) => c.releases.find((r) => r.skill === id)!;
+    for (const id of ['gsap-react', 'gsap-timeline', 'gsap-performance']) {
+      expect(byId(id).review.outcome).toBe('no-blocking-issues');
+      expect(byId(id).review.reviewer).toMatch(/not an approval/);
+      expect(byId(id).references).toEqual([]);
+    }
+    const a11y = byId('web-quality-accessibility');
+    expect(a11y.review.outcome).toBe('requires-changes');
+    expect(a11y.references.map((x) => `${x.target}:${x.resolution}`)).toEqual([
+      '../web-quality-audit/SKILL.md:unresolved',
+    ]);
+  });
+
+  it('ES23: web-quality-accessibility@1.0.1 corrects 1.0.0 as a new, separately reviewed, unapproved release', () => {
+    const v = (x: string) =>
+      c.releases.find((r) => r.skill === 'web-quality-accessibility' && r.version === x)!;
+    const [old, next] = [v('1.0.0'), v('1.0.1')];
+    // 1.0.0 is untouched; 1.0.1 has the same provenance, new content and its own review
+    expect(old.review.outcome).toBe('requires-changes');
+    expect(next.upstream).toEqual(old.upstream);
+    expect(next.curatedHash).not.toBe(old.curatedHash);
+    expect(next.review.contentHash).toBe(next.curatedHash);
+    expect(next.review.outcome).toBe('no-blocking-issues');
+    expect(next.review.reviewer).toMatch(/ES23 .*not an approval/);
+    expect(next.approval).toEqual({ status: 'unapproved' });
+    expect(next.references).toEqual([]);
+    expect(next.modifications.map((m) => `${m.kind}:${m.path}`).sort()).toEqual([
+      'added:ATTRIBUTION.md',
+      'added:LICENSE',
+      'changed:SKILL.md',
+    ]);
+    const skill = readFileSync(join(root, next.path, 'SKILL.md'), 'utf8');
+    expect(skill).not.toMatch(/npm install[^\n]* -g\b|npx lighthouse|\.\.\/web-quality-audit/);
+    expect(skill).toMatch(/≥ 18pt \/ ≥ 14pt bold/);
+    expect(skill).toMatch(/npx --no -- lighthouse/);
+    expect(outOfFolderReferences(join(root, next.path))).toEqual([]);
+    expect(readFileSync(join(root, next.path, 'LICENSE'), 'utf8')).toBe(
+      readFileSync(join(root, old.path, 'LICENSE'), 'utf8'),
+    );
+  });
+
+  it('ES17: every other skill is a source reference, keeping its record and approval state', () => {
+    const states = c.skills.map((s) => contentAvailability(s, c.releases).state);
+    expect(states.filter((x) => x === 'curated-unapproved')).toHaveLength(5); // 5 skills, 6 releases
+    expect(states.filter((x) => x === 'curated-approved')).toHaveLength(0);
+    // ES24 added two first-party integration skills (ecosystem-assets, ecosystem-config);
+    // stylized-game-art (shared first-party skill, added for the YourSpace M3.6 art work) makes five;
+    // gateway-mobile-checklist makes six; playful-learning-ux (LX preparation) makes seven.
+    expect(states.filter((x) => x === 'first-party')).toHaveLength(7);
+    expect(c.skills).toHaveLength(265); // LX preparation: +1 first-party learning UX skill
+    // unknown-licence and root-level candidates are blocked from curation, with the reasons stated
+    for (const id of ['remotion-render', 'design-dna', 'oil-ui', 'video-shotcraft'])
+      expect(
+        contentAvailability(
+          c.skills.find((s) => s.id === id)!,
+          c.releases,
+        ).state,
+        id,
+      ).toBe('curation-blocked');
+    const wp = contentAvailability(
+      c.skills.find((s) => s.id === 'writing-plans')!,
+      c.releases,
+    );
+    expect(wp.state).toBe('source-only');
+    expect(wp.reasons.map((x) => x.code)).toContain('approved-upstream-only');
+  });
+});

@@ -1,0 +1,288 @@
+# Website (apps/web)
+
+A static, read-only React app (Vite, TypeScript, Tailwind) over the generated catalog. It has no backend,
+authentication, or install/run capability. Pages have clean URLs (`/skills/caveman`) handled by browser-history
+routing; the host must serve `index.html` for them (see [deployment.md](deployment.md#clean-urls-and-the-spa-fallback)).
+
+| Page           | Route             | Purpose                                                                                                                                                                                                                                                                                                                   |
+| -------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home (landing) | `/`               | The Living Library (ES28.5): an illustrated archive room whose four signs open Skills, Resources, Sources and FM Ecosystem with live counts; the headline and three direct actions; the registry in numbers, the skill tree, what the site is (seven separate lifecycle facts, honest limits), Gateway and Help & Contact |
+| Overview       | `/overview`       | Registry totals (skills, resources, sources, consumers), skills by origin, third-party review status counts, per-agent evidence totals, recent evidence                                                                                                                                                                   |
+| Skills         | `/skills`         | Searchable library. Filters: category group, source, review status, explicit-run evidence. They combine (all must match) and live in the URL (`/skills?group=Planning&status=approved`)                                                                                                                                   |
+| Skill detail   | `/skills/<id>`    | Source and provenance first (maintainer, repository, pinned revision, licence, source record), then lifecycle, content availability, review, distribution, agent status, evidence, consumers                                                                                                                              |
+| Resources      | `/resources`      | MCP servers, agent toolkits, agent development tools, references and other developer resources (ES26). Search, category, type and review-status filters in the URL; Cards or List                                                                                                                                         |
+| Resource       | `/resources/<id>` | Provenance (from the source record), security notes, MCP details (never connected), related skills and resources                                                                                                                                                                                                          |
+| Sources        | `/sources`        | Every repository examined, Cards or List                                                                                                                                                                                                                                                                                  |
+| Consumers      | `/consumers`      | An index of builds, then consumers with assigned skills: agents, install mode and verification per assignment, shared sources; idle consumers listed compactly. Each card has an anchor (`/consumers#consumer-<id>`)                                                                                                      |
+| Agents & tools | `/integrations`   | One roster panel per tested agent with its recorded totals, what each term means, platform limitations, tools and dependencies with the skills that require them                                                                                                                                                          |
+
+## URLs and routing
+
+Routing is a small module, `apps/web/src/router.ts`, on the browser History API. There is no routing library.
+
+| URL                             | Shows                                                                      |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| `/`                             | Landing page                                                               |
+| `/overview`                     | Dashboard                                                                  |
+| `/skills`                       | Skills catalog, with optional filter query (below)                         |
+| `/skills/<id>`                  | One skill (`/skills/caveman`); an unknown id says so                       |
+| `/sources`                      | Sources examined during discovery (ES16)                                   |
+| `/resources`, `/resources/<id>` | Resources (ES26); filters `q`, `category`, `type`, `security` in the query |
+| `/consumers`, `/integrations`   | Consumers, Agents & tools                                                  |
+| anything else                   | "Page not found", with links home and to Skills                            |
+
+- **Links are ordinary anchors** (`<a href="/skills">`), so they can be opened in a new tab, copied and crawled.
+  A click on a same-site link is turned into `history.pushState` (no page reload); modified clicks (Ctrl/Cmd/Shift,
+  middle button), `target="_blank"`, downloads, other origins and in-page anchors such as the skip link (`#main`)
+  keep their native behaviour. A new page scrolls to the top and moves focus to the content; the browser tab title
+  names the page (`Caveman · Ecosystem Skills`). A trailing slash is ignored.
+- **Back and Forward** work because every page change is a real history entry, and the app re-reads the address on
+  `popstate`.
+- **Language and theme** are not routes: switching them never changes the URL, so the current page and its filters
+  stay as they are. Both choices persist (`localStorage`) and apply to a deep link opened later.
+- **Deployment base path** (`BASE_PATH`, e.g. `/ecosystem-skills/`) is added to every link and removed when reading
+  the address.
+
+### Skills filter parameters
+
+The filters live only in the query string, which is the single source of truth: opening a filtered URL restores
+them, and Back/Forward step through earlier filter states.
+
+| Parameter | Filter         | Values                                                                         |
+| --------- | -------------- | ------------------------------------------------------------------------------ |
+| `q`       | Search text    | any text                                                                       |
+| `group`   | Category       | Coding, Design, Planning, Communication, Verification, Project-specific, Other |
+| `origin`  | Source         | `first-party`, `external`                                                      |
+| `status`  | Review status  | `discovered`, `reviewed`, `approved`, `rejected`                               |
+| `agent`   | Agent evidence | `any`, `none`, `claude-code`, `codex`                                          |
+
+Example: `/skills?group=Planning&status=approved`. Choosing a filter or clearing them adds a history entry; typing in
+the search box replaces the current entry, so Back is not flooded with one step per letter. URLs are written with the
+parameters in a fixed order (`q`, `group`, `origin`, `status`, `agent`). Unknown parameters are ignored, and
+parameters are never read as path segments.
+
+### Old hash links
+
+The site used hash routes before (`/#/skills/caveman`). Existing bookmarks keep working: on load, and if one is
+pasted while the site is open, an old `#/…` link is rewritten in place to its clean URL with `history.replaceState`
+(no reload, no extra history entry, so Back leaves the site as it did before and there is no redirect loop).
+
+| Old link                                                      | Becomes                   |
+| ------------------------------------------------------------- | ------------------------- |
+| `/#/`                                                         | `/`                       |
+| `/#/overview`, `/#/consumers`, `/#/integrations`, `/#/skills` | the same path without `#` |
+| `/#/skills/caveman`                                           | `/skills/caveman`         |
+| `/#/skills?status=approved`                                   | `/skills?status=approved` |
+
+Rules for the edge cases: only the six old routes above are converted. Any other fragment (`#main`, `#details`, an
+unknown `#/nonsense`, `#/skills/a/b`) is an ordinary fragment and is left alone, never treated as a route; an
+unknown `#/…` therefore shows the landing page, as before. Query parameters inside the old fragment are kept; if the
+real query string has the same parameter, the one from the old link wins, and other real parameters are kept. If a
+URL has both a path and an old hash (`/overview#/skills`), the old hash wins.
+
+## Status vocabulary
+
+Statuses are derived from `registry/*.json` only (`apps/web/src/lib.ts`). They are kept separate on purpose:
+
+- **Source:** First-party or Third-party (`origin: external` in the registry).
+- **Review status** (third-party only): Candidate · discovered / reviewed, Approved, Rejected. First-party skills have no
+  third-party review; choose them with the Source filter.
+- **Discovered candidates (ES16)** are third-party skills with status _Candidate · discovered_, the same as any other
+  unreviewed skill, so they are never mixed up with _Approved_. A card shows **Has warnings** when discovery recorded
+  operational risks, and the skill page has a **Discovery scan** block (warnings, runtime dependencies, content hash, what
+  the scan did and did not cover) with a link to its source; unresolved conditions are listed under "Must be resolved before approval". The lifecycle row says the scan was a metadata and file scan,
+  not a review.
+- **Security audit (ES27):** an audited skill or resource shows a "Security audit (ES27)" block in its Review or
+  Security notes section: "Review complete" or "Review incomplete", the audit recommendation (always labelled as advice,
+  "not an approval"), the scope read, findings most severe first with their evidence, and the 26 checks. A partial
+  audit also adds "Review incomplete" next to the stage badge in lists and headers, and the lifecycle "Reviewed" row
+  says "Incomplete". Resources with notes or a partial audit read "Concerns noted, not fully reviewed".
+- **Installed / activated:** never shown as yes or no. Installs and project links are per machine and not in the
+  catalog, so the skill page says "Not tracked here" and names the command that checks it.
+- **Category** is a browsing group (Coding, Design, Planning, Communication, Verification, Project-specific); ES16 added the categories `motion-design`, `video` (Design), `game-dev`, `mobile`, `devops` (Coding) and `performance` (Verification). It is
+  derived from the registry `category` through an explicit table in `apps/web/src/lib.ts`, and a skill under
+  `skills/projects/` is always Project-specific. A test fails if a category is not placed, so nothing is guessed from
+  keywords. The finer registry category stays on the skill page and in search.
+- **Discovery** · **Explicit run** · **Natural trigger** · **Behavior** are per agent, from evidence records at the
+  currently pinned revision. Natural triggering is a count of runs that loaded the skill; behavior is judged
+  separately and never implies the skill was loaded. Older-revision evidence is marked stale and excluded.
+- **Assignment verification** is per consumer assignment and appears only where the registry records it.
+
+## Language: English and Bahasa Indonesia
+
+The EN / ID switch in the header translates the **interface**: navigation, headings, filters, statuses, lifecycle
+wording, empty states, the landing page and the footer. The choice is stored in `localStorage` (`lang`); without
+one, the browser language is used (Indonesian if it is `id…`, otherwise English). `<html lang>` follows the choice.
+
+**Registry content is not translated**: skill descriptions, review findings and evidence notes are data and are
+shown as written, in English. The footer says so.
+
+No library is used (`apps/web/src/i18n.tsx`). The English text is the key: `t('Browse skills')`, with `{name}`
+placeholders. Indonesian lives in `apps/web/src/locales/id.ts`; a missing entry falls back to the English text. To
+change or add wording: use `t('…')` in the component, then add the same text to `id.ts`. A test scans the source and
+fails if any interface string lacks an Indonesian entry, if placeholders differ, or if an entry is unused. Product
+names and commands (Claude Code, `pnpm skills:verify`) are left as they are. A third language means a new
+`locales/<code>.ts` and one entry in `LANGS`.
+
+## Gateway and Help & Contact links
+
+`apps/web/src/links.ts` is the only place these live: `GATEWAY_URL` (`https://fikrimarzuki.work`), `SUPPORT_URL`
+(`https://support.fikrimarzuki.work`) and the repository URL. They are site configuration, not registry data.
+
+- **Gateway** is the single entry point to the author's other projects: one wide card on the landing page ("Explore
+  More Projects") and one footer link ("Explore more projects"). Individual project links are deliberately not
+  listed here; they belong to the Gateway.
+- **Help & Contact** (the support site) is for questions, requests for assistance, feedback and getting in touch. It
+  is not a donation page, and the site never says otherwise. It appears in the main navigation, as the hero button
+  ("Get in touch"), in the landing contact section and in the footer, always with a message icon.
+
+All external links open in a new tab with `rel="noreferrer noopener"` and announce that to screen readers; a test
+enforces HTTPS, the author's domain and safe attributes.
+
+## Lifecycle on the skill page
+
+Seven separate facts, shown as a list (not a progress bar) because each can be true without the others:
+
+| State      | Source on this site                               | What it does not mean                     |
+| ---------- | ------------------------------------------------- | ----------------------------------------- |
+| Registered | the skill is in `registry/skills.json`            | that anyone reviewed it                   |
+| Reviewed   | `review.status` is not `unreviewed`               | that anyone decided to allow it           |
+| Approved   | `review.status: approved` (owner decision)        | that it is installed                      |
+| Installed  | **not tracked here** (machine-local)              | that it is assigned                       |
+| Assigned   | an assignment in `registry/consumers.json`        | that a project has the link               |
+| Activated  | **not tracked here** (project-local links)        | that an agent loaded or followed it       |
+| Verified   | explicit-run evidence in `registry/evidence.json` | natural triggering or a behavioral effect |
+
+The site never infers installation or activation from the registry. "Verified" on a card means an explicit run
+(the prompt named the skill) passed at the pinned revision; natural triggering and behavior are separate columns.
+
+## Content availability (ES17)
+
+Every skill page has a **Content availability** section. A skill without a local curated copy shows
+"Content availability: Source reference only", says it is registered for discovery but not yet curated, lists why (awaiting
+security review, reviewed but not approved, approved for install from upstream, each approval blocker, unknown licence,
+repository-root skill), and links to the original: repository, the folder and the commit at the pinned revision, with the
+upstream licence and author. It never shows a local version number. A curated skill shows the curated version, release
+status (approved or not, separately from the skill's own approval), security review outcome and scope, upstream revision
+and hashes, modifications with their effects, dependencies, restrictions, and why it can or cannot be installed from the
+library. The Skills page has a Content filter (`?content=source-only|curated-unapproved|curated-approved|curation-blocked`);
+cards carry a badge only for curated or blocked skills, so plain source references stay quiet.
+
+## Evaluation, upstream status and consumer versions (ES19–ES21)
+
+Skill pages show **Upstream updates** (status, last check time in UTC, tracked and available revisions, upstream commit date, current curated
+version, change summary; "Never checked" makes no claim) and **Evaluation** records, labelled "Static assessment: no agent was run" or "Agent
+run", with measurements and their method, findings, comparison status, the recommendation labelled "not an approval", and blockers. No scores
+are shown. The Consumers page labels each third-party assignment "Legacy upstream install" or "Curated release vX", shows an approved curated
+upgrade only as a preview command, and points to `pnpm skills:library status` for installed state, which the site cannot see.
+
+## Navigation (ES26)
+
+The header lists Overview, Skills, Resources, Sources, FM Ecosystem, Consumers and Agents & tools. Home is not listed:
+the brand mark links to `/` (its accessible name is "Ecosystem Skills home"). Help & Contact moved to the footer (and
+stays on the landing page). Below 1280 px the links move into a **Menu** button (`aria-expanded`, `aria-controls`);
+Escape closes it and returns focus, and choosing a page closes it. Language and theme stay in the header at every
+width. The page of a detail view (a skill, a resource) is marked as current.
+
+## Cards and List views (ES26)
+
+Sources and Resources offer **Cards** (the existing visual cards) and **List** (a dense, scannable list). The toggle is
+two buttons with `aria-pressed`. Switching never touches the filters; the choice is remembered per page in
+`localStorage` (`view.sources`, `view.resources`) across navigation and reloads. Since ES28.3 the list is a real table
+(caption, column headers, the item name as row header) on every width; below 768 px each row stacks into labelled
+lines, so there is no horizontal scrolling, and the column headers are still read by screen readers.
+Warnings (sources) and recorded concerns (resources) stay visible as a count with text in both views.
+
+## Form controls (ES26)
+
+Every search box and dropdown uses the shared `.control` style: one height (40 px), padding, border, hover and disabled
+states, and the global focus ring. Selects remove the native arrow (`appearance: none`) and draw exactly one chevron at
+a fixed position, in a colour that follows the theme; search boxes reserve room for the leading icon.
+
+## Installable app and offline use
+
+The production build adds `manifest.webmanifest` (name, `standalone` display, theme colour, 192/512 px and maskable
+icons, scope and start URL that follow `BASE_PATH`) and `sw.js`, registered only in production builds:
+
+- the app shell (index.html, the hashed build files, icons) is cached when the worker installs; any route opened
+  offline falls back to that shell, so direct links keep working;
+- `catalog.json`, `llms.txt` and `resources.v1.json` are fetched from the network first; only if that fails is the saved
+  copy used, marked so the page shows: _"Offline: showing a saved copy of the catalog. It may be out of date and is not
+  authoritative for review, approval or installation."_;
+- hashed `/assets/` files are cache-first; other origins and non-GET requests are never intercepted; a new build gets a
+  new cache name, and old caches are deleted when it activates.
+
+Language, theme and animation choices are stored in `localStorage` and apply offline. The self-hosted fonts are
+fingerprinted build files, so they are precached with the shell and the site keeps its typeface offline. Nothing private exists in the
+public build, so nothing private can be cached. Limitations: there is no background sync or update prompt (a new
+version takes over on the next load), and an offline copy cannot show changes made since it was saved.
+
+## AI-readable files
+
+`/llms.txt`, `/catalog.json` and `/resources.v1.json` are generated at build time from the public registry. See
+[resources.md](resources.md#ai-readable-metadata).
+
+## Sources page
+
+`/sources` lists the repositories, applications, standards and leads examined during discovery, grouped by batch, with
+filters for decision (chips), kind and text, in Cards or List view. Each card shows the decision (registered for review / with warnings,
+reference only, unresolved), whether the upstream identity is verified, the pinned commit, skills found versus registered
+(linked to their pages), warnings, other candidates considered, and for unresolved names what would resolve them. The
+filters are local to the page; a source can be linked directly as `/sources#<source-id>`. A source is never presented as a
+skill: reference-only and unresolved sources register nothing.
+
+## Filters
+
+Search, Category, Source, Review status and Evidence combine with AND. When nothing matches, the page lists the
+active filters and offers one-tap removal of any single filter that would bring results back (with the count).
+Evidence options are worded as "Explicit run: …" so they cannot be read as a general compatibility claim.
+
+## Design and accessibility notes
+
+- **Command Window design system (ES28).** The full reference is [command-window-design.md](command-window-design.md).
+  Panels are pixel-framed windows on a tinted page, keyboard focus and the current page carry a pixel pointer, and the
+  landing page shows an original character, the Archivist, in an archive room. The art is decorative (`aria-hidden`);
+  every fact stays in plain text. Security status is never shown as rarity, level, XP or an unlock: every card has the
+  same frame whatever its status (tested in `es28.test.tsx`).
+- Type is Atkinson Hyperlegible, self-hosted (SIL OFL 1.1, 34.7 KB, `font-display: optional` with preload). The
+  only pixel lettering is the decorative "Ecosystem Skills" wordmark. Colours are tokens on `:root` and `html.dark`
+  in `index.css`; Tailwind `indigo-*` is temporarily mapped to the new signal colour so pages not yet converted match.
+- **Animation setting.** The header has "Animation: on/off" (stored as `localStorage.motion`). Decorative animation
+  (the Archivist's blink, breathing and ledger glow, the pointer's nudge) runs only when it is on and the device does
+  not ask for reduced motion; with reduced motion the setting reads off, says why, and is `aria-disabled`. Nothing in
+  the catalog depends on animation.
+- Contrast is checked against the real background in both themes (ES28 browser review: no text below 4.5:1, or 3:1
+  for large text, on the landing, Skills, skill, Resources, Sources and Overview pages at four widths).
+- Navigation: the full bar is shown from 1280px; below that the links sit in the Menu disclosure. Visually
+  hidden text (such as "opens in a new tab") inside the nav must stay inside it: the list is `relative`, or
+  the hidden text would widen the whole page.
+- Status text always pairs an icon with words; colour is never the only signal.
+- Dense tables sit in a labelled, keyboard-focusable scroll region with a caption, so pages never scroll sideways.
+- Skill cards are a single link (the title), with one focus ring on the card. A real `:focus-visible` outline is set
+  in plain CSS (Tailwind's outline utility alone left it invisible).
+- A skip link moves focus to the main content; navigation marks the current page with `aria-current`.
+- Secondary text is `zinc-500` in light mode and `zinc-400` in dark mode: `zinc-500` on the dark background measured
+  3.67:1, below the 4.5:1 AA minimum (ES12 fix). ES28 darkens `zinc-500` one notch (`#5c5c66`) because the light page
+  colour is now a tinted grey; converted pages use the `--cw-muted` token instead.
+
+## Checking the site
+
+`pnpm check` covers types, lint, tests (translation completeness, language detection, the landing page, outbound links,
+combined filtering, category placement, empty-state explanations, lifecycle
+labels, consumer display, status presentation, evidence rendering, navigation, table structure, and public-data
+boundaries on the real catalog) and the production build. For a visual check run
+`pnpm build && pnpm --filter @ecosystem-skills/web preview` and review the pages at about 320, 375, 768 and 1280 px
+in both themes.
+
+**Browser review script (ES28.2)**, opt-in and not part of `pnpm check`: with a production preview running and an
+existing `playwright-core` install, `PLAYWRIGHT_CORE=… node apps/web/scripts/browser-review.mjs <base-url> <out-dir>`
+audits the converted pages at 320, 375, 768, 1024 and 1280 px in both themes and languages (overflow, headings,
+contrast estimate, hidden art, unnamed controls, target sizes), checks keyboard and touch flows, Back/Forward,
+Cards/List persistence, the animation setting and reduced motion, one-click upstream links on detail pages, that no MCP
+endpoint is a link, layout shift and offline deep links, and saves screenshots. It never opens external sites.
+
+**Browser check** (Chromium, built site; first ten pages × four widths × both themes, then extended to the landing page, the dashboard and both languages: 176 combinations): no horizontal overflow, every
+control and link has an accessible name, one `h1` per page with no skipped heading levels, a computed text-contrast
+estimate, a visible focus indicator on every Tab stop, and the filter and empty-state flows operated by keyboard.
+This is a manual-style check, not a complete accessibility audit: no screen reader was used, and no automated
+engine such as axe was run.

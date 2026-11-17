@@ -1,21 +1,616 @@
 @import 'tailwindcss';
+/* ES28.4: the landing prototypes carry their own stylesheet; keep them out of the production utilities. */
+@source not './prototypes';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+/*
+ * ES28 Command Window design system. The rules behind every value here are in docs/command-window-design.md; change
+ * that document first, then this file. Summary:
+ *   - Record layer (names, sources, revisions, licences, statuses, findings) uses the readable body face, full
+ *     contrast, never pixel type, never animated.
+ *   - World layer (the Archivist, the archive scene, glyphs, frames, pointer) is decorative and aria-hidden.
+ *   - Security status is never a game mechanic: every panel uses the same frame whatever its status.
+ */
+
+/* Self-hosted Atkinson Hyperlegible (SIL OFL 1.1), latin subset; see src/assets/fonts/README.md. `optional` avoids a
+   late swap (and the reflow it causes): if the preloaded file is not ready at once, the system font stays. */
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('./assets/fonts/AtkinsonHyperlegible-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: optional;
+}
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('./assets/fonts/AtkinsonHyperlegible-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: optional;
 }
 
-html {
-  color-scheme: light;
+@theme {
+  --font-sans:
+    'Atkinson Hyperlegible', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Signal: the one interactive accent (links, current page, pressed toggles, primary buttons). */
+  --color-signal-50: #ecf8f9;
+  --color-signal-100: #d2eff1;
+  --color-signal-200: #a6dfe3;
+  --color-signal-300: #6fc9d0;
+  --color-signal-400: #3fb0b9;
+  --color-signal-500: #1a929c;
+  --color-signal-600: #0e7782;
+  --color-signal-700: #0b5f68;
+  --color-signal-800: #0c4d54;
+  --color-signal-900: #0d4046;
+  --color-signal-950: #052a2f;
+
+  /* zinc-500 is the light-theme secondary text. The page colour is now a tinted grey, not near-white, so the step
+     is one notch darker to keep 4.5:1 on it. */
+  --color-zinc-500: #5c5c66;
 }
+
+/* ------------------------------------------------------------------------------------------------ tokens */
+
+:root {
+  color-scheme: light;
+  /* surfaces and text */
+  --cw-page: #edf0f5;
+  --cw-dot: rgb(31 38 56 / 0.07);
+  --cw-window: #fbfcfe;
+  --cw-sunken: #f1f3f8;
+  --cw-ink: #1f2638;
+  --cw-muted: #4f5669;
+  --cw-rule: #c6cddb;
+  /* frame: outline, bevel highlight and shade, hard drop shadow */
+  --cw-edge: #1f2638;
+  --cw-hi: #ffffff;
+  --cw-lo: #c6cddb;
+  --cw-drop: rgb(31 38 56 / 0.18);
+  --cw-frame-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Cpath fill='%231f2638' d='M2 0h8v2H2zM2 10h8v2H2zM0 2h2v8H0zM10 2h2v8h-2z'/%3E%3Cpath fill='%23ffffff' d='M2 2h8v2H2zM2 2h2v8H2z'/%3E%3Cpath fill='%23c6cddb' d='M2 8h8v2H2zM8 2h2v8H8z'/%3E%3C/svg%3E");
+  /* accents */
+  --cw-signal: #0e7782;
+  --cw-signal-strong: #0b5f68;
+  --cw-on-signal: #ffffff;
+  --cw-gold: #f0a202;
+  --cw-pointer-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='7' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath fill='%231f2638' d='M0 0h2v1H0zM0 1h1v5H0zM0 6h2v1H0zM2 1h2v1H2zM4 2h2v1H4zM5 3h1v1H5zM4 4h2v1H4zM2 5h2v1H2z'/%3E%3Cpath fill='%23f0a202' d='M1 1h1v5H1zM2 2h2v3H2zM4 3h1v1H4z'/%3E%3C/svg%3E");
+  --cw-mark-bg: #fde68a;
+  --cw-mark-fg: #1f2638;
+  --cw-wordmark: #1f2638;
+  --cw-wordmark-shadow: #6fc9d0;
+  --focus: #0b5f68;
+
+  /* sprite palette (art.tsx letters) */
+  --px-o: #1f2638;
+  --px-h: #3f5a8c;
+  --px-h2: #2c4268;
+  --px-k: #f2c9a0;
+  --px-k2: #d99e74;
+  --px-e: #1f2638;
+  --px-r: #e8907e;
+  --px-l: #7a4b2a;
+  --px-l2: #5a3519;
+  --px-p: #fff6dc;
+  --px-p2: #e3d3a6;
+  --px-g: #ffcf4a;
+  --px-g2: #f0a202;
+  --px-s: #0e7782;
+  --px-s2: #0b5f68;
+}
+
 html.dark {
   color-scheme: dark;
+  --cw-page: #0f1320;
+  --cw-dot: rgb(232 236 245 / 0.05);
+  --cw-window: #1a2030;
+  --cw-sunken: #141a28;
+  --cw-ink: #e8ecf5;
+  --cw-muted: #a8b0c3;
+  --cw-rule: #323b52;
+  --cw-edge: #6b7aa3;
+  --cw-hi: #2c3550;
+  --cw-lo: #0b0e18;
+  --cw-drop: rgb(0 0 0 / 0.55);
+  --cw-frame-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Cpath fill='%236b7aa3' d='M2 0h8v2H2zM2 10h8v2H2zM0 2h2v8H0zM10 2h2v8h-2z'/%3E%3Cpath fill='%232c3550' d='M2 2h8v2H2zM2 2h2v8H2z'/%3E%3Cpath fill='%230b0e18' d='M2 8h8v2H2zM8 2h2v8H8z'/%3E%3C/svg%3E");
+  --cw-signal: #5cc8d1;
+  --cw-signal-strong: #8adde3;
+  --cw-on-signal: #0f1320;
+  --cw-gold: #ffc433;
+  --cw-pointer-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='7' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23070a12' d='M0 0h2v1H0zM0 1h1v5H0zM0 6h2v1H0zM2 1h2v1H2zM4 2h2v1H4zM5 3h1v1H5zM4 4h2v1H4zM2 5h2v1H2z'/%3E%3Cpath fill='%23ffc433' d='M1 1h1v5H1zM2 2h2v3H2zM4 3h1v1H4z'/%3E%3C/svg%3E");
+  --cw-mark-bg: #6b5a12;
+  --cw-mark-fg: #fff8dc;
+  --cw-wordmark: #e8ecf5;
+  --cw-wordmark-shadow: #0e7782;
+  --focus: #8adde3;
+
+  --px-o: #070a12;
+  --px-h: #5a78b0;
+  --px-h2: #3f5a8c;
+  --px-k: #f5d0a9;
+  --px-k2: #d9a77c;
+  --px-e: #070a12;
+  --px-r: #e8907e;
+  --px-l: #8a5a36;
+  --px-l2: #5f3b20;
+  --px-p: #fff2c4;
+  --px-p2: #e0c47a;
+  --px-g: #ffe07a;
+  --px-g2: #ffc433;
+  --px-s: #5cc8d1;
+  --px-s2: #3fb0b9;
 }
+
 body {
-  @apply bg-zinc-50 font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100;
+  @apply font-sans antialiased;
+  background: var(--cw-page);
+  color: var(--cw-ink);
 }
+
+/* Fixed, non-interactive page texture (aria-hidden in the markup): a faint dither that fades out downwards. */
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--cw-page);
+}
+.app-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--cw-dot) 1px, transparent 1.5px);
+  background-size: 6px 6px;
+  mask-image: linear-gradient(to bottom, #000, transparent 70%);
+}
+
+/* ------------------------------------------------------------------------------------------- components */
+
+@layer components {
+  /*
+   * A window: notched pixel frame (border-image, so it never clips content or focus rings), opaque fill, hard drop
+   * shadow. Every catalog panel uses this one frame whatever the item's review status.
+   */
+  .surface {
+    border: 4px solid transparent;
+    border-image: var(--cw-frame-img) 4;
+    border-radius: 0;
+    background-color: var(--cw-window);
+    background-clip: padding-box;
+    box-shadow: 3px 3px 0 0 var(--cw-drop);
+  }
+  /* Interactive panels: the drop shadow takes the signal colour. No lift, no motion. */
+  .surface-hover {
+    @apply transition-shadow duration-150;
+  }
+  .surface-hover:hover,
+  .surface-hover:focus-within {
+    box-shadow: 3px 3px 0 0 var(--cw-signal);
+  }
+
+  /* A window title that sits on the top edge of the frame, like a tab. Use inside .surface with padding 12–20px. */
+  .cw-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    margin-top: calc(-1 * (var(--cw-pad, 1rem) + 4px + 0.8rem));
+    margin-bottom: 0.5rem;
+    padding: 0.15rem 0.6rem;
+    background: var(--cw-ink);
+    color: var(--cw-window);
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+  .cw-titled {
+    margin-top: 0.9rem;
+  }
+
+  /* A dashed pixel rule under page titles. */
+  .cw-rule {
+    display: block;
+    height: 4px;
+    width: 4.5rem;
+    background: repeating-linear-gradient(90deg, var(--cw-signal) 0 8px, transparent 8px 12px);
+  }
+
+  /* Buttons: square, 2 px edge, hard shadow that "presses" when activated. */
+  .btn-primary,
+  .btn-secondary {
+    @apply relative inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors duration-150;
+    border: 2px solid var(--cw-edge);
+    box-shadow: 3px 3px 0 0 var(--cw-drop);
+  }
+  .btn-primary {
+    background: var(--cw-signal);
+    color: var(--cw-on-signal);
+  }
+  .btn-primary:hover {
+    background: var(--cw-signal-strong);
+  }
+  .btn-secondary {
+    background: var(--cw-window);
+    color: var(--cw-ink);
+  }
+  .btn-secondary:hover {
+    background: var(--cw-sunken);
+  }
+  .btn-primary:active,
+  .btn-secondary:active {
+    translate: 2px 2px;
+    box-shadow: 1px 1px 0 0 var(--cw-drop);
+  }
+
+  /* Small header tools (language, theme, animation, menu). */
+  .cw-tool {
+    @apply inline-flex h-10 min-w-10 items-center justify-center gap-1.5 px-2.5 text-sm;
+    border: 2px solid var(--cw-edge);
+    background: var(--cw-window);
+    color: var(--cw-ink);
+  }
+  .cw-tool:hover {
+    background: var(--cw-sunken);
+  }
+
+  /* Search highlight: a marker band with a gold underline, readable in both themes. */
+  .cw-mark {
+    background: var(--cw-mark-bg);
+    color: var(--cw-mark-fg);
+    box-shadow: inset 0 -2px 0 var(--cw-gold);
+    padding: 0 1px;
+  }
+
+  /* A slot that holds a glyph (category, catalog section). ES28.3: 44 px, for glyphs at 3× (GlyphSlot in art.tsx). */
+  .cw-slot {
+    @apply inline-grid shrink-0 place-items-center;
+    width: 2.75rem;
+    height: 2.75rem;
+    background: var(--cw-sunken);
+    box-shadow:
+      inset 2px 2px 0 var(--cw-lo),
+      inset -2px -2px 0 var(--cw-hi);
+  }
+
+  /* A related-item link (skill, resource) shown as a small square chip. */
+  .cw-chip {
+    @apply inline-flex min-h-8 items-center px-2 py-0.5 text-xs underline-offset-2 hover:underline;
+    border: 2px solid var(--cw-rule);
+    background: var(--cw-sunken);
+  }
+  .cw-chip:hover {
+    border-color: var(--cw-signal);
+  }
+
+  /* The record strip on a panel: source, revision, licence. Body face, full contrast. */
+  .cw-record {
+    border-top: 2px dashed var(--cw-rule);
+  }
+}
+
+/* The pixel pointer: appears beside a hovered or focused element (and beside the current page in the nav). It is a
+   background image on a pseudo-element, so it is invisible to assistive technology. */
+.cw-pointer {
+  position: relative;
+}
+.cw-pointer::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -15px;
+  width: 12px;
+  height: 14px;
+  margin-top: -7px;
+  background: var(--cw-pointer-img) center / 12px 14px no-repeat;
+  image-rendering: pixelated;
+  opacity: 0;
+  pointer-events: none;
+}
+.cw-pointer:hover::before,
+.cw-pointer:focus-visible::before,
+.cw-pointer:has(.card-link:focus-visible)::before,
+.cw-pointer:not(.cw-item):has(:focus-visible)::before {
+  opacity: 1;
+}
+
+/* Inventory panels (skill, resource and source cards): one visible ring on the whole card when its stretched title
+   link has keyboard focus (that link draws no outline of its own, a.card-link below). Other links inside a card,
+   such as the original-source link, keep their own focus ring. */
+.cw-item:has(.card-link:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/*
+ * ES28.3 ledger tables: the List views of Skills, Resources and Sources. Real tables (column headers, a row header per
+ * item) on every width. Below 768 px each row stacks into labelled lines: the column headers become visually hidden
+ * (still read by screen readers), and each cell shows its column name from data-label. The explicit ARIA roles in the
+ * markup keep the table semantics in browsers that drop them when a table's display changes. The visible label is
+ * given empty alternative text, so assistive technology hears the real column header once, not twice.
+ */
+@layer components {
+  .cw-ledger {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.875rem;
+  }
+  .cw-ledger th {
+    text-align: start;
+  }
+  .cw-ledger thead th {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 2px solid var(--cw-edge);
+    background: var(--cw-sunken);
+    font-size: 0.75rem;
+    font-weight: 700;
+    vertical-align: bottom;
+  }
+  .cw-ledger tbody tr {
+    border-bottom: 2px dashed var(--cw-rule);
+  }
+  .cw-ledger tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .cw-ledger tbody tr:hover {
+    background: var(--cw-sunken);
+  }
+  .cw-ledger tbody th,
+  .cw-ledger tbody td {
+    padding: 0.75rem;
+    vertical-align: top;
+    font-weight: 400;
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 47.99rem) {
+    .cw-ledger,
+    .cw-ledger tbody,
+    .cw-ledger tr,
+    .cw-ledger tbody th,
+    .cw-ledger tbody td {
+      display: block;
+    }
+    .cw-ledger thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .cw-ledger tbody tr {
+      padding: 0.75rem;
+    }
+    .cw-ledger tbody th,
+    .cw-ledger tbody td {
+      padding: 0;
+    }
+    .cw-ledger tbody td {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.375rem;
+    }
+    .cw-ledger tbody td[data-label]::before {
+      content: attr(data-label);
+      content: attr(data-label) / '';
+      flex: 0 0 7rem;
+      color: var(--cw-muted);
+    }
+  }
+}
+
+/* Main navigation: the current page carries the pointer inside the link. */
+.cw-nav a {
+  position: relative;
+}
+.cw-nav a[aria-current='page'] {
+  padding-left: 1.35rem;
+  font-weight: 700;
+  box-shadow: inset 0 -3px 0 var(--cw-signal);
+}
+.cw-nav a[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0.35rem;
+  width: 9px;
+  height: 11px;
+  margin-top: -5px;
+  background: var(--cw-pointer-img) center / 9px 11px no-repeat;
+  image-rendering: pixelated;
+}
+
+/* Glyphs sit on dark slots in the dark theme, so their outline turns light there (the Archivist keeps a dark
+   outline, which reads against the lit archive scene). */
+html.dark .cw-glyph {
+  --px-o: #c3cbe0;
+}
+
+/* Side menus inside a window (Resources categories): the row keeps its glyph column, so the pointer sits in the
+   window's padding instead of pushing the label right. */
+.cw-side a[aria-current='page'] {
+  padding-left: 0.75rem;
+}
+.cw-side a[aria-current='page']::before {
+  left: -0.4rem;
+}
+
+/* Pixel art: integer-scaled SVG, square pixels. */
+.cw-px {
+  shape-rendering: crispEdges;
+}
+/* The pixel wordmark is scaled by a whole number at every width (3× on phones, 4× from 640 px). */
+.cw-wordmark {
+  width: calc(var(--wm) * 3px);
+  max-width: 100%;
+  height: auto;
+}
+@media (min-width: 640px) {
+  .cw-wordmark {
+    width: calc(var(--wm) * 4px);
+  }
+}
+
+/* Skill tree (category map): a trunk with one branch per category. Connectors are decoration only. */
+.cw-tree {
+  margin-left: 1.1rem;
+}
+.cw-tree > li {
+  position: relative;
+  padding-left: 1.1rem;
+}
+.cw-tree > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -0.25rem;
+  bottom: -0.25rem;
+  border-left: 2px solid var(--cw-rule);
+}
+.cw-tree > li::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0.8rem;
+  border-top: 2px solid var(--cw-rule);
+}
+
+/* --------------------------------------------------------------------------------------------- motion */
+
+/* Decorative frames are hidden unless animation is on (html[data-motion="on"], set from the Animation setting and
+   the device's reduced-motion preference). With animation off every sprite shows its resting frame. */
+.cw-blink,
+.cw-glow {
+  opacity: 0;
+}
+@keyframes cw-blink {
+  0%,
+  91% {
+    opacity: 0;
+  }
+  92%,
+  95% {
+    opacity: 1;
+  }
+  96%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes cw-glow {
+  0%,
+  49% {
+    opacity: 0;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes cw-bob {
+  0%,
+  49% {
+    transform: translateY(0);
+  }
+  50%,
+  100% {
+    transform: translateY(1px);
+  }
+}
+@keyframes cw-nudge {
+  0%,
+  49% {
+    translate: 0 0;
+  }
+  50%,
+  100% {
+    translate: 2px 0;
+  }
+}
+/* ES28.2: the idle loop plays for about half a minute after the page opens and then rests on its first frame, so
+   nothing keeps moving while people read. The pointer nudges a few times when focus arrives, then stays still. */
+html[data-motion='on'] .cw-blink {
+  animation: cw-blink 5s steps(1) 6;
+}
+html[data-motion='on'] .cw-glow {
+  animation: cw-glow 1.8s steps(1) 16;
+}
+html[data-motion='on'] .cw-bob {
+  animation: cw-bob 2.6s steps(1) 12;
+}
+html[data-motion='on'] .cw-pointer:focus-visible::before,
+html[data-motion='on'] .cw-pointer:has(.card-link:focus-visible)::before,
+html[data-motion='on'] .cw-pointer:not(.cw-item):has(:focus-visible)::before {
+  animation: cw-nudge 0.9s steps(1) 4;
+}
+
+/* ------------------------------------------------------------------------------------- accessibility */
+
+/* Plain CSS on purpose: Tailwind's outline-2 utility leaves outline-style unset, which hides the ring. */
 :focus-visible {
-  @apply outline-2 outline-offset-2 outline-indigo-500;
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Skill cards show one ring on the whole card (focus-within), so the stretched link itself needs no outline. */
+a.card-link:focus-visible {
+  outline: none;
+}
+
+/*
+ * ES26 form controls: one height, padding and border for every text input and select, so search boxes and dropdowns
+ * line up. ES28: square, 2 px edge, sunken inner bevel. Selects draw exactly one chevron (the native arrow is removed
+ * with appearance: none), always at the same place, in a colour that follows the theme.
+ */
+@layer components {
+  .control {
+    @apply h-10 w-full min-w-0 px-3 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+    border: 2px solid var(--cw-edge);
+    border-radius: 0;
+    background-color: var(--cw-window);
+    color: var(--cw-ink);
+    box-shadow: inset 2px 2px 0 var(--cw-lo);
+  }
+  .control:hover {
+    border-color: var(--cw-signal);
+  }
+  select.control {
+    appearance: none;
+    padding-right: 2.25rem;
+    text-overflow: ellipsis;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%231f2638' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem 1rem;
+  }
+  html.dark select.control {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23e8ecf5' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  }
+  select.control::-ms-expand {
+    display: none;
+  }
+  /* Options inherit the theme in browsers that style the native popup. */
+  select.control option {
+    background: var(--cw-window);
+    color: var(--cw-ink);
+  }
+  /* Search fields: room for the leading icon; the browser's own clear button stays (it is useful and accessible). */
+  .control-search {
+    padding-left: 2.25rem;
+  }
 }

@@ -5,12 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <title>Ecosystem Skills</title>
+    <meta
+      name="description"
+      content="Ecosystem Skills is a read-only registry of the AI-agent skills (Claude Code, Codex) used across Fikri Marzuki's projects: where each skill came from, whether it was reviewed and approved, which project uses it, and what real agent runs have shown."
+    />
+    <meta property="og:title" content="Ecosystem Skills" />
+    <meta
+      property="og:description"
+      content="One trusted place for the skills your AI agents use: a read-only registry with review, approval and agent evidence."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#edf0f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1320" media="(prefers-color-scheme: dark)" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Skills" />
+    <link rel="icon" href="%BASE_URL%icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="%BASE_URL%icons/apple-touch-icon.png" />
+    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+    <link rel="alternate" type="text/plain" title="llms.txt" href="%BASE_URL%llms.txt" />
     <script>
       try {
         var t = localStorage.getItem('theme');
         if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches))
           document.documentElement.classList.add('dark');
       } catch (e) {}
+      // ES28 Animation setting, applied before the first paint (src/motion.tsx keeps it in sync afterwards).
+      try {
+        var m = localStorage.getItem('motion');
+        var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        document.documentElement.dataset.motion = m !== 'off' && !reduce ? 'on' : 'off';
+      } catch (e) {
+        document.documentElement.dataset.motion = 'off';
+      }
     </script>
   </head>
   <body>

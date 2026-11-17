@@ -1,0 +1,1367 @@
+[
+  {
+    "id": "gstack",
+    "name": "gstack",
+    "category": "agent-toolkits",
+    "type": "plugin-bundle",
+    "summary": "gstack turns Claude Code and other coding agents into a 'virtual engineering team' of slash-command roles (CEO review, eng manager, designer, reviewer, QA lead with a real browser, security officer, release engineer), all Markdown skills plus supporting tools.",
+    "tags": ["claude-code", "workflow", "code-review", "qa"],
+    "source": "garrytan-gstack",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "notes-recorded",
+      "concerns": [
+        "Install (README agent-paste prompt): git clone into ~/.claude/skills/gstack and run ./setup (5,258-line bash): installs Bun deps, compiles 5 local binaries, downloads Playwright Chromium, may pull digest-pinned Docker images and (Linux) sudo -n install a font",
+        "A bare ./setup registers a default-on global Stop hook in ~/.claude/settings.json (runs bundled code at every session end, every project); plan-tune hooks are a [y/N] prompt defaulting to N",
+        "README install prompt asks the agent to add a CLAUDE.md rule 'Never use mcp__claude-in-chrome__* tools' (target CLAUDE.md unspecified, may be global)",
+        "Team mode commits a CLAUDE.md STOP directive and a Skill|skill PreToolUse blocker to the repo, and auto-updates at most hourly: fetches the mutable stable branch and runs ./setup with no signature check",
+        "Update check on by default (git ls-remote, raw VERSION, compare API), asks before upgrading in solo mode; telemetry off by default (opt-in, confirmed in code); outside reviews send code to Codex/Claude by default",
+        "Browser skills drive the user's real logged-in browser (Aside); setup-browser-cookies decrypts Chrome-family cookies via the Keychain key; /pair-agent can open an ngrok tunnel to the browser daemon (consent-gated)",
+        "/setup-gbrain asks for an account-wide Supabase PAT, can create/delete projects, clones gbrain at unpinned HEAD and registers a user-scope MCP server",
+        "Large: 5,012 files"
+      ],
+      "audit": {
+        "round": "ES27",
+        "completeness": "partial",
+        "scope": "Read-only static review at the pinned revision; nothing executed. Inspected: README install/privacy sections, docs/install.md, docs/uninstall.md, package.json, setup (usage, Bun check, dependency install, font sudo path, CSO image preload, host logic, hook registration 4300-5115 in full), scripts/build.sh, bin/gstack-team-init (full), gstack-session-update, gstack-update-check, gstack-config defaults, gstack-telemetry-sync, gstack-skill-start, gstack-uninstall, gstack-gbrain-install, gstack-codex-probe, lib/claude-code.ts, browse cookie import and server bind, and a sample of the riskiest SKILL.md files (review, ship, land-and-deploy, browse, setup-browser-cookies, pair-agent, setup-gbrain). Not read (about 4,900 of 5,012 files): nearly all of lib/ and ~180 bin/ helpers (incl. the settings-hook writer, ff-update, upgrade, egress and redact libraries), the Chrome extension, CSO native code, Supabase functions, ~55 SKILL.md beyond grep, tests and bun.lock (no dependency audit).",
+        "recommendation": "reference-only",
+        "rationale": "Its value is in the skill texts, which cannot be used without the global runtime; installing it changes global Claude Code configuration (a default-on Stop hook, optional unverified auto-update in team mode, a CLAUDE.md policy rule), sends code to outside models by default and can drive the real logged-in browser. Any evaluation needs a disposable user or VM, ./setup --no-team --no-timeline-stop-hook --no-plan-tune-hooks --no-browser without the agent-paste prompt, codex_reviews disabled, update_check false, telemetry off, and a before/after diff of ~/.claude/settings.json and CLAUDE.md files. A complete review must still cover the settings-hook writer, update path, egress/redact libraries, extension and bun.lock.",
+        "issues": [
+          {
+            "severity": "high",
+            "title": "Team-mode auto-update fetches and runs unreviewed code at session start",
+            "evidence": "bin/gstack-session-update:75 THROTTLE_SECONDS=3600; :439 git fetch origin +refs/heads/stable; :577 ( cd \"$GSTACK_DIR\" && ./setup -q --refresh-registered ); setup:4424-4434 registers the global SessionStart hook; no tag or commit signature check in the update path",
+            "exposure": "Machines that ran ./setup --team (README calls it recommended): a compromised upstream branch runs code as the user within an hour, silently.",
+            "mitigation": "Do not use team mode; keep auto_upgrade=false and update manually after reviewing the diff."
+          },
+          {
+            "severity": "high",
+            "title": "Setup adds a default-on global Stop hook that runs bundled code in every session",
+            "evidence": "setup:4874ff registers timeline-stop-hook unless timeline_stop_hook=no; hosts/claude/hooks/timeline-stop-hook runs bun timeline-stop-hook.ts; docs/install.md 'registers one default-on Stop hook'",
+            "exposure": "Every Claude Code session on the machine after a bare ./setup; it runs whatever later updates place in ~/.claude/skills/gstack.",
+            "mitigation": "./setup --no-timeline-stop-hook --no-plan-tune-hooks, only in a disposable HOME; inspect ~/.claude/settings.json afterwards."
+          },
+          {
+            "severity": "medium",
+            "title": "Install prompt rewrites agent policy through CLAUDE.md",
+            "evidence": "README.md:38 and :309 'Use /browse from gstack for all web browsing. Never use mcp__claude-in-chrome__* tools.'",
+            "exposure": "The paste-to-agent install; the target CLAUDE.md is unspecified and may be the global one.",
+            "mitigation": "Never use the agent-paste install; do not add the section."
+          },
+          {
+            "severity": "medium",
+            "title": "Team 'required' mode commits a repository-wide Skill blocker and a STOP directive",
+            "evidence": "bin/gstack-team-init:79ff 'If GSTACK_MISSING: STOP. Do not proceed.'; :213 matcher 'Skill|skill' with onFailure block; README.md:47 git add .claude/ CLAUDE.md && git commit",
+            "exposure": "Shared repositories bootstrapped with team mode: collaborators without gstack have every skill blocked; git add .claude/ may commit unrelated files.",
+            "mitigation": "Do not run gstack-team-init in shared repositories."
+          },
+          {
+            "severity": "medium",
+            "title": "Outside reviews send repository content to OpenAI or Anthropic by default",
+            "evidence": "bin/gstack-config:340 codex_reviews defaults to enabled; README.md:286",
+            "exposure": "/review, /ship, /autoplan and plan reviews when Codex CLI or Claude Code is signed in.",
+            "mitigation": "gstack-config set codex_reviews disabled; never set GSTACK_CODEX_NO_SANDBOX=1 (bin/gstack-codex-probe:231-236)."
+          },
+          {
+            "severity": "medium",
+            "title": "Browser skills use the real logged-in browser and can decrypt local browser cookies",
+            "evidence": "browse/SKILL.md:149 'the user's real browser — Aside, with their real cookies and their real logged-in sessions'; browse/src/cookie-import-browser.ts:590 reads the Chrome Safe Storage Keychain key",
+            "exposure": "/browse, /qa or /design-review with Aside open; /setup-browser-cookies after a Keychain approval. Guardrails are prompt text only.",
+            "mitigation": "Use only the bundled headless browser (GSTACK_SKIP_ASIDE=1) against local targets; do not run setup-browser-cookies; deny Keychain prompts."
+          },
+          {
+            "severity": "medium",
+            "title": "/pair-agent can expose the local browser daemon to the internet through ngrok",
+            "evidence": "pair-agent/SKILL.md:263-275; browse/src/server.ts:148-158 tunnel listener",
+            "exposure": "Only after /pair-agent remote and a once-per-machine consent with ngrok configured.",
+            "mitigation": "Do not use."
+          },
+          {
+            "severity": "medium",
+            "title": "/setup-gbrain takes an account-wide Supabase token, installs unpinned code and registers a user-scope MCP server",
+            "evidence": "setup-gbrain/sections/brain-init.md:36-45; lib/gbrain-supabase-provision.ts:386 POST projects, :594 DELETE projects; bin/gstack-gbrain-install:42-44 installs default-branch HEAD, :179-183 bun install and bun link; setup-gbrain/SKILL.md:345,387 claude mcp add --scope user",
+            "exposure": "Only when /setup-gbrain path 2a is chosen; may create paid resources and ingest agent transcripts (consent-gated).",
+            "mitigation": "Skip; if ever needed use the local PGLite path and revoke any token immediately."
+          },
+          {
+            "severity": "medium",
+            "title": "Dependency pinning is best effort; some runtime downloads are unpinned",
+            "evidence": "setup:1915 bun install --frozen-lockfile || bun install --lockfile-only; browse/src/security-classifier.ts:50 huggingface.co/.../resolve/main",
+            "exposure": "When the frozen install fails, dependencies re-resolve; the classifier model comes from a mutable ref.",
+            "mitigation": "Evaluate in isolation and verify bun.lock is unchanged after setup."
+          },
+          {
+            "severity": "low",
+            "title": "Skills cannot be adopted standalone",
+            "evidence": "review/SKILL.md has 32 and ship/SKILL.md 46 references to ~/.claude/skills/gstack; every skill starts with bin/gstack-skill-start",
+            "exposure": "Copying one SKILL.md yields a degraded or failing skill.",
+            "mitigation": "Use as reference text; agents-digest/gstack-AGENTS.md is the only inert standalone file."
+          },
+          {
+            "severity": "low",
+            "title": "Uninstall leaves CLAUDE.md sections, team-mode hooks, gbrain MCP and clone, Supabase project and the Playwright cache",
+            "evidence": "docs/uninstall.md 'does not edit CLAUDE.md'; bin/gstack-uninstall:17-45 has no MCP or gbrain entries",
+            "exposure": "After removal.",
+            "mitigation": "Snapshot ~/.claude/settings.json, ~/.claude.json and CLAUDE.md files before any trial."
+          },
+          {
+            "severity": "low",
+            "title": "Linux setup may install packages through passwordless sudo",
+            "evidence": "setup:1734-1755 sudo -n apt-get install fonts-noto-color-emoji",
+            "exposure": "Linux hosts with NOPASSWD sudo only.",
+            "mitigation": "GSTACK_SKIP_FONTS=1."
+          },
+          {
+            "severity": "info",
+            "title": "Telemetry is opt-in (ES26 confirmed in code)",
+            "evidence": "bin/gstack-config:332 telemetry defaults to off; bin/gstack-telemetry-sync:50 exits when off",
+            "exposure": "Only after a consent answer other than off.",
+            "mitigation": "Answer off."
+          }
+        ],
+        "checks": [],
+        "reviewedAt": "2026-11-08",
+        "reviewer": "ES27 security audit (Claude; read-only static review, nothing executed)",
+        "revision": "d479c5bf1efed979297dc4498c60aef7b67aa639"
+      }
+    },
+    "related": {
+      "skills": [],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "claude-code-game-studios",
+    "name": "Claude Code Game Studios",
+    "category": "agent-toolkits",
+    "type": "workflow-kit",
+    "summary": "A Claude Code project template that turns a session into a game-development 'studio' of 49 specialized agents (directors, leads, specialists) with 74 slash-command skills, hooks, rules and document templates from brainstorm to launch.",
+    "tags": ["claude-code", "game-dev", "subagents", "hooks"],
+    "source": "donchitos-claude-code-game-studios",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "notes-recorded",
+      "concerns": [
+        "Project template: adopting means copying the whole .claude/ directory (hooks, permissions, 49 agents, 74 skills, 14 rules) into a project",
+        "ES27 correction: .claude/settings.json registers 15 hook commands (15 scripts, 8 events); .claude/hooks holds 18 scripts (the 15, update-check.sh sourced by session-start, the yaml-helper.sh library, and an unwired diagnostic). statusLine also runs a script automatically",
+        "update-check.sh: background GET api.github.com/repos/Donchitos/Claude-Code-Game-Studios/releases/latest at most once a day; downloads and runs nothing; only a digits-and-dots tag is accepted; writes ~/.cache/claude-code-game-studios/latest-release; off with updates.check: false",
+        "67 of 74 skills run a bundled bash/Python bootstrap (yaml-helper.sh) when invoked; skills pre-approve Bash patterns such as Bash(godot *); settings allow python -m pytest *",
+        "settings.json denies 130 patterns (rm -rf variants, force push, sudo, .env reads); prefix rules, not a sandbox"
+      ],
+      "audit": {
+        "round": "ES27",
+        "completeness": "partial",
+        "scope": "Read-only static review at the pinned revision; nothing executed. Read fully: .claude/settings.json, 14 of 15 registered hook scripts, update-check.sh, CLAUDE.md, project.yaml, LICENSE and README setup and safety sections. Control flow and every exit, write, subprocess and network site of validate-commit.sh, validate-push.sh, yaml-helper.sh and statusline.sh. Grep only: the 36 .claude/scripts helpers, all 74 SKILL.md (frontmatter and bootstrap lines extracted for all) and all 49 agents (frontmatter extracted for all). Not read: skill and agent bodies, most of .claude/docs, docs/, studio-tests/, CHANGELOG and UPGRADING.",
+        "recommendation": "reference-only",
+        "rationale": "No exfiltration, credential access or global configuration change was found in what was inspected, and the only network use is a sanitized, switchable update check. Adoption, however, auto-runs thousands of lines of hook shell and helper scripts and takes over the project's permissions and CLAUDE.md, and the review is incomplete. Use as reference and cherry-pick templates, rules and agent prompts. A whole-kit trial would need a throwaway clone with updates.check false, a full read of validate-commit.sh, yaml-helper.sh and the scripts, and narrower Bash(godot *) and pytest allows.",
+        "issues": [
+          {
+            "severity": "medium",
+            "title": "Bundled shell and Python run automatically on almost every tool call and on skill invocation",
+            "evidence": ".claude/settings.json:150-293 registers 15 hook commands (SessionStart, PreToolUse Bash|PowerShell, Write|Edit, Read, PostToolUse, Notification, PreCompact, Stop, SubagentStart, SubagentStop); 67 SKILL.md files run a !`bash \"${CLAUDE_SKILL_DIR}/../../hooks/yaml-helper.sh\" resolve_config` bootstrap",
+            "exposure": "As soon as Claude Code opens in a project containing this .claude/; upstream changes arrive with every copy or upgrade.",
+            "mitigation": "Adopt a pinned copy and diff hooks and scripts on upgrade, or remove the hooks block (keep yaml-helper.sh, which the skills call)."
+          },
+          {
+            "severity": "low",
+            "title": "Daily background update check to GitHub",
+            "evidence": ".claude/hooks/update-check.sh:45,115-116,132-148 curl/wget api.github.com/.../releases/latest; tag validated to digits and dots; cache in ~/.cache/claude-code-game-studios/latest-release",
+            "exposure": "Session start when the cache is older than a day, unless updates.check is false or CI is set; reveals IP and usage timing to GitHub.",
+            "mitigation": "Set updates: {check: false} in project.yaml or project.local.yaml."
+          },
+          {
+            "severity": "low",
+            "title": "Two hooks can block tool calls",
+            "evidence": ".claude/hooks/validate-commit.sh:570-592 (exit 2 on invalid staged data JSON); .claude/hooks/validate-read.sh:109 (exit 2 refuses a whole-file Read of large design documents)",
+            "exposure": "Commits staging data JSON without Python; reading large design files.",
+            "mitigation": "Expected behaviour; features.read_guard turns off the read guard."
+          },
+          {
+            "severity": "low",
+            "title": "Session-state file is injected into context at every session start",
+            "evidence": ".claude/hooks/session-start.sh:264-352 previews production/session-state/active.md; session-stop.sh:86 appends it to session-log.md",
+            "exposure": "Anything written to active.md (by an agent or a cloned project) becomes session context.",
+            "mitigation": "Treat active.md as instruction-grade content; review it after cloning third-party projects."
+          },
+          {
+            "severity": "low",
+            "title": "Skill and settings pre-approvals run project code without a prompt",
+            "evidence": ".claude/skills/dev-story/SKILL.md:7 Bash(godot *); .claude/settings.json:14 Bash(python -m pytest *)",
+            "exposure": "godot --script and pytest conftest.py run arbitrary project code while the skill or project is active.",
+            "mitigation": "Narrow to exact command lines or remove."
+          },
+          {
+            "severity": "low",
+            "title": "Web-sourced engine reference can enter always-loaded instructions",
+            "evidence": ".claude/skills/setup-engine/SKILL.md:3,6,71 WebSearch/WebFetch fill docs/engine-reference; CLAUDE.md:29 @-imports docs/engine-reference/godot/VERSION.md",
+            "exposure": "Running /setup-engine for an engine version newer than the model's knowledge.",
+            "mitigation": "Review generated engine-reference files before committing."
+          },
+          {
+            "severity": "info",
+            "title": "A hook reads subagent transcripts outside the project (locally)",
+            "evidence": ".claude/hooks/validate-agent-artifact.sh:61-98",
+            "exposure": "Every subagent stop; no transmission.",
+            "mitigation": "None needed."
+          }
+        ],
+        "checks": [],
+        "reviewedAt": "2026-11-08",
+        "reviewer": "ES27 security audit (Claude; read-only static review, nothing executed)",
+        "revision": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418"
+      }
+    },
+    "related": {
+      "skills": [],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "claude-animation-base",
+    "name": "ClaudeAnimationBase",
+    "category": "agent-toolkits",
+    "type": "workflow-kit",
+    "summary": "Starter kit for having Claude animate a character with p5.js and p5.brush: an instruction guide the model is pointed at, a renderer (render.mjs), a studio page and a demo scene.",
+    "tags": ["animation", "p5js", "starter-kit"],
+    "source": "claude-animation-base",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "reviewed",
+      "concerns": [
+        "Needs Node.js, an existing Chrome/Chromium driven through puppeteer-core, and ffmpeg",
+        "'Clawd' is an explicit likeness of the Claude Code mascot (ANIMATION_GUIDE.md, docs/views.jpg); the MIT licence cannot grant brand rights (ES27 confirmed)",
+        "render.mjs launches Chrome with --allow-file-access-from-files (and --no-sandbox on Linux) and the studio page loads Google Fonts, so agent-written scene code runs with file reads and network access"
+      ],
+      "audit": {
+        "round": "ES27",
+        "completeness": "complete",
+        "scope": "Read-only static review at the pinned revision; nothing executed and no npm install. Read fully: README, ANIMATION_GUIDE.md (461 lines), render.mjs, gpu_probe.mjs, studio.html, package.json, package-lock.json (every entry: hosts, integrity, install scripts), LICENSE, src/config.js and the core.js setup and render hooks; viewed docs/views.jpg. Drawing code (src/clawd.js, the rest of core.js, sheets.js, demo scene) checked by grep for dangerous browser APIs only; it changes no permissions.",
+        "recommendation": "after-remediation",
+        "rationale": "Small, readable, no hooks, no install scripts and no exfiltration path in the shipped code, so a private local evaluation is low risk. Before using it in a creative pipeline: npm ci from the lockfile, self-host or remove the Google Fonts link and render offline, drop --allow-file-access-from-files if possible, keep --no-sandbox off, and replace the Clawd character (or obtain brand clearance) before publishing anything.",
+        "issues": [
+          {
+            "severity": "medium",
+            "title": "The rendering browser runs agent-written JavaScript with local-file reads and network access",
+            "evidence": "render.mjs:64-67 '--allow-file-access-from-files' (and '--no-sandbox' on Linux); studio.html:6 loads fonts.googleapis.com; src/core.js:307 (0, eval)(v) for --crop-at",
+            "exposure": "Rendering unreviewed or prompt-injected scene code: page JavaScript could read local file URLs and send them out. On macOS the sandbox stays on.",
+            "mitigation": "Render only reviewed scene code, self-host the font and render offline, drop the file-access flag."
+          },
+          {
+            "severity": "medium",
+            "title": "The character is a likeness of the Claude Code mascot; brand rights are not settled",
+            "evidence": "ANIMATION_GUIDE.md Clawd section 'Clawd is the Claude Code mascot'; package.json:6; docs/views.jpg",
+            "exposure": "Publishing or monetising output featuring Clawd.",
+            "mitigation": "Use privately or redesign the character (the guide allows it) before publishing."
+          },
+          {
+            "severity": "low",
+            "title": "Dependency ranges are not pinned in package.json",
+            "evidence": "package.json:11-15 ^2.3.3, ^2.2.3, ^25.11.0; the lockfile pins 46 packages with integrity hashes and no install scripts",
+            "exposure": "A fresh npm install could re-resolve newer versions.",
+            "mitigation": "Use npm ci."
+          },
+          {
+            "severity": "info",
+            "title": "GPU probe disables the Chrome sandbox on every platform",
+            "evidence": "gpu_probe.mjs:6 '--no-sandbox'",
+            "exposure": "Only when run by hand; it loads about:blank.",
+            "mitigation": "None needed."
+          }
+        ],
+        "checks": [],
+        "reviewedAt": "2026-11-08",
+        "reviewer": "ES27 security audit (Claude; read-only static review, nothing executed)",
+        "revision": "0ac8bf2b31942376cb6b8c4074715595d512acd2"
+      }
+    },
+    "related": {
+      "skills": [],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "spec-kit",
+    "name": "Spec Kit",
+    "category": "agent-dev-tools",
+    "type": "spec-toolkit",
+    "summary": "Spec Kit is an open-source toolkit that gives AI coding agents structured processes (Spec-Driven Development in core, plus bug-fixing and idea-assessment extensions), reusable templates and composable extensions, presets and workflows.",
+    "tags": ["spec-driven-development", "cli", "templates"],
+    "source": "github-spec-kit",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "notes-recorded",
+      "concerns": [
+        "CLI installs/updates templates and integrations into projects and coding-agent config; extensions/workflows can run shell tasks and hooks",
+        "Community catalogs let users install third-party extensions/presets (supply-chain surface)",
+        "MCP surface is experimental and may change"
+      ],
+      "audit": {
+        "round": "ES27",
+        "completeness": "partial",
+        "scope": "Read-only static review at the pinned revision; nothing executed. About 79k lines of Python; targeted review only. Read: command_init.py (options, extension install, step list, the bundled-workflow and preset sections), _assets.py header, the Claude and Codex integrations in full, events/__init__.py (header, resolve_events, install_integration_events entry), extensions/__init__.py catalog stack and download_extension, shared_infra.verify_archive_sha256, workflows/__init__.py load_custom_steps, the shell step grep, base.py exec-arg helpers, copilot/agy permission flags, github_http.py host allowlist, templates/vscode-settings.json, templates/commands/implement.md hook section, agent-context/extension.yml, both .github/skills SKILL.md files, pyproject.toml and README install. Grep-only for scripts/ and extensions/git/scripts. NOT reviewed: presets, bundles, integrations/installer.py external-package loader, _download_security.py, the 50 other integrations, the full events dispatcher template, the uninstall/upgrade paths, the community catalog entries.",
+        "recommendation": "after-remediation",
+        "rationale": "Suitable after remediation: install a pinned tag, use `specify init --integration claude` (or codex) with no extensions or presets beyond the bundled core, keep the community catalog discovery-only, pass --events false, and review the generated .claude/skills and .specify trees before committing. The review is INCOMPLETE, covering roughly 15% of the Python; the presets, bundles, external integration loader and dispatcher template still need reading before wider use.",
+        "issues": [
+          {
+            "severity": "medium",
+            "title": "Extensions can add native auto-running agent hooks",
+            "evidence": "src/specify_cli/integrations/claude/__init__.py:66 — events_config_file = \".claude/settings.json\"; events/__init__.py:1398-1404 writes .specify/events.py (chmod 0o755)",
+            "exposure": "After `specify extension add` of an extension declaring events:, its scripts run on SessionStart, PreToolUse and similar without an explicit agent action.",
+            "mitigation": "Install only bundled or reviewed extensions; pass --events false or set integration-events.yml to disable; review .claude/settings.json diffs after any extension install."
+          },
+          {
+            "severity": "medium",
+            "title": "Third-party extension, preset and step supply chain with optional integrity",
+            "evidence": "src/specify_cli/shared_infra.py:60 — \"Entries without a declared digest are accepted unchanged\"; workflows/__init__.py:190 — spec.loader.exec_module(module)",
+            "exposure": "Installing from a non-default catalog, a URL, or SPECKIT_CATALOG_URL; running workflows with custom steps executes arbitrary Python.",
+            "mitigation": "Keep the community catalog discovery-only (the default), do not set SPECKIT_CATALOG_URL, avoid custom steps, and pin catalog URLs to a commit if extensions are needed."
+          },
+          {
+            "severity": "medium",
+            "title": "Mandatory hook instructions make the agent execute extension commands",
+            "evidence": "templates/commands/implement.md:49 — \"After emitting the block above you MUST actually invoke the hook\"",
+            "exposure": "When any installed extension registers optional:false hooks in .specify/extensions.yml.",
+            "mitigation": "Audit .specify/extensions.yml; use only the bundled core extensions."
+          },
+          {
+            "severity": "low",
+            "title": "Unpinned catalogs and no-prompt self-upgrade",
+            "evidence": "src/specify_cli/extensions/__init__.py:4445 — raw.githubusercontent.com/github/spec-kit/main/extensions/catalog.json; docs/upgrade.md:46 — \"Bare specify self upgrade executes immediately\"",
+            "exposure": "Catalog content can change between reviews; upgrade follows releases/latest.",
+            "mitigation": "Install a pinned tag (uv tool install ... @vX.Y.Z) and avoid self upgrade without review."
+          },
+          {
+            "severity": "low",
+            "title": "Copilot integration auto-approves Spec Kit scripts in VS Code",
+            "evidence": "templates/vscode-settings.json:9-12 — \"chat.tools.terminal.autoApprove\": {\".specify/scripts/bash/\": true",
+            "exposure": "Only when using --integration copilot.",
+            "mitigation": "Not relevant to Claude Code/Codex; remove the key if Copilot is used."
+          },
+          {
+            "severity": "info",
+            "title": "Repository SKILL.md files are maintainer skills",
+            "evidence": ".github/skills/code-review/SKILL.md:3; .github/skills/add-community-extension/SKILL.md:3",
+            "exposure": "None",
+            "mitigation": "Do not register them."
+          }
+        ],
+        "checks": [
+          {
+            "category": "credential-exfiltration",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "GITHUB_TOKEN/GH_TOKEN attached only to GitHub hosts (github_http.py:22-27); Azure CLI token only for Azure DevOps sources."
+          },
+          {
+            "category": "network-requests",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Catalog fetches from raw.githubusercontent.com main; GitHub releases latest for self upgrade; extension/preset downloads from catalog URLs. No telemetry found."
+          },
+          {
+            "category": "shell-execution",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "The workflow shell step uses shell=True; agent dispatch can add --yolo (Copilot default) or extra args from an env var."
+          },
+          {
+            "category": "hooks",
+            "scope": "instructions",
+            "result": "issue-found",
+            "note": "Command templates require the agent to execute mandatory (optional:false) extension hooks (implement.md:39-49)."
+          },
+          {
+            "category": "hooks",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Extensions declaring events: merge native hooks into .claude/settings.json or .codex/config.toml via the .specify/events.py dispatcher (events/__init__.py:1353-1420); plain init adds none."
+          },
+          {
+            "category": "install-scripts",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "init scaffolds from bundled wheel assets with no network (command_init.py:362-366); no post-install scripts found."
+          },
+          {
+            "category": "downloaded-binaries",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Extension and preset archives; sha256 optional (shared_infra.py:54-61); custom workflow steps are Python executed via exec_module (workflows/__init__.py:190)."
+          },
+          {
+            "category": "filesystem-writes",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Writes .specify/ and .claude/skills or .agents/skills in the project; the Copilot integration merges .vscode/settings.json; the hermes integration writes ~/.hermes/skills."
+          },
+          {
+            "category": "global-config-changes",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "No writes to ~/.claude, ~/.codex, rc files or global git config found for the Claude/Codex paths read; reads ~/.specify config. Not exhaustive."
+          },
+          {
+            "category": "hidden-dependencies",
+            "scope": "supporting-files",
+            "result": "needs-manual-review",
+            "note": "README installs specify-cli from PyPI (README.md:80); PyPI publisher identity not verified."
+          },
+          {
+            "category": "unpinned-remote-instructions",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Catalog JSON read from the main branch (extensions/__init__.py:4445-4447)."
+          },
+          {
+            "category": "tool-permissions",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Copilot integration auto-approves .specify/scripts in VS Code (vscode-settings.json:9-12); Claude skills are model-invocable by default."
+          }
+        ],
+        "reviewedAt": "2026-11-08",
+        "reviewer": "ES27 security audit (Claude; read-only static review, nothing executed)",
+        "revision": "c43849408ac0de2ca6a52f14eaae71449776057b"
+      }
+    },
+    "related": {
+      "skills": [],
+      "resources": ["spec-kit-mcp"],
+      "projects": []
+    }
+  },
+  {
+    "id": "spec-kit-mcp",
+    "name": "Spec Kit MCP (experimental)",
+    "category": "mcp-servers",
+    "type": "mcp-server",
+    "summary": "The experimental `specify mcp` command of Spec Kit’s CLI: a local, read-only MCP server that reports the Specify version, project artifacts and installed workflows.",
+    "tags": ["mcp", "spec-driven-development"],
+    "source": "github-spec-kit",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "reviewed",
+      "concerns": [
+        "Experimental surface that may change; installing it means installing the specify-cli Python tool."
+      ],
+      "audit": {
+        "round": "ES27",
+        "completeness": "complete",
+        "scope": "Read-only static review at the pinned revision; nothing executed. Read the full MCP server package, the version adapter, the artifact and workflow MCP registration and inventories, and artifacts/mcp_info.py; read docs/overview/mcp.md. artifacts/mcp_list.py, workflows/mcp_list.py, _operation_list.py, _operation_info.py and artifacts/catalog.py were scanned for writes, subprocess, network and dynamic imports rather than read line by line. The underlying ArtifactCatalog -> PresetResolver/ExtensionRegistry read paths were not traced exhaustively.",
+        "recommendation": "reference-only",
+        "rationale": "The code is clean, read-only and local, but it is only useful if Spec Kit itself is adopted. Keep it as reference-only until the spec-kit toolkit decision is made, then evaluate together with a pinned specify-cli.",
+        "issues": [
+          {
+            "severity": "low",
+            "title": "project_directory not confined to the server launch directory",
+            "evidence": "src/specify_cli/artifacts/mcp_info.py:271-275 — \"launch_directory if tool_input.project_directory is None else Path(tool_input.project_directory)\"",
+            "exposure": "An agent or prompt can enumerate Spec Kit artifact metadata (paths, descriptions) of other projects on disk.",
+            "mitigation": "Acceptable for local use; launch it from the project root, and treat returned paths as disclosure-level only."
+          },
+          {
+            "severity": "low",
+            "title": "Experimental, low-value surface",
+            "evidence": "docs/overview/mcp.md:3-5 — \"experimental. Its command inventory and tool contracts may change\"",
+            "exposure": "Tool contracts may change on upgrade.",
+            "mitigation": "Pin the specify-cli version if adopted."
+          }
+        ],
+        "checks": [
+          {
+            "category": "prompt-injection",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Tool descriptions are static and benign; results include descriptions from project and extension manifests, which can carry third-party text if community extensions are installed."
+          },
+          {
+            "category": "credential-exfiltration",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "No credential reads in the MCP paths; Azure/GitHub auth providers are only used by unregistered operations."
+          },
+          {
+            "category": "network-requests",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "No urllib/http use in the MCP modules; the inventories declare network_access 'none'; catalog-fetching operations are deliberately unregistered (workflows/_mcp.py:12-17)."
+          },
+          {
+            "category": "shell-execution",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "Only executor.py:73-83 spawns a fixed argv (sys.executable -P -m ... version --json), with no shell."
+          },
+          {
+            "category": "filesystem-writes",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "No writes in the inspected MCP paths; tools carry readOnlyHint annotations."
+          },
+          {
+            "category": "hidden-dependencies",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Requires installing the full specify-cli Python package and the mcp SDK v2 (pyproject.toml:15)."
+          },
+          {
+            "category": "tool-permissions",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "project_directory accepts any absolute path (mcp_info.py:271-275), so it can read Spec Kit metadata outside the launch directory; low impact."
+          }
+        ],
+        "reviewedAt": "2026-11-08",
+        "reviewer": "ES27 security audit (Claude; read-only static review, nothing executed)",
+        "revision": "c43849408ac0de2ca6a52f14eaae71449776057b"
+      }
+    },
+    "mcp": {
+      "deployment": "local",
+      "transport": ["stdio"],
+      "auth": "None",
+      "toolScope": "Experimental, read-only: specify_version, specify_artifact_list, specify_artifact_info, specify_workflow_list, plus generic specify_list_commands/specify_describe_command/specify_run_command limited to the 'version' command",
+      "dataAccess": "Local project directory (artifact inventory, installed workflow registry); docs state no network access"
+    },
+    "related": {
+      "skills": [],
+      "resources": ["spec-kit"],
+      "projects": []
+    }
+  },
+  {
+    "id": "antislop-contrast-mcp",
+    "name": "Anti-Slop contrast MCP",
+    "category": "mcp-servers",
+    "type": "mcp-server",
+    "summary": "A small local MCP server shipped with Anti-Slop’s Claude plugin that checks WCAG contrast between two colours.",
+    "tags": ["mcp", "accessibility", "contrast"],
+    "source": "anti-slop-unresolved",
+    "path": "skills/antislop-human",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "reviewed",
+      "concerns": [
+        "Started automatically by the upstream Claude plugin through a Node launcher that spawns whichever python3/python is on PATH."
+      ],
+      "audit": {
+        "round": "ES27",
+        "completeness": "complete",
+        "scope": "Read-only static review at the pinned revision; nothing executed. Read fully: skills/antislop-human/contrast-mcp.py, .claude-plugin/contrast-mcp-launcher.mjs, .claude-plugin/plugin.json, .claude-plugin/marketplace.json, the other plugin manifests (to confirm only Claude declares the server), SECURITY.md, ROADMAP.md (grep). Not tested: Claude Code's actual plugin start-up behaviour.",
+        "recommendation": "controlled-evaluation",
+        "rationale": "Pure local computation with no auth, network or data access. Fine for controlled evaluation if registered manually with a pinned interpreter. Not worth installing the whole plugin for.",
+        "issues": [
+          {
+            "severity": "low",
+            "title": "Starts automatically with the Claude plugin and runs whichever python is first on PATH",
+            "evidence": ".claude-plugin/plugin.json:13-19 'mcpServers: antislop-contrast: command node ... contrast-mcp-launcher.mjs'; .claude-plugin/contrast-mcp-launcher.mjs:17-19 spawnSync(bin, ['-c','']), :30 spawn(python, [server])",
+            "exposure": "Every session once the plugin is enabled. A malicious or odd interpreter earlier on PATH would be executed.",
+            "mitigation": "Don't install the plugin. Register manually with an absolute interpreter and -I, or use contrast-check.py from the skill."
+          },
+          {
+            "severity": "low",
+            "title": "Malformed hex accepted, can yield a wrong verdict",
+            "evidence": "skills/antislop-human/contrast-mcp.py:34-39 (no validation); ROADMAP.md:83 'rejects malformed hex instead of reporting a false pass' (planned v3.2.27)",
+            "exposure": "Mis-typed colour values.",
+            "mitigation": "Validate inputs, or prefer contrast-check.py (validates at :26-32)."
+          }
+        ],
+        "checks": [
+          {
+            "category": "prompt-injection",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "Tool description is plain (contrast-mcp.py:16). Results are numeric JSON plus echoed inputs."
+          },
+          {
+            "category": "credential-exfiltration",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "No env reads (plugin.json passes env {}), no network."
+          },
+          {
+            "category": "network-requests",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "Imports only json and sys."
+          },
+          {
+            "category": "shell-execution",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "The launcher spawns `python3`/`python` by PATH lookup (launcher.mjs:13-19, 30), no absolute path, no -I. Low: PATH-hijack exposure equals any PATH-resolved tool."
+          },
+          {
+            "category": "hooks",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Not a hook, but it starts automatically: the Claude plugin's mcpServers entry (plugin.json:13-19) launches node+python whenever the plugin is enabled (documented plugin behaviour, not tested)."
+          },
+          {
+            "category": "install-scripts",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "None."
+          },
+          {
+            "category": "downloaded-binaries",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "None; relies on system node and python."
+          },
+          {
+            "category": "filesystem-writes",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "None (Python may write __pycache__ only for imported modules; the main script is not cached)."
+          },
+          {
+            "category": "global-config-changes",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "None."
+          },
+          {
+            "category": "hidden-dependencies",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Needs Node (for the launcher) and Python 3 on PATH. Undeclared to the user beyond the stderr message (launcher.mjs:23-26)."
+          },
+          {
+            "category": "tool-permissions",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "One read-only computational tool."
+          }
+        ],
+        "reviewedAt": "2026-11-08",
+        "reviewer": "ES27 security audit (Claude; read-only static review, nothing executed)",
+        "revision": "9504989f162a92b1996853eccbb3d8a86e73df68"
+      }
+    },
+    "mcp": {
+      "deployment": "local",
+      "transport": ["stdio"],
+      "auth": "None",
+      "toolScope": "check_contrast: WCAG contrast ratio and AA pass/fail for two hex colors",
+      "dataAccess": "None beyond inputs (pure computation)"
+    },
+    "related": {
+      "skills": ["antislop-human", "antislop-ui"],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "appllama-mcp",
+    "name": "Appllama MCP",
+    "category": "mcp-servers",
+    "type": "mcp-server",
+    "summary": "Hosted remote MCP server giving agents access to Appllama's library of top-grossing mobile apps — apps with revenue/download context, their screens in journey order, flows, UI-element families and the user's boards.",
+    "tags": ["mcp", "mobile", "design-research"],
+    "source": "appllama-skills",
+    "license": "Proprietary hosted service (no licence published; the MIT licence of appllama-skills covers only its client configuration)",
+    "homepage": "https://appllama.io/mcp",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "notes-recorded",
+      "concerns": [
+        "Remote closed-source service; no server code to audit",
+        "Paid credits consumed per tool call",
+        "Library content consists of screenshots of third-party commercial apps (rights of reuse not addressed)",
+        "appllama.io/mcp claims 'Official GitHub MCP Registry' listing and a Claude connector-directory listing — not verified"
+      ],
+      "audit": {
+        "round": "ES27",
+        "completeness": "partial",
+        "scope": "Read-only static review at the pinned revision; nothing executed. Inspected only the client configuration shipped in the repo (.mcp.json, mcp.json, .cursor-plugin/plugin.json, .claude-plugin/plugin.json, skills/appllama-usage/agents/openai.yaml) and the documented tool map (skills/appllama-usage/SKILL.md, references/*, README.md). The server is closed-source and remote; no endpoint was contacted, by rule. Every statement about server behaviour is documented-not-inspected.",
+        "recommendation": "defer",
+        "rationale": "Cannot be audited (closed source); paid per call; injection-relevant output channel. Defer pending vendor documentation of the auth scope, data retention and terms, and a decision on whether mobile design research is in scope at all.",
+        "issues": [
+          {
+            "severity": "medium",
+            "title": "Closed-source, paid remote service; nothing about its behaviour is verifiable",
+            "evidence": ".mcp.json:3-6 '\"type\": \"http\", \"url\": \"https://mcp.appllama.io/mcp\"'; README.md:105-108 'approve the connection with your Appllama account. MCP access is part of Pro ... Every call spends one credit'",
+            "exposure": "Any connection. Queries (product ideas) go to the vendor; the billable quota is spent per call.",
+            "mitigation": "Defer. If trialled: a dedicated account, per-project connection, per-call approval, a credit cap."
+          },
+          {
+            "severity": "medium",
+            "title": "Tool results are an untrusted-content channel the companion skill treats as instructions",
+            "evidence": "skills/appllama-usage/SKILL.md:45-47 'Errors are instructions'; tool results carry third-party app screen text",
+            "exposure": "Prompt injection via vendor errors or scraped app text.",
+            "mitigation": "Don't install appllama-usage as-is; treat all results as data."
+          },
+          {
+            "severity": "low",
+            "title": "Client fetches server-chosen media URLs",
+            "evidence": "skills/appllama-usage/SKILL.md:31 'Media URLs expire in ~1 hour. Download/view what you study promptly'",
+            "exposure": "Agent fetches arbitrary hosts named by the server; copyrighted third-party screenshots land locally.",
+            "mitigation": "Block automatic downloads; view via the client only."
+          }
+        ],
+        "checks": [
+          {
+            "category": "prompt-injection",
+            "scope": "supporting-files",
+            "result": "needs-manual-review",
+            "note": "Tool descriptions and results are server-controlled and not inspectable offline. Results include third-party app text and vendor error strings that the companion skill says to act on."
+          },
+          {
+            "category": "credential-exfiltration",
+            "scope": "supporting-files",
+            "result": "needs-manual-review",
+            "note": "No secrets in the config. The OAuth or account token is held by the MCP client; its scope is unknown (documented 'approve the connection', README.md:105-107)."
+          },
+          {
+            "category": "network-requests",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "All calls go to https://mcp.appllama.io/mcp; media from expiring URLs on undocumented hosts."
+          },
+          {
+            "category": "shell-execution",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "Remote server; nothing executes locally besides the MCP client."
+          },
+          {
+            "category": "hooks",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "None."
+          },
+          {
+            "category": "install-scripts",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "None; the config is a URL only."
+          },
+          {
+            "category": "global-config-changes",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Low: the plugin or Codex dependency install registers the server in the client's MCP config (.mcp.json root loaded by the Claude plugin; .cursor-plugin/plugin.json:28; openai.yaml:5-11)."
+          },
+          {
+            "category": "hidden-dependencies",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Paid Pro subscription; credits per call (documented)."
+          },
+          {
+            "category": "unpinned-remote-instructions",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Server tools, descriptions and behaviour are versionless and can change at any time."
+          },
+          {
+            "category": "tool-permissions",
+            "scope": "supporting-files",
+            "result": "needs-manual-review",
+            "note": "12 documented tools, all read-type; list_my_boards/get_board expose the member's private boards. No write tools documented."
+          }
+        ],
+        "reviewedAt": "2026-11-08",
+        "reviewer": "ES27 security audit (Claude; read-only static review, nothing executed)",
+        "revision": "dd5caaec3d5d50ad7fc0324da238119c6b7c3707"
+      }
+    },
+    "mcp": {
+      "deployment": "remote",
+      "transport": ["http"],
+      "auth": "Appllama account approval when adding the connector (README: 'approve the connection with your Appllama account'; exact mechanism, presumably OAuth, not verified); requires Pro plan, 1,500 credits/month, 1 credit per call except get_credits",
+      "toolScope": "get_credits, search_apps, get_app, list_app_screens, search_screens, get_screen, list_flows, get_flow_apps, list_ui_elements, get_element_screens, list_my_boards, get_board (per appllama-usage SKILL.md tool map)",
+      "dataAccess": "Appllama's hosted app/screen database and the member's own appllama.io boards; returns expiring media URLs",
+      "officialEndpoint": "https://mcp.appllama.io/mcp"
+    },
+    "related": {
+      "skills": ["appllama-usage", "appllama-app-design-skill"],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "hyperframes-mcp-connector",
+    "name": "HyperFrames MCP connector (beta)",
+    "category": "mcp-servers",
+    "type": "mcp-server",
+    "summary": "HeyGen’s hosted MCP connector for creating and rendering HyperFrames videos from an agent. Documented in the HyperFrames repository; the server code is not public.",
+    "tags": ["mcp", "video", "heygen"],
+    "source": "heygen-hyperframes",
+    "license": "Proprietary hosted service (server code not published; Apache-2.0 covers the HyperFrames repository only)",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "notes-recorded",
+      "concerns": [
+        "Hosted beta service: compositions are sent to and rendered on HeyGen’s infrastructure under a HeyGen account.",
+        "The exact tool list depends on the deployed server and is not documented."
+      ],
+      "audit": {
+        "round": "ES27",
+        "completeness": "partial",
+        "scope": "Read-only static review at the pinned revision; nothing executed. Inspected server.json, docs/guides/mcp.mdx (complete), the relevant docs/faq.mdx sections, every plugin manifest (plugin.json, .claude-plugin/plugin.json + marketplace.json, .codex-plugin/plugin.json, gemini-extension.json), and the repo-wide grep hits for mcp.heygen / mcpServers / connector / .mcp.json. The server is closed and hosted: tools, tool descriptions, OAuth scopes, data retention and pricing could not be inspected, only what the docs say.",
+        "recommendation": "defer",
+        "rationale": "Defer pending more evidence: the tool list, OAuth scopes, data retention and credit costs are undocumented, and the service is beta. The local CLI path covers the use case. Revisit if HeyGen publishes the tool inventory and the terms.",
+        "issues": [
+          {
+            "severity": "medium",
+            "title": "Closed hosted beta service with an undocumented tool surface",
+            "evidence": "docs/guides/mcp.mdx:135 — \"The exact tool list and result presentation depend on the deployed server and the chat host.\"",
+            "exposure": "Any use; the tools can change server-side without a repo change.",
+            "mitigation": "Use only after listing the tools in the host UI and confirming they are create/render-only; review the OAuth consent screen."
+          },
+          {
+            "severity": "medium",
+            "title": "Content and billing go to the HeyGen account",
+            "evidence": "docs/guides/mcp.mdx:125-130 — \"The connector renders on hosted infrastructure ... Plans, limits, and billing can change\"",
+            "exposure": "Every create/render call; possible credit consumption and third-party storage of compositions and assets.",
+            "mitigation": "Use a dedicated HeyGen account and do not send private material (the docs warn the same at mcp.mdx:156-160). Prefer the local CLI path for anything sensitive."
+          },
+          {
+            "severity": "info",
+            "title": "Not wired by the HyperFrames plugin",
+            "evidence": "server.json:12-16 (registry listing only); no .mcp.json in the repo; .claude-plugin/plugin.json has no mcpServers",
+            "exposure": "None: installing the skills or plugin does not connect it.",
+            "mitigation": "None needed."
+          }
+        ],
+        "checks": [
+          {
+            "category": "prompt-injection",
+            "scope": "supporting-files",
+            "result": "not-evaluated",
+            "note": "Tool descriptions and results are served by the closed HeyGen server; nothing in the repo to inspect."
+          },
+          {
+            "category": "credential-exfiltration",
+            "scope": "supporting-files",
+            "result": "not-evaluated",
+            "note": "OAuth runs between the chat host and HeyGen; scopes are not documented."
+          },
+          {
+            "category": "network-requests",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Remote endpoint https://mcp.heygen.com/mcp/hyperframes/ (server.json:15); all compositions and prompts given to tools go to HeyGen."
+          },
+          {
+            "category": "hooks",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "The connector is not wired by any plugin manifest; nothing is installed locally."
+          },
+          {
+            "category": "global-config-changes",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "Added through the chat product's connector UI; no local config is written."
+          },
+          {
+            "category": "tool-permissions",
+            "scope": "supporting-files",
+            "result": "not-evaluated",
+            "note": "Tool list not enumerated (mcp.mdx:135); render actions consume plan or credits (mcp.mdx:128-130)."
+          }
+        ],
+        "reviewedAt": "2026-11-08",
+        "reviewer": "ES27 security audit (Claude; read-only static review, nothing executed)",
+        "revision": "4e2a1c215a42c6d262b8c635df9d5edff80e8830"
+      }
+    },
+    "mcp": {
+      "deployment": "remote",
+      "transport": ["http"],
+      "auth": "OAuth sign-in to a HeyGen account; plan/credit requirements may apply (beta)",
+      "toolScope": "Hosted creation and rendering tools; docs say the exact tool list depends on the deployed server (not enumerated)",
+      "dataAccess": "HeyGen account and HeyGen cloud rendering infrastructure",
+      "officialEndpoint": "https://mcp.heygen.com/mcp/hyperframes/"
+    },
+    "related": {
+      "skills": [
+        "hyperframes",
+        "hyperframes-cli",
+        "hyperframes-media-use",
+        "remotion-to-hyperframes"
+      ],
+      "resources": ["hyperframes-framework"],
+      "projects": []
+    }
+  },
+  {
+    "id": "hyperframes-framework",
+    "name": "HyperFrames",
+    "category": "agent-dev-tools",
+    "type": "framework",
+    "summary": "HyperFrames is an open-source framework for turning HTML, CSS, media and seekable animations into deterministic MP4 videos, usable via CLI, from AI coding agents with skills, or as a rendering core behind hosted authoring.",
+    "tags": ["video", "html-to-video", "rendering"],
+    "source": "heygen-hyperframes",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "notes-recorded",
+      "concerns": [
+        "CLI telemetry is ON by default (ES27 verified: packages/cli/src/telemetry/config.ts telemetryEnabled: true; links email after sign-in); opt out with HYPERFRAMES_NO_TELEMETRY=1 and DO_NOT_TRACK=1",
+        "Desktop app downloads (Studio) offered from hyperframes.studio — binaries not audited",
+        "New skills reverse-any-video and style-sampling (copy/replicate existing videos and styles) — content-rights considerations",
+        "Very large monorepo (9,879 files at HEAD)"
+      ],
+      "audit": {
+        "round": "ES27",
+        "completeness": "partial",
+        "scope": "Read-only static review at the pinned revision; nothing executed. Targeted review only: telemetry/policy.ts, posthogKey.ts, index.ts, client.ts and signedInUser.ts in full; key parts of telemetry/config.ts (defaults, interface, corrupt-config path), transport.ts (host and fetch), events.ts (event list, error and identify paths), auth/telemetryIdentity.ts, media-use/lib/telemetry.mjs (head and opt-out), core telemetryRedaction.ts (replace chain only), utils/autoUpdate.ts (header and guards), commands/skills.ts:25-200, commands/init.ts keepSkillsCurrent, the repo .claude/settings.json and .codex/hooks.json. NOT reviewed: the rest of the ~9,450-file monorepo (renderer, studio, studio-server, browser telemetry, Docker/Lambda/Cloud Run deploy, desktop Studio binaries, auth credential storage, the skills themselves).",
+        "recommendation": "after-remediation",
+        "rationale": "Suitable after remediation: pin the CLI version, disable telemetry with HYPERFRAMES_NO_TELEMETRY=1 and DO_NOT_TRACK=1, always use --skip-skills, and disable auto-update. Review remains INCOMPLETE for the renderer, Studio and the browser telemetry.",
+        "issues": [
+          {
+            "severity": "medium",
+            "title": "CLI telemetry is opt-out (on by default) and links email after sign-in",
+            "evidence": "packages/cli/src/telemetry/config.ts:622-623 — \"telemetryEnabled: true\"; auth/telemetryIdentity.ts:33 — \"if (email) traits.email = email\"",
+            "exposure": "Any CLI run without HYPERFRAMES_NO_TELEMETRY/DO_NOT_TRACK; the notice shows once on stderr, often only to the agent.",
+            "mitigation": "Set HYPERFRAMES_NO_TELEMETRY=1 and DO_NOT_TRACK=1 (the value 1, see next finding) in the environment, and run `hyperframes telemetry disable` once."
+          },
+          {
+            "severity": "low",
+            "title": "media-use telemetry opt-out accepts only the value '1'",
+            "evidence": "packages/cli/src/media-use/lib/telemetry.mjs:44-45 — process.env.HYPERFRAMES_NO_TELEMETRY === \"1\" || process.env.DO_NOT_TRACK === \"1\"; contrast policy.ts:16 accepting 1/true/yes/on",
+            "exposure": "A user who sets DO_NOT_TRACK=true is still tracked by the media-use scripts unless the shared config is disabled.",
+            "mitigation": "Use the value 1 and also run `telemetry disable` (shared config is honoured)."
+          },
+          {
+            "severity": "high",
+            "title": "init installs unpinned skills globally into ~/.claude/skills and other agents' dirs",
+            "evidence": "packages/cli/src/commands/skills.ts:112-120 — \"--global\", \"--agent\", \"claude-code\", \"universal\", \"--copy\", \"--full-depth\", \"--yes\"; init.ts:1201-1202 keepSkillsCurrent(destDir)",
+            "exposure": "Default `hyperframes init` with git and npx present: global agent config is mutated with whatever is on main at that moment, bypassing the registry's pinned review.",
+            "mitigation": "Always pass --skip-skills (or set HYPERFRAMES_SKIP_SKILLS=1). Install reviewed skills project-locally from the pinned revision."
+          },
+          {
+            "severity": "medium",
+            "title": "Silent background self-update",
+            "evidence": "packages/cli/src/utils/autoUpdate.ts:6-8 — \"spawn detached installer child, write pendingUpdate marker\"",
+            "exposure": "Attended TTY runs of a globally installed CLI.",
+            "mitigation": "Set HYPERFRAMES_NO_UPDATE_CHECK=1 / HYPERFRAMES_NO_AUTO_INSTALL=1 and pin the version in the project's package.json."
+          }
+        ],
+        "checks": [
+          {
+            "category": "credential-exfiltration",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "Telemetry reads only the username from the credential file (signedInUser.ts:6-13); no API key or OAuth token is placed in events in the code read. Error text is regex-redacted (best-effort)."
+          },
+          {
+            "category": "network-requests",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Default-on PostHog telemetry (config.ts:623, transport.ts:10); npm registry update checks; GitHub clone of skills on init."
+          },
+          {
+            "category": "hooks",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "The repo .claude/settings.json and .codex/hooks.json hooks apply only inside the hyperframes repo; plugin manifests ship no hooks (Codex plugin loading of .codex/ not verified)."
+          },
+          {
+            "category": "install-scripts",
+            "scope": "supporting-files",
+            "result": "needs-manual-review",
+            "note": "npm package install scripts not reviewed."
+          },
+          {
+            "category": "downloaded-binaries",
+            "scope": "supporting-files",
+            "result": "needs-manual-review",
+            "note": "Silent self-update via a detached installer (autoUpdate.ts); Studio desktop binaries not audited."
+          },
+          {
+            "category": "global-config-changes",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "init installs skills globally into ~/.claude/skills and ~/.agents/skills and mirrors them to other agents' global dirs (skills.ts:98-120,156-185); it also writes ~/.hyperframes/config.json and auto-update.log."
+          },
+          {
+            "category": "unpinned-remote-instructions",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Skills cloned from heygen-com/hyperframes latest main with --yes (skills.ts:148-154); the npx skills CLI is unpinned."
+          }
+        ],
+        "reviewedAt": "2026-11-08",
+        "reviewer": "ES27 security audit (Claude; read-only static review, nothing executed)",
+        "revision": "4e2a1c215a42c6d262b8c635df9d5edff80e8830"
+      }
+    },
+    "related": {
+      "skills": [
+        "hyperframes",
+        "hyperframes-cli",
+        "hyperframes-media-use",
+        "remotion-to-hyperframes"
+      ],
+      "resources": ["hyperframes-mcp-connector"],
+      "projects": []
+    }
+  },
+  {
+    "id": "google-developer-knowledge-mcp",
+    "name": "Google Developer Knowledge MCP",
+    "category": "mcp-servers",
+    "type": "mcp-server",
+    "summary": "Google’s remote MCP endpoint for its developer documentation, wired by the google-cloud-developer plugin in the google/skills repository.",
+    "tags": ["mcp", "google", "documentation"],
+    "source": "google-skills",
+    "license": "Proprietary Google service (Apache-2.0 covers only the plugin configuration in google/skills)",
+    "path": "plugins/cloud/google-cloud-developer",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "notes-recorded",
+      "concerns": ["Remote Google service; requires a DEVELOPERKNOWLEDGE_API_KEY."],
+      "audit": {
+        "round": "ES27",
+        "completeness": "partial",
+        "scope": "Read-only static review at the pinned revision; nothing executed. Read every config file of plugins/cloud/google-cloud-developer (.mcp.json, mcp.json, mcp_config.json, gemini-extension.json, com.google.antigravity/mcp_config.json, plugin.json, .claude-plugin/plugin.json, .codex-plugin/plugin.json + README, .antigravity-plugin/README.md, README.md, rules/google-cloud-discovery.md), the retrieving-developer-knowledge skill and all its references, finding-google-skills/SKILL.md, the first 60 lines of gcloud/references/mcp-usage.md, root marketplace.json and .gitmodules. Did NOT read in full: gcloud, google-cloud-recipe-auth and google-cloud-recipe-onboarding SKILL.md. The server is remote and closed: tool list and descriptions are documented, not inspected. 16 submodule plugins are absent from the tarball and were not reviewed.",
+        "recommendation": "after-remediation",
+        "rationale": "Suitable for controlled evaluation as a standalone, read-only documentation MCP. Configure it manually with a restricted key in a header and project scope. Do not install the whole plugin or marketplace (unpinned remote skill fetching, an always-on routing rule, unreviewed submodules). Needs confirmation of the live tool list and of a free quota before adoption.",
+        "issues": [
+          {
+            "severity": "medium",
+            "title": "REST fallback sends the API key in the URL query and uses broad OAuth tokens",
+            "evidence": "plugins/cloud/google-cloud-developer/skills/retrieving-developer-knowledge/SKILL.md:80 — \"v1:answerQuery?key=${DEVELOPERKNOWLEDGE_API_KEY}\"; SKILL.md:56 — \"Authorization: Bearer $(gcloud auth print-access-token)\"",
+            "exposure": "Whenever the MCP tools are absent (the skill says some clients cannot complete the handshake) and the agent runs curl.",
+            "mitigation": "Use only the MCP path. If the fallback is needed, require the X-Goog-Api-Key header form, and do not let the agent mint gcloud tokens for documentation lookups."
+          },
+          {
+            "severity": "medium",
+            "title": "Closed remote service; queries leave the machine",
+            "evidence": "plugins/cloud/google-cloud-developer/.mcp.json:6 — \"url\": \"https://developerknowledge.googleapis.com/mcp\"",
+            "exposure": "Every documentation question, which may include project details the agent puts in the query, is sent to Google under the user's GCP project and quota.",
+            "mitigation": "Use a dedicated GCP project and an API key restricted to developerknowledge.googleapis.com. Do not put proprietary code in queries."
+          },
+          {
+            "severity": "medium",
+            "title": "Bundled skill follows unpinned remote SKILL.md text",
+            "evidence": "plugins/cloud/google-cloud-developer/skills/finding-google-skills/SKILL.md:75-77 — \"Retrieve the entrypoint URL of each shortlisted entry ... and follow that skill's instructions\"",
+            "exposure": "Any session where the plugin is installed and a Google product comes up; the routing rule is always_on (rules/google-cloud-discovery.md:2).",
+            "mitigation": "If you adopt the MCP, take only the .mcp.json server entry, not the whole plugin, or disable finding-google-skills."
+          },
+          {
+            "severity": "low",
+            "title": "Claude Code transport type string may not match",
+            "evidence": "plugins/cloud/google-cloud-developer/.mcp.json:5 — \"type\": \"streamable-http\"",
+            "exposure": "Claude Code documents \"http\" for remote servers; whether \"streamable-http\" is accepted was not verified. The skill itself expects handshake failures (SKILL.md:29).",
+            "mitigation": "When configuring manually use type \"http\" and the same header."
+          },
+          {
+            "severity": "low",
+            "title": "Usage-attribution tagging",
+            "evidence": "plugins/cloud/google-cloud-developer/skills/retrieving-developer-knowledge/references/attribution.md:7-30; .mcp.json:9 X-Goog-Api-Client",
+            "exposure": "Always; identifies the skill/plugin only (documented), with a user opt-out.",
+            "mitigation": "Ask the agent to omit it if unwanted; remove the header from a manual config."
+          },
+          {
+            "severity": "info",
+            "title": "16 submodule plugins not reviewed",
+            "evidence": ".gitmodules — 16 submodules under plugins/cloud/data-cloud/, all empty in the tarball",
+            "exposure": "Installing the google-plugins marketplace exposes them.",
+            "mitigation": "Treat them as unreviewed; do not add the whole marketplace."
+          }
+        ],
+        "checks": [
+          {
+            "category": "prompt-injection",
+            "scope": "supporting-files",
+            "result": "needs-manual-review",
+            "note": "Tool descriptions and results come from a closed Google server and cannot be inspected; results are documentation chunks injected into context, and api-fallback.md:122 tells the agent to treat them as '100% authoritative'."
+          },
+          {
+            "category": "credential-exfiltration",
+            "scope": "instructions",
+            "result": "issue-found",
+            "note": "REST fallback puts the API key in the URL query (SKILL.md:80,87,91,99), exposing it in process listings and in any logged URL; it also uses gcloud OAuth bearer tokens (SKILL.md:56) and looks for GOOGLE_API_KEY (api-fallback.md:23)."
+          },
+          {
+            "category": "credential-exfiltration",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": ".mcp.json:8 sends the key only as an X-Goog-Api-Key header to developerknowledge.googleapis.com; no other destination is configured."
+          },
+          {
+            "category": "network-requests",
+            "scope": "instructions",
+            "result": "issue-found",
+            "note": "finding-google-skills fetches index.json and SKILL.md files from raw.githubusercontent.com/google/skills/main and api.github.com at runtime."
+          },
+          {
+            "category": "network-requests",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "Remote HTTPS MCP at developerknowledge.googleapis.com; every query goes to Google with an attribution header (.mcp.json:9)."
+          },
+          {
+            "category": "hooks",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "The plugin has no hooks directory or hooks declaration."
+          },
+          {
+            "category": "install-scripts",
+            "scope": "supporting-files",
+            "result": "no-issue-found",
+            "note": "No scripts or bundled code in the plugin."
+          },
+          {
+            "category": "global-config-changes",
+            "scope": "instructions",
+            "result": "issue-found",
+            "note": "Docs ask the user to edit ~/.codex/config.toml (.codex-plugin/README.md:27) and optionally add the key export to .bashrc/.zshrc (README.md:55-58). These are user actions; the plugin does not write them itself."
+          },
+          {
+            "category": "hidden-dependencies",
+            "scope": "supporting-files",
+            "result": "issue-found",
+            "note": "16 marketplace plugins are git submodules pinned by tag (marketplace.json) and absent from the tarball; not reviewed."
+          },
+          {
+            "category": "unpinned-remote-instructions",
+            "scope": "instructions",
+            "result": "issue-found",
+            "note": "finding-google-skills/SKILL.md:26-28,75-77: fetched SKILL.md text from the main branch is followed for the request; it is not pinned and not part of the reviewed revision."
+          },
+          {
+            "category": "tool-permissions",
+            "scope": "supporting-files",
+            "result": "needs-manual-review",
+            "note": "The tool list is server-defined; no readOnly annotations could be checked. The Gemini/Antigravity configs attach ADC (cloud-platform scope) instead of a key."
+          }
+        ],
+        "reviewedAt": "2026-11-08",
+        "reviewer": "ES27 security audit (Claude; read-only static review, nothing executed)",
+        "revision": "2194d3b8b1f31975fef2f1a0ae6b9ab55bd7ceee"
+      }
+    },
+    "mcp": {
+      "deployment": "remote",
+      "transport": ["http"],
+      "auth": "API key (DEVELOPERKNOWLEDGE_API_KEY)",
+      "toolScope": "Not enumerated in the plugin configuration (documentation search and retrieval).",
+      "dataAccess": "Google developer documentation; queries are sent to Google.",
+      "officialEndpoint": "https://developerknowledge.googleapis.com/mcp"
+    },
+    "related": {
+      "skills": [],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "agent-skills-standard",
+    "name": "Agent Skills standard",
+    "category": "agent-references",
+    "type": "standard",
+    "summary": "The open Agent Skills format (SKILL.md folders) that the skills in this registry follow.",
+    "tags": ["standard", "skill-md"],
+    "source": "agentskills-standard",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "not-reviewed",
+      "concerns": []
+    },
+    "related": {
+      "skills": [],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "playcanvas-engine",
+    "name": "PlayCanvas Engine",
+    "category": "developer-resources",
+    "type": "engine",
+    "summary": "PlayCanvas is an open-source game engine built on WebGL2 and WebGPU for interactive 3D apps, games and visualizations in the browser.",
+    "tags": ["game-engine", "webgl", "webgpu", "3d"],
+    "source": "playcanvas-engine",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "not-reviewed",
+      "concerns": []
+    },
+    "related": {
+      "skills": [],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "cannon-es",
+    "name": "cannon-es",
+    "category": "developer-resources",
+    "type": "library",
+    "summary": "cannon-es is a maintained, type-safe ESM/CJS fork of the cannon.js lightweight 3D physics engine for JavaScript.",
+    "tags": ["physics", "3d", "javascript"],
+    "source": "pmndrs-cannon-es",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "notes-recorded",
+      "concerns": ["Low maintenance activity: last commit 2024-01-06 (not archived)."]
+    },
+    "related": {
+      "skills": [],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "sverchok",
+    "name": "Sverchok",
+    "category": "developer-resources",
+    "type": "creative-tool",
+    "summary": "Sverchok is a Blender add-on for parametric, node-based visual programming of geometry, aimed at architects and designers.",
+    "tags": ["blender", "parametric", "node-editor"],
+    "source": "nortikin-sverchok",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "notes-recorded",
+      "concerns": [
+        "Blender add-on that runs Python inside Blender; some optional nodes need extra Python libraries."
+      ]
+    },
+    "related": {
+      "skills": [],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "effekseer",
+    "name": "Effekseer",
+    "category": "developer-resources",
+    "type": "creative-tool",
+    "summary": "Effekseer is a particle-effect editing tool for games; runtimes and plug-ins play back the created effects in applications.",
+    "tags": ["particles", "vfx", "game-dev"],
+    "source": "effekseer",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "not-reviewed",
+      "concerns": []
+    },
+    "related": {
+      "skills": [],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "twigl",
+    "name": "twigl",
+    "category": "developer-resources",
+    "type": "creative-tool",
+    "summary": "twigl.app is an online editor for one-tweet GLSL shaders, with GIF/WebM/image export, sound shaders and live-coding broadcast.",
+    "tags": ["glsl", "shader", "creative-coding"],
+    "source": "doxas-twigl",
+    "homepage": "https://twigl.app",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "not-reviewed",
+      "concerns": []
+    },
+    "related": {
+      "skills": [],
+      "resources": [],
+      "projects": []
+    }
+  },
+  {
+    "id": "google-maps-scraper",
+    "name": "Google Maps Scraper",
+    "category": "developer-resources",
+    "type": "cli-tool",
+    "summary": "Free open-source Go scraper (CLI, Web UI, REST API, optional self-hosted platform) that extracts Google Maps business data — names, emails, phones, websites, reviews, ratings, coordinates — for lead generation; ships an agent skill that runs it locally in Docker.",
+    "tags": ["scraping", "go", "docker"],
+    "source": "gosom-google-maps-scraper",
+    "discovery": {
+      "status": "verified",
+      "discoveredAt": "2026-11-08",
+      "lastVerified": "2026-11-08"
+    },
+    "security": {
+      "status": "notes-recorded",
+      "concerns": [
+        "Scrapes Google Maps — README itself warns unauthorized scraping may violate terms of service; collects personal/business contact data (emails, phones)",
+        "Telemetry ON by default (PostHog client in tlmt/goposthog; opt out with DISABLE_TELEMETRY=1)",
+        "Skill's ensure-latest.sh runs `npx --yes skills update google-maps-scraper` (self-updates the skill from the network) and pulls the latest Docker image",
+        "Proxy setup flow presents paid proxy sponsors; README heavy with sponsored links",
+        "Integrates with third-party LeadsDB via API key (optional)"
+      ]
+    },
+    "related": {
+      "skills": [],
+      "resources": [],
+      "projects": []
+    }
+  }
+]

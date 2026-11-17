@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   classifyInvocation,
+  discoveryResult,
   judgeBehavior,
   parseClaudeTrace,
   parseCodexTrace,
@@ -65,6 +66,26 @@ describe('invocation is decided from load evidence only', () => {
   it('a load in a control run is flagged as contamination, never as an invocation', () => {
     const t = parseCodexTrace(jl(codexCmd('cat .agents/skills/grilling/SKILL.md'), codexMsg('x')));
     expect(classifyInvocation(t, 'grilling', false)).toBe('uncertain');
+  });
+});
+
+describe('discovery is never assumed', () => {
+  it('Codex: only a load demonstrates discovery', () => {
+    expect(discoveryResult('codex', [{ invoked: 'not-invoked' }, { invoked: 'not-invoked' }])).toBe(
+      'not-tested',
+    );
+    expect(discoveryResult('codex', [{ invoked: 'invoked' }, { invoked: 'not-invoked' }])).toBe(
+      'pass',
+    );
+  });
+  it('Claude: the session listing decides', () => {
+    expect(
+      discoveryResult('claude-code', [{ discoveredByAgent: true, invoked: 'not-invoked' }]),
+    ).toBe('pass');
+    expect(
+      discoveryResult('claude-code', [{ discoveredByAgent: false, invoked: 'not-invoked' }]),
+    ).toBe('fail');
+    expect(discoveryResult('claude-code', [{ invoked: 'not-invoked' }])).toBe('not-tested');
   });
 });
 

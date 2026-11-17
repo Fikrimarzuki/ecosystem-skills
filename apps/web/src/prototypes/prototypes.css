@@ -1,0 +1,148 @@
+/*
+ * Concept B, Archive Overworld: development reference only (not selected in ES28.5). Loaded with the lazy prototype
+ * chunk, never by the published site. It reuses the landing stage and styles (landing/landing.css) and adds the map's
+ * own colours here.
+ */
+.lp-root {
+  /* overworld */
+  --lp-grass: #8cc56a;
+  --lp-grass2: #74ad57;
+  --lp-grass3: #a4d47f;
+  --lp-flower1: #ffffff;
+  --lp-flower2: #f0c040;
+  --lp-path: #dcc08a;
+  --lp-path2: #bf9f66;
+  --lp-shore: #c9b27a;
+  --lp-water: #4fa7d8;
+  --lp-water2: #d6f1ff;
+  --lp-water3: #3b8cc0;
+  --lp-leaf: #4f9a46;
+  --lp-leaf2: #3a7a36;
+  --lp-leafHi: #78bf5a;
+  --lp-roofB: #3f5a8c;
+  --lp-roofB2: #2c4268;
+  --lp-roofBHi: #6b86b8;
+  --lp-roofR: #a5533b;
+  --lp-roofR2: #7a3a28;
+  --lp-roofRHi: #c97a5a;
+  --lp-roofT: #3d5566;
+  --lp-roofT2: #2c3f4d;
+  --lp-roofTHi: #5d7a8c;
+  --lp-roofG: #2f7a5a;
+  --lp-roofG2: #22583f;
+  --lp-roofGHi: #4f9a78;
+  --lp-column: #f1ede2;
+  --lp-winDay: #a9d8ef;
+  --lp-winHi: #e8f6fb;
+  --lp-winLit: #ffd36b;
+  --lp-plank: #b07a45;
+  --lp-plank2: #8a5d33;
+  --lp-forgeIn: #3a2418;
+  --lp-forge: #e05a2a;
+  --lp-smoke: #eef0f4;
+  --lp-cobble: #c9c3b6;
+  --lp-cobble2: #a9a294;
+  --lp-plaster: #efe6d2;
+}
+html.dark .lp-root {
+  --lp-grass: #2e4a3b;
+  --lp-grass2: #263f32;
+  --lp-grass3: #36553f;
+  --lp-flower1: #c9d0dc;
+  --lp-flower2: #b89a3a;
+  --lp-path: #6b5a44;
+  --lp-path2: #54463a;
+  --lp-shore: #4e4636;
+  --lp-water: #1d3c5c;
+  --lp-water2: #6b9ac9;
+  --lp-water3: #16304a;
+  --lp-leaf: #24493a;
+  --lp-leaf2: #1b3a2e;
+  --lp-leafHi: #2f5e48;
+  --lp-roofB: #2a3d63;
+  --lp-roofB2: #1d2b48;
+  --lp-roofBHi: #3f5a8c;
+  --lp-roofR: #6e3527;
+  --lp-roofR2: #4e241a;
+  --lp-roofRHi: #8a4a36;
+  --lp-roofT: #2a3a48;
+  --lp-roofT2: #1d2933;
+  --lp-roofTHi: #3d5566;
+  --lp-roofG: #1f5240;
+  --lp-roofG2: #153a2d;
+  --lp-roofGHi: #2f6e56;
+  --lp-column: #9aa0b0;
+  --lp-winDay: #14204a;
+  --lp-winHi: #1d2c5e;
+  --lp-plank: #6b4a32;
+  --lp-plank2: #4e3423;
+  --lp-forgeIn: #1c120c;
+  --lp-forge: #ff6a2a;
+  --lp-smoke: #8a93a6;
+  --lp-cobble: #5a5866;
+  --lp-cobble2: #474552;
+  --lp-plaster: #8a8576;
+}
+.lp-b .lp-canvas {
+  background: var(--lp-grass);
+}
+/* On the map, daylight needs no lamps. */
+html:not(.dark) .lp-b .lp-halo {
+  opacity: 0;
+}
+/* The Archivist walks a few stepped paces towards the chosen place, and back (SVG user units; no React state). */
+.lp-b .lp-canvas.lp-wide:has(.lp-spot[data-spot='skills']:is(:hover, :focus-visible)) .lp-walker {
+  transform: translate(-6px, -26px);
+}
+.lp-b .lp-canvas.lp-wide:has(.lp-spot[data-spot='sources']:is(:hover, :focus-visible)) .lp-walker {
+  transform: translate(56px, -12px);
+}
+.lp-b
+  .lp-canvas.lp-wide:has(.lp-spot[data-spot='resources']:is(:hover, :focus-visible))
+  .lp-walker {
+  transform: translate(-60px, 26px);
+}
+.lp-b
+  .lp-canvas.lp-wide:has(.lp-spot[data-spot='ecosystem']:is(:hover, :focus-visible))
+  .lp-walker {
+  transform: translate(58px, 34px);
+}
+.lp-b .lp-canvas.lp-phone:has(.lp-spot[data-spot='skills']:is(:hover, :focus-visible)) .lp-walker {
+  transform: translate(-30px, -48px);
+}
+.lp-b .lp-canvas.lp-phone:has(.lp-spot[data-spot='sources']:is(:hover, :focus-visible)) .lp-walker {
+  transform: translate(44px, -46px);
+}
+.lp-b
+  .lp-canvas.lp-phone:has(.lp-spot[data-spot='resources']:is(:hover, :focus-visible))
+  .lp-walker {
+  transform: translate(-34px, 34px);
+}
+.lp-b
+  .lp-canvas.lp-phone:has(.lp-spot[data-spot='ecosystem']:is(:hover, :focus-visible))
+  .lp-walker {
+  transform: translate(40px, 34px);
+}
+
+html[data-motion='on'] .lp-walker {
+  transition: transform 0.8s steps(5);
+}
+.lp-proto-note {
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.6rem;
+  border: 2px dashed var(--cw-rule);
+  font-size: 0.8125rem;
+  color: var(--cw-muted);
+}
+.lp-proto-note a,
+.lp-index a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.lp-index ul {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.5rem;
+  list-style: disc;
+  padding-left: 1.25rem;
+}
