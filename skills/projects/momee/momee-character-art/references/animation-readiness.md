@@ -4,7 +4,7 @@ The full component list, draw order and pivots are in `projects/momee/styles/sof
 
 ## Group structure for a head
 
-This structure is used by `projects/momee/styles/soft-storybook-adventure/characters/mom/source/mom-head-v1.svg` and is fine to keep:
+This structure was used by the Mom v1 SVG head (deleted 2026-11-16, rejected as art) and is fine to keep:
 
 ```text
 hair-back > neck > head (ears, face-base, shading, blush, nose) > facial-features (brows, eye-left, eye-right, mouth) > hair-front > highlights

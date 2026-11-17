@@ -32,5 +32,48 @@
     "type": "cli-tool",
     "homepage": "https://git-scm.com",
     "description": "Version control CLI. differential-review reads history with git diff, log and blame."
+  },
+  {
+    "id": "ecosystem-config",
+    "name": "Ecosystem Config",
+    "type": "config-registry",
+    "description": "Canonical public facts about the owner's projects (project records, repositories, deployments, domains, profile, approved public asset references), generated as dist/ecosystem.json and read by applications at build time. It publishes no shared TypeScript, ESLint, Prettier, test or CI configuration packages.",
+    "homepage": "https://config.fikrimarzuki.work/",
+    "repository": {
+      "name": "ecosystem-config",
+      "formerNames": ["config-ecosystem"],
+      "visibility": "public",
+      "url": "https://github.com/Fikrimarzuki/ecosystem-config"
+    },
+    "contract": {
+      "docs": [
+        "docs/consumers/README.md",
+        "docs/consumers/integration.md",
+        "docs/projects.md",
+        "docs/assets.md"
+      ],
+      "reads": ["dist/ecosystem.json", "config/production.json"],
+      "commands": ["pnpm build", "pnpm validate", "pnpm test"]
+    }
+  },
+  {
+    "id": "ecosystem-assets",
+    "name": "Ecosystem Assets",
+    "type": "asset-catalog",
+    "description": "Private repository of creative source files and production exports. Its catalog is the documented, read-only discovery interface: a private inventory, a public catalog of explicitly approved files and a validation report. Its internal documentation stays in that repository.",
+    "repository": {
+      "name": "ecosystem-assets",
+      "formerNames": [],
+      "visibility": "private"
+    },
+    "contract": {
+      "docs": ["docs/catalog.md", "docs/asset-guidelines.md"],
+      "reads": [
+        "catalog-output/internal.json",
+        "catalog-output/public.json",
+        "catalog-output/validation.json",
+        "catalog/schema-v1.json"
+      ]
+    }
   }
 ]

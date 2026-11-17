@@ -179,3 +179,19 @@ export function tally(
   }
   return out;
 }
+
+/**
+ * Discovery as far as the traces can show it. Claude reports its listed skills at session start, so a
+ * missing listing is a real failure. Codex does not expose its list in the trace: discovery is only
+ * demonstrated when a run loaded the skill; otherwise it is unknown, never assumed.
+ */
+export function discoveryResult(
+  agent: 'claude-code' | 'codex',
+  runs: { discoveredByAgent?: boolean; invoked: string }[],
+): 'pass' | 'fail' | 'not-tested' {
+  if (agent === 'claude-code') {
+    if (runs.some((r) => r.discoveredByAgent === false)) return 'fail';
+    return runs.some((r) => r.discoveredByAgent === true) ? 'pass' : 'not-tested';
+  }
+  return runs.some((r) => r.invoked === 'invoked') ? 'pass' : 'not-tested';
+}

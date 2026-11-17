@@ -1,0 +1,692 @@
+/*
+ * ES29 Interactive Skill Codex: the Skills page's two views (Browse Skills, Skill Tree), the Archivist companion and
+ * the themed loading states. Plain CSS on the Command Window tokens (--cw-*) and the sprite palette (--px-*), so
+ * both themes follow automatically. Teal marks the chosen thing (selection brackets, the selected branch), gold is
+ * decoration; review and approval colours never appear in the art or the tree.
+ *
+ * Motion: every animation here is keyed to html[data-motion="on"] (the Animation setting, off with reduced motion).
+ * With animation off everything shows its resting frame and every state is still visible.
+ */
+
+/* ------------------------------------------------------------------------------------- view menu */
+
+.sx-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 4px solid var(--cw-edge);
+}
+.sx-view {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  margin-right: -2px;
+  margin-bottom: -4px;
+  padding: 0.5rem 1rem 0.5rem 1.75rem;
+  border: 2px solid var(--cw-edge);
+  border-bottom: 4px solid var(--cw-edge);
+  background: var(--cw-sunken);
+  color: var(--cw-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.sx-view:hover {
+  background: var(--cw-window);
+  color: var(--cw-ink);
+}
+.sx-view[aria-current='page'] {
+  border-bottom-color: var(--cw-window);
+  background: var(--cw-window);
+  color: var(--cw-ink);
+  box-shadow: inset 0 3px 0 var(--cw-signal);
+}
+/* the RPG menu pointer beside the open view (and, faintly, beside a hovered one) */
+.sx-view::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0.55rem;
+  width: 9px;
+  height: 11px;
+  margin-top: -5.5px;
+  background: var(--cw-pointer-img) center / 9px 11px no-repeat;
+  image-rendering: pixelated;
+  opacity: 0;
+}
+.sx-view:hover::before {
+  opacity: 0.45;
+}
+.sx-view[aria-current='page']::before {
+  opacity: 1;
+}
+html[data-motion='on'] .sx-view[aria-current='page']::before {
+  animation: cw-nudge 0.9s steps(1) 2;
+}
+
+/* switching views: a quick menu slide, three stepped frames, never a wait */
+@keyframes sx-menu {
+  0% {
+    opacity: 0.3;
+    translate: 0 6px;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+/* Opacity only: a transform here would make the (fixed) companion inside jump while the view fades in. */
+@keyframes sx-fade {
+  0% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+html[data-motion='on'] .sx-enter {
+  animation: sx-fade 180ms steps(3, jump-none) backwards;
+}
+
+/* --------------------------------------------------------------- selection brackets (shared) */
+
+/* Four pixel corners, drawn as background gradients so they need no extra markup inside links. */
+.sx-brackets,
+.sx-leaf::after,
+.sx-limb::after {
+  --sx-b: var(--cw-signal);
+  background:
+    linear-gradient(var(--sx-b) 0 0) top left / 10px 3px no-repeat,
+    linear-gradient(var(--sx-b) 0 0) top left / 3px 10px no-repeat,
+    linear-gradient(var(--sx-b) 0 0) top right / 10px 3px no-repeat,
+    linear-gradient(var(--sx-b) 0 0) top right / 3px 10px no-repeat,
+    linear-gradient(var(--sx-b) 0 0) bottom left / 10px 3px no-repeat,
+    linear-gradient(var(--sx-b) 0 0) bottom left / 3px 10px no-repeat,
+    linear-gradient(var(--sx-b) 0 0) bottom right / 10px 3px no-repeat,
+    linear-gradient(var(--sx-b) 0 0) bottom right / 3px 10px no-repeat;
+  pointer-events: none;
+}
+@keyframes sx-lock {
+  0% {
+    inset: -11px;
+    opacity: 0.4;
+  }
+  100% {
+    inset: -6px;
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------------------- Browse: skill cards */
+
+.sx-card .sx-brackets {
+  position: absolute;
+  inset: -6px;
+  opacity: 0;
+}
+.sx-card:is(:hover, :focus-within) .sx-brackets {
+  opacity: 1;
+}
+.sx-card:is(:hover, :focus-within) .cw-slot {
+  background: var(--cw-window);
+  box-shadow:
+    inset 2px 2px 0 var(--cw-hi),
+    inset -2px -2px 0 var(--cw-lo),
+    0 0 0 2px var(--cw-gold);
+}
+@keyframes sx-hop {
+  0% {
+    translate: 0 0;
+  }
+  30% {
+    translate: 0 -3px;
+  }
+  60% {
+    translate: 0 -1px;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+html[data-motion='on'] .sx-card {
+  transition:
+    translate 120ms steps(2),
+    box-shadow 150ms;
+}
+html[data-motion='on'] .sx-card:is(:hover, :focus-within) {
+  translate: 0 -2px;
+}
+html[data-motion='on'] .sx-card:is(:hover, :focus-within) .sx-brackets {
+  animation: sx-lock 200ms steps(2, jump-none) both;
+}
+html[data-motion='on'] .sx-card:is(:hover, :focus-within) .cw-slot svg {
+  animation: sx-hop 420ms steps(1) 1;
+}
+
+/* List view rows: the same teal marker on the hovered row. */
+.sx-rows tbody tr:hover {
+  background: var(--cw-sunken);
+  box-shadow: inset 4px 0 0 var(--cw-signal);
+}
+
+/* ------------------------------------------------------------------ the side column (lg and up) */
+
+@media (min-width: 1024px) {
+  .sx-side {
+    position: sticky;
+    top: 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: calc(100dvh - 6rem);
+  }
+  .sx-side > .surface {
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
+/* Two-frame loops shared by the loading book and the adventure. */
+@keyframes sx-a {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes sx-b {
+  0%,
+  49% {
+    opacity: 0;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ----------------------------------------------------------------------------- Skill Tree */
+
+.sx-canopy {
+  padding: 0.75rem;
+}
+.sx-root {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px dashed var(--cw-rule);
+}
+.sx-node {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--cw-edge);
+  background: var(--cw-sunken);
+  box-shadow:
+    inset 2px 2px 0 var(--cw-lo),
+    inset -2px -2px 0 var(--cw-hi);
+}
+.sx-node-root {
+  border-color: var(--px-l2);
+  background: var(--cw-window);
+  box-shadow: 0 0 0 2px var(--cw-gold);
+}
+
+/* Phones and tablets: the branches are one row of nodes to swipe (or arrow) through. */
+.sx-trunk {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  margin: -6px;
+  padding: 6px 6px 10px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+.sx-limb {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3.25rem;
+  padding: 0.375rem 0.75rem 0.375rem 0.375rem;
+  border: 2px solid var(--cw-rule);
+  background: var(--cw-window);
+  color: var(--cw-ink);
+  text-align: left;
+  scroll-snap-align: start;
+}
+.sx-limb::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  opacity: 0;
+}
+.sx-limb:hover {
+  border-color: var(--cw-edge);
+  background: var(--cw-sunken);
+}
+.sx-limb:is(:hover, :focus-visible)::after {
+  opacity: 0.55;
+}
+.sx-limb[aria-selected='true'] {
+  border-color: var(--cw-edge);
+  background: var(--cw-sunken);
+  box-shadow: inset 0 -3px 0 var(--cw-signal);
+}
+.sx-limb[aria-selected='true']::after {
+  opacity: 1;
+}
+.sx-limb[aria-selected='true'] .sx-node {
+  border-color: var(--cw-signal);
+  background: var(--cw-window);
+  box-shadow: 0 0 0 2px var(--cw-gold);
+}
+.sx-limb-name {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.sx-limb-count {
+  display: block;
+  color: var(--cw-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Desktop: a wooden trunk down the side column, one limb per branch; the chosen limb's joint turns teal. */
+@media (min-width: 1024px) {
+  .sx-trunk {
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0 0 0 1.5rem;
+    overflow: visible;
+  }
+  .sx-trunk::before {
+    content: '';
+    position: absolute;
+    top: -0.75rem;
+    bottom: 1.6rem;
+    left: 0.5rem;
+    width: 4px;
+    background: repeating-linear-gradient(180deg, var(--px-l) 0 6px, var(--px-l2) 6px 8px);
+  }
+  .sx-limb {
+    border-color: transparent;
+    background: transparent;
+  }
+  .sx-limb::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: calc(-1rem - 2px);
+    width: 1rem;
+    height: 4px;
+    margin-top: -2px;
+    background: var(--px-l);
+  }
+  .sx-limb[aria-selected='true']::before {
+    background: var(--cw-signal);
+  }
+  .sx-limb-name,
+  .sx-limb-count {
+    white-space: normal;
+  }
+}
+
+/* Opening the tree: limbs sprout one after another (clip only while animating, so focus rings are never cut). */
+@keyframes sx-sprout {
+  0% {
+    clip-path: inset(-12px 100% -12px -2rem);
+  }
+  100% {
+    clip-path: inset(-12px -12px -12px -2rem);
+  }
+}
+@keyframes sx-grow {
+  0% {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+html[data-motion='on'] .sx-limb {
+  animation: sx-sprout 260ms steps(4, jump-none) backwards;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+html[data-motion='on'] .sx-branch-head {
+  animation: sx-menu 180ms steps(3, jump-none) backwards;
+}
+html[data-motion='on'] .sx-twig {
+  animation: sx-grow 220ms steps(3, jump-none) backwards;
+  animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+}
+html[data-motion='on'] .sx-leaves > li {
+  animation: sx-grow 200ms steps(2, jump-none) backwards;
+  animation-delay: calc(min(var(--i, 0), 10) * 25ms + 80ms);
+}
+
+/* The selected branch */
+.sx-branch-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 1rem;
+}
+.sx-twigs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.25rem 0;
+}
+.sx-twig-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.75rem;
+  border: 2px solid var(--cw-edge);
+  background: var(--cw-window);
+  color: var(--cw-ink);
+  font-size: 0.875rem;
+}
+.sx-twig-btn:hover {
+  background: var(--cw-sunken);
+}
+.sx-twig-btn[aria-pressed='true'] {
+  background: var(--cw-signal);
+  color: var(--cw-on-signal);
+  font-weight: 700;
+}
+.sx-count {
+  min-width: 1.5rem;
+  padding: 0 0.3rem;
+  background: var(--cw-sunken);
+  color: var(--cw-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.sx-twig-btn[aria-pressed='true'] .sx-count {
+  background: var(--cw-window);
+  color: var(--cw-ink);
+}
+
+/* Twigs hang off a wooden sub-trunk; leaves are the skills, all drawn alike whatever their status. */
+.sx-sub {
+  position: relative;
+  margin-left: 0.25rem;
+  padding-left: 1.5rem;
+}
+.sx-sub::before {
+  content: '';
+  position: absolute;
+  top: -1rem;
+  bottom: 1.5rem;
+  left: 0;
+  width: 4px;
+  background: repeating-linear-gradient(180deg, var(--px-l) 0 6px, var(--px-l2) 6px 8px);
+}
+.sx-twig {
+  position: relative;
+  padding-bottom: 1.5rem;
+}
+.sx-twig-head {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+  margin-bottom: 0.6rem;
+  font-weight: 700;
+}
+.sx-twig-head::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -1.5rem;
+  width: 1.1rem;
+  height: 4px;
+  margin-top: -2px;
+  background: var(--px-l);
+}
+.sx-gem {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--cw-edge);
+  background: var(--cw-gold);
+  box-shadow: inset -3px -3px 0 var(--px-g2);
+}
+.sx-leaves {
+  display: grid;
+  gap: 0.6rem;
+}
+@media (min-width: 640px) {
+  .sx-leaves {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1280px) {
+  .sx-leaves {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.sx-leaves > li {
+  display: flex;
+  min-width: 0;
+}
+.sx-leaf {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
+  gap: 0.15rem 0.6rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 2px solid var(--cw-rule);
+  background: var(--cw-window);
+  color: var(--cw-ink);
+}
+.sx-leaf::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  opacity: 0;
+}
+.sx-leaf:is(:hover, :focus-visible) {
+  border-color: var(--cw-edge);
+  box-shadow: 3px 3px 0 0 var(--cw-signal);
+}
+.sx-leaf:is(:hover, :focus-visible)::after {
+  opacity: 1;
+}
+html[data-motion='on'] .sx-leaf:is(:hover, :focus-visible)::after {
+  animation: sx-lock 200ms steps(2, jump-none) both;
+}
+.sx-leaf-gem {
+  grid-row: span 3;
+  width: 10px;
+  height: 10px;
+  margin-top: 0.35rem;
+  border: 2px solid var(--cw-edge);
+  background: var(--cw-sunken);
+}
+.sx-leaf:is(:hover, :focus-visible) .sx-leaf-gem {
+  background: var(--cw-gold);
+}
+.sx-leaf-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.sx-leaf:hover .sx-leaf-name {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.sx-leaf-desc {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--cw-muted);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.sx-leaf-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+.sx-note {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px dashed var(--cw-rule);
+  color: var(--cw-muted);
+  font-size: 0.8125rem;
+}
+
+/* ------------------------------------------------------------------------------- loading */
+
+/* Shown only while the catalog is loading; the short delay means a fast load never flashes it. */
+@keyframes sx-show {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.sx-loading {
+  animation: sx-show 1ms 150ms both;
+}
+.sx-book {
+  display: block;
+  flex-shrink: 0;
+  width: 84px;
+  height: 57px;
+}
+.sx-turn-1,
+.sx-turn-2,
+.sx-turn-3,
+.sx-sparks {
+  opacity: 0;
+}
+@keyframes sx-t1 {
+  0%,
+  24% {
+    opacity: 1;
+  }
+  25%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes sx-t2 {
+  0%,
+  24% {
+    opacity: 0;
+  }
+  25%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes sx-t3 {
+  0%,
+  49% {
+    opacity: 0;
+  }
+  50%,
+  74% {
+    opacity: 1;
+  }
+  75%,
+  100% {
+    opacity: 0;
+  }
+}
+html[data-motion='on'] .sx-turn-1 {
+  animation: sx-t1 1.2s steps(1) 40;
+}
+html[data-motion='on'] .sx-turn-2 {
+  animation: sx-t2 1.2s steps(1) 40;
+}
+html[data-motion='on'] .sx-turn-3 {
+  animation: sx-t3 1.2s steps(1) 40;
+}
+html[data-motion='on'] .sx-sparks {
+  animation: sx-b 0.6s steps(1) 80;
+}
+
+.sx-skel {
+  display: block;
+  background-color: var(--cw-sunken);
+  box-shadow:
+    inset 2px 2px 0 var(--cw-lo),
+    inset -2px -2px 0 var(--cw-hi);
+}
+@keyframes sx-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+html[data-motion='on'] .sx-skel {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0 40%,
+    var(--cw-rule) 40% 55%,
+    transparent 55%
+  );
+  background-size: 300% 100%;
+  animation: sx-shimmer 1.4s steps(7) 30;
+}
+.sx-skel-card {
+  display: block;
+  padding: 1rem;
+}
+.sx-skel-trunk {
+  display: flex;
+  gap: 0.75rem;
+  overflow: hidden;
+  padding: 0.75rem;
+}
+.sx-skel-limb {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+@media (min-width: 1024px) {
+  .sx-skel-trunk {
+    flex-direction: column;
+  }
+}
+html[data-motion='on'] :is(.sx-skel-card, .sx-skel-limb) {
+  animation: sx-grow 220ms steps(3, jump-none) backwards;
+  animation-delay: calc(var(--i, 0) * 60ms + 150ms);
+}

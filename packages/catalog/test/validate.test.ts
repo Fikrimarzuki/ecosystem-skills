@@ -181,6 +181,9 @@ describe('buildCatalog', () => {
   });
 
   it('requires the verified revision for external assignments', () => {
+    // only approved external skills can be assigned (ES16.1), so the fixture skill is approved
+    const approvedExt = () =>
+      external({ review: reviewed({ status: 'approved', approvedBy: 'owner' }) });
     const consumer = (verification: object) => ({
       id: 'c',
       name: 'C',
@@ -188,15 +191,18 @@ describe('buildCatalog', () => {
       assignments: [{ skill: 'ext', agents: ['codex'], verification }],
     });
     const v = { status: 'verified', verifiedAt: '2026-10-26', method: 'm' };
-    expect(errors(reg({ skills: [external()], consumers: [consumer(v)] })).join()).toMatch(
+    expect(errors(reg({ skills: [approvedExt()], consumers: [consumer(v)] })).join()).toMatch(
       /requires "revision"/,
     );
     expect(
-      errors(reg({ skills: [external()], consumers: [consumer({ ...v, revision: SHA })] })),
+      errors(reg({ skills: [approvedExt()], consumers: [consumer({ ...v, revision: SHA })] })),
     ).toEqual([]);
     const withHash = (contentHash: string) =>
       errors(
-        reg({ skills: [external()], consumers: [consumer({ ...v, revision: SHA, contentHash })] }),
+        reg({
+          skills: [approvedExt()],
+          consumers: [consumer({ ...v, revision: SHA, contentHash })],
+        }),
       );
     expect(withHash(HASH)).toEqual([]);
     expect(withHash('abc').join()).toMatch(/sha256-/);
@@ -253,6 +259,54 @@ describe('buildCatalog', () => {
         reg({ skills: [external()], evidence: [ev({ result: 'partial', invocation: 'fail' })] }),
       ),
     ).toEqual([]);
+  });
+
+  it('allows unknown discovery for a natural run only when the same skill, agent and revision shows it elsewhere', () => {
+    const rec = (over = {}) => ({
+      id: 'r1',
+      skill: 'ext',
+      agent: 'codex',
+      agentVersion: '1',
+      date: '2026-10-27',
+      context: 'c',
+      revision: SHA,
+      contentHash: HASH,
+      task: 't',
+      discovery: 'pass',
+      instructions: 'pass',
+      invocation: 'pass',
+      result: 'verified',
+      ...over,
+    });
+    const natural = rec({
+      id: 'r2',
+      trigger: 'natural',
+      discovery: 'not-tested',
+      instructions: 'not-tested',
+      invocation: 'fail',
+      result: 'partial',
+    });
+    const ok = errors(reg({ skills: [external()], evidence: [rec(), natural] }));
+    expect(ok).toEqual([]);
+    // no supporting record, different agent, different revision, or an explicit record: still refused
+    expect(errors(reg({ skills: [external()], evidence: [natural] })).join()).toMatch(
+      /requires discovery to pass/,
+    );
+    expect(
+      errors(
+        reg({ skills: [external()], evidence: [rec({ agent: 'claude-code' }), natural] }),
+      ).join(),
+    ).toMatch(/requires discovery/);
+    expect(
+      errors(
+        reg({ skills: [external()], evidence: [rec({ revision: 'e'.repeat(40) }), natural] }),
+      ).join(),
+    ).toMatch(/requires discovery/);
+    expect(
+      errors(
+        reg({ skills: [external()], evidence: [rec(), { ...natural, trigger: undefined }] }),
+      ).join(),
+    ).toMatch(/requires discovery/);
   });
 
   it('validates natural-trigger trial counts', () => {

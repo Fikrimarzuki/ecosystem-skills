@@ -1,0 +1,540 @@
+/*
+ * The landing page: Living Library (ES28.4 Concept A, the production landing since ES28.5). The rules behind it are in
+ * docs/command-window-design.md ("The landing page"). Plain CSS for the scene; Home.tsx uses the design system's
+ * utilities for everything below it.
+ *
+ * One room, two lights: the --lp-* colours are the morning archive (light theme) and the evening archive (dark
+ * theme: lantern light, a starry window). Teal marks the chosen place (selection brackets, the chosen sign); gold is
+ * only lamp light and decoration; review and approval colours never appear in the art.
+ */
+
+/* --------------------------------------------------------------------------------------- palette: morning */
+.lp-root {
+  --lp-wall: #cfd6e2;
+  --lp-wall2: #c3cbd9;
+  --lp-wall3: #b6bfcf;
+  --lp-wallHi: #dde3ec;
+  --lp-mortar: #a9b3c4;
+  --lp-beam: #5a3820;
+  --lp-beam2: #43291a;
+  --lp-shadow: #1f2638;
+  --lp-wains: #9a6a43;
+  --lp-wains2: #7a4f30;
+  --lp-wainsHi: #b88457;
+  --lp-base: #43291a;
+  --lp-floor: #b98a5c;
+  --lp-floor2: #a87a4e;
+  --lp-floorHi: #cf9f6e;
+  --lp-floorSeam: #7e5634;
+  --lp-wood: #9a6a43;
+  --lp-wood2: #7a4f30;
+  --lp-wood3: #4a2f1c;
+  --lp-woodHi: #b88457;
+  --lp-shelfBack: #3a2a20;
+  --lp-book1: #3f5a8c;
+  --lp-book2: #0e7782;
+  --lp-book3: #a5533b;
+  --lp-book4: #e0a526;
+  --lp-book5: #5d7a3a;
+  --lp-book6: #7c3f52;
+  --lp-bookHi: #ffffff;
+  --lp-bookLine: #f3e3b0;
+  --lp-sky: #a9d8ef;
+  --lp-sky2: #cdeaf7;
+  --lp-skyLow: #e8f6fb;
+  --lp-cloud: #ffffff;
+  --lp-moon: #fff2c4;
+  --lp-moonHi: #ffffff;
+  --lp-star: #fff2c4;
+  --lp-hill: #8fbf7a;
+  --lp-shaft: #fff3c4;
+  --lp-metal: #9aa3b5;
+  --lp-metal2: #5c6577;
+  --lp-metalHi: #c9d0dc;
+  --lp-brass: #c9963a;
+  --lp-lampDark: #2b2f3a;
+  --lp-lampGlass: #f6e7b5;
+  --lp-flame: #ffcf4a;
+  --lp-flame2: #f08a02;
+  --lp-halo: #ffd36b;
+  --lp-paper: #fff6dc;
+  --lp-paper2: #e3d3a6;
+  --lp-pot: #a5533b;
+  --lp-pot2: #7a3a28;
+  --lp-plant: #5d9a4a;
+  --lp-plant2: #3f7a34;
+  --lp-rug: #0e7782;
+  --lp-rug2: #3fb0b9;
+  --lp-rugEdge: #0b5f68;
+  --lp-led: #3fd8d0;
+  --lp-ledOff: #2b4a50;
+  --lp-cable: #2b2f3a;
+  --lp-crate: #b07a45;
+  --lp-crate2: #7a4f30;
+  --lp-scroll: #f3e3b0;
+  --lp-scroll2: #d9c08a;
+  --lp-band: #a5533b;
+  --lp-ocean: #3f7fb0;
+  --lp-stone: #c9cdd6;
+  --lp-stone2: #a9afbc;
+  --lp-stone3: #8a91a0;
+  --lp-stoneHi: #e1e4ea;
+  --lp-door: #6e4527;
+  --lp-door2: #4a2f1c;
+  --lp-iron: #3a3f4b;
+  --lp-banner: #0e7782;
+  --lp-banner2: #0b5f68;
+  --lp-bannerTrim: #f0c040;
+  --lp-crest: #fff6dc;
+  --lp-mote: #fff8dc;
+  --lp-select: #0e7782;
+  /* the destination signs: painted wood, light lettering, the same in both themes */
+  --lp-sign: #6e4527;
+  --lp-signHi: #8f6040;
+  --lp-signLo: #4a2f1c;
+  --lp-signEdge: #2b1c12;
+  --lp-signInk: #fff6dc;
+}
+
+/* --------------------------------------------------------------------------------------- palette: evening */
+html.dark .lp-root {
+  --lp-wall: #283149;
+  --lp-wall2: #222a40;
+  --lp-wall3: #1c2336;
+  --lp-wallHi: #313b56;
+  --lp-mortar: #1a2032;
+  --lp-beam: #2a1c14;
+  --lp-beam2: #1c130d;
+  --lp-shadow: #000000;
+  --lp-wains: #5a3d29;
+  --lp-wains2: #43291a;
+  --lp-wainsHi: #6e4c33;
+  --lp-base: #1c130d;
+  --lp-floor: #4f3a28;
+  --lp-floor2: #463324;
+  --lp-floorHi: #5f4630;
+  --lp-floorSeam: #2e2117;
+  --lp-wood: #6b4a32;
+  --lp-wood2: #4e3423;
+  --lp-wood3: #2b1c12;
+  --lp-woodHi: #85603f;
+  --lp-shelfBack: #17110d;
+  --lp-book1: #34497a;
+  --lp-book2: #1f6f78;
+  --lp-book3: #7e3f2e;
+  --lp-book4: #b98a2a;
+  --lp-book5: #4a6233;
+  --lp-book6: #5e3040;
+  --lp-bookLine: #c9b27a;
+  --lp-sky: #14204a;
+  --lp-sky2: #1d2c5e;
+  --lp-skyLow: #2a3a6e;
+  --lp-cloud: #14204a;
+  --lp-hill: #1a2a3a;
+  --lp-shaft: #9fb8ff;
+  --lp-metal: #6b7488;
+  --lp-metal2: #3d4456;
+  --lp-metalHi: #8e98ad;
+  --lp-brass: #b0812c;
+  --lp-lampDark: #12141b;
+  --lp-lampGlass: #ffe7a0;
+  --lp-flame: #ffe07a;
+  --lp-flame2: #ffb020;
+  --lp-halo: #ffc94a;
+  --lp-paper: #e8dcb8;
+  --lp-paper2: #bfae86;
+  --lp-pot: #7e3f2e;
+  --lp-pot2: #5a2a1f;
+  --lp-plant: #3f6e36;
+  --lp-plant2: #2c5226;
+  --lp-rug: #1f6f78;
+  --lp-rug2: #2f8f99;
+  --lp-rugEdge: #154f56;
+  --lp-led: #5cf0e0;
+  --lp-ledOff: #1d3438;
+  --lp-cable: #12141b;
+  --lp-crate: #7a5534;
+  --lp-crate2: #4e3423;
+  --lp-scroll: #d9cba0;
+  --lp-scroll2: #b09c6c;
+  --lp-band: #7e3f2e;
+  --lp-ocean: #2b5577;
+  --lp-stone: #59617a;
+  --lp-stone2: #464d63;
+  --lp-stone3: #353b4d;
+  --lp-stoneHi: #6e7791;
+  --lp-door: #43291a;
+  --lp-door2: #2b1c12;
+  --lp-iron: #20242e;
+  --lp-banner: #1f6f78;
+  --lp-banner2: #154f56;
+  --lp-bannerTrim: #ffc433;
+  --lp-crest: #e8dcb8;
+  --lp-mote: #ffe7a0;
+  --lp-select: #5cc8d1;
+}
+
+/* --------------------------------------------------------------------------------------- day and night */
+.lp-night {
+  display: none;
+}
+html.dark .lp-night {
+  display: inline;
+}
+html.dark .lp-day {
+  display: none;
+}
+.lp-halo {
+  opacity: 0.45;
+}
+html.dark .lp-halo {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------------------- layout */
+.lp-root {
+  color: var(--cw-ink);
+}
+
+.lp-hero {
+  position: relative;
+  container-type: inline-size;
+}
+.lp-intro {
+  margin-bottom: 1rem;
+}
+.lp-wordmark {
+  margin-bottom: 0.75rem;
+}
+/* the scroll's decoration when the headline is above the room (640–1139 px): the pixel wordmark, ink on parchment */
+.lp-board-art {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  --cw-wordmark: #2a1c12;
+  --cw-wordmark-shadow: #6fc9d0;
+}
+.lp-board-art .cw-wordmark {
+  width: 82%;
+  max-width: none;
+}
+@media (min-width: 640px) {
+  .lp-intro .lp-wordmark {
+    display: none;
+  }
+}
+.lp-kicker {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--cw-muted);
+}
+.lp-title {
+  margin-top: 0.25rem;
+  font-size: clamp(1.625rem, 5.4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.lp-lede {
+  margin-top: 0.6rem;
+  max-width: 42rem;
+  color: var(--cw-muted);
+}
+.lp-counts {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.lp-actions {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.1rem;
+}
+.lp-btn {
+  min-height: 2.75rem;
+}
+
+/* the scene: a game screen with a hard edge, no extra window chrome */
+.lp-canvas {
+  position: relative;
+  width: 100%;
+  background: var(--lp-wall);
+  box-shadow:
+    0 0 0 3px var(--cw-edge),
+    5px 5px 0 3px var(--cw-drop);
+}
+.lp-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.lp-wide {
+  display: none;
+}
+@media (min-width: 640px) {
+  .lp-wide {
+    display: block;
+  }
+  .lp-phone {
+    display: none;
+  }
+}
+/* phones: the scene runs edge to edge of the content column, so it is not a thumbnail */
+@media (max-width: 639.98px) {
+  .lp-phone {
+    margin-inline: -0.25rem;
+    width: calc(100% + 0.5rem);
+  }
+}
+
+/* wide screens: the headline is written on the scroll (A) or the notice board (B) */
+@media (min-width: 1140px) {
+  .lp-hero[data-board] .lp-intro {
+    position: absolute;
+    z-index: 2;
+    left: var(--bx);
+    top: var(--by);
+    width: var(--bw);
+    height: var(--bh);
+    margin: 0;
+    padding: 0.9cqw 1.3cqw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #2a1c12;
+    --cw-muted: #4a3826;
+    /* the parchment's own colour, so the text has a real background (contrast is measured against it) */
+    background: var(--lp-paper);
+  }
+  .lp-hero[data-board] .lp-kicker {
+    font-size: 1cqw;
+  }
+  .lp-hero[data-board] .lp-title {
+    font-size: 2.3cqw;
+    margin-top: 0.2cqw;
+  }
+  .lp-hero[data-board] .lp-lede {
+    font-size: 1.12cqw;
+    margin-top: 0.5cqw;
+    line-height: 1.4;
+  }
+  .lp-hero[data-board] .lp-counts,
+  .lp-hero[data-board] .lp-board-art {
+    display: none;
+  }
+  .lp-hero[data-board] .lp-actions {
+    margin-top: 0.9cqw;
+    gap: 0.6cqw;
+    flex-wrap: nowrap;
+  }
+  .lp-hero[data-board] .lp-btn {
+    min-height: 0;
+    padding: 0.5cqw 0.75cqw;
+    font-size: 1.02cqw;
+    white-space: nowrap;
+  }
+  /* the scroll is short: the kicker stays in the stacked layout only */
+  .lp-library[data-board] .lp-kicker {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------------------- destinations */
+.lp-spot {
+  position: absolute;
+  display: block;
+  -webkit-tap-highlight-color: transparent;
+}
+.lp-spot:focus-visible {
+  outline: none;
+}
+/* A destination's sign: painted wood, hung by the chains drawn in the art (library.tsx), light lettering. It is the
+   link's visible label, so it is real text in both languages and grows with it (never below its chains' span). */
+.lp-plate {
+  position: absolute;
+  left: var(--plate-x);
+  top: var(--plate-y);
+  min-width: var(--plate-min);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.28em 0.65em 0.32em 0.45em;
+  white-space: nowrap;
+  background: var(--lp-sign);
+  color: var(--lp-signInk);
+  border: 2px solid var(--lp-signEdge);
+  box-shadow:
+    inset 0 2px 0 var(--lp-signHi),
+    inset 0 -2px 0 var(--lp-signLo),
+    2px 3px 0 rgb(0 0 0 / 0.35);
+  font-size: clamp(0.6875rem, 1.2cqw, 0.9375rem);
+  line-height: 1.15;
+}
+.lp-plate-icon {
+  flex: none;
+  width: 1.75em;
+  height: auto;
+}
+.lp-plate-text {
+  display: flex;
+  flex-direction: column;
+}
+.lp-spot[data-end] .lp-plate {
+  transform: translateX(-100%);
+}
+.lp-plate-name {
+  font-weight: 700;
+}
+.lp-plate-count {
+  font-size: 0.86em;
+}
+.lp-spot:is(:hover, :focus-visible) .lp-plate {
+  background: var(--cw-signal);
+  color: var(--cw-on-signal);
+  border-color: var(--cw-edge);
+  box-shadow: 2px 3px 0 rgb(0 0 0 / 0.35);
+}
+.lp-spot:focus-visible .lp-plate {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+/* the pixel pointer beside the chosen plate (the site's own pointer) */
+.lp-spot:is(:hover, :focus-visible) .lp-plate::before {
+  content: '';
+  position: absolute;
+  left: -15px;
+  top: 50%;
+  width: 12px;
+  height: 14px;
+  margin-top: -7px;
+  background: var(--cw-pointer-img) center / 12px 14px no-repeat;
+  image-rendering: pixelated;
+}
+.lp-spot[data-end]:is(:hover, :focus-visible) .lp-plate::before {
+  left: auto;
+  right: -15px;
+  transform: scaleX(-1);
+}
+
+/* selection brackets in the art for the chosen place */
+.lp-hl {
+  opacity: 0;
+}
+.lp-canvas:has(.lp-spot[data-spot='skills']:is(:hover, :focus-visible)) .lp-hl-skills,
+.lp-canvas:has(.lp-spot[data-spot='resources']:is(:hover, :focus-visible)) .lp-hl-resources,
+.lp-canvas:has(.lp-spot[data-spot='sources']:is(:hover, :focus-visible)) .lp-hl-sources,
+.lp-canvas:has(.lp-spot[data-spot='ecosystem']:is(:hover, :focus-visible)) .lp-hl-ecosystem {
+  opacity: 1;
+}
+
+/* the Archivist notices: looks towards the chosen place and the ledger shines (A) */
+.lp-blink,
+.lp-glow,
+.lp-look-l,
+.lp-look-r,
+.lp-attend {
+  opacity: 0;
+}
+.lp-canvas:has(.lp-spot[data-look='left']:is(:hover, :focus-visible)) .lp-look-l,
+.lp-canvas:has(.lp-spot[data-look='right']:is(:hover, :focus-visible)) .lp-look-r,
+.lp-canvas:has(.lp-spot:is(:hover, :focus-visible)) .lp-attend {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------------------- motion */
+/* Everything moving is keyed to the site's Animation setting (html[data-motion="on"], which is off with reduced
+   motion). Loops are stepped and limited: about half a minute after the page opens, then the world rests. */
+.lp-frame-b,
+.lp-flicker-b,
+.lp-ledoff {
+  opacity: 0;
+}
+@keyframes lp-a {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes lp-b {
+  0%,
+  49% {
+    opacity: 0;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes lp-blink {
+  0%,
+  91% {
+    opacity: 0;
+  }
+  92%,
+  95% {
+    opacity: 1;
+  }
+  96%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes lp-bob {
+  0%,
+  49% {
+    transform: translateY(0);
+  }
+  50%,
+  100% {
+    transform: translateY(1px);
+  }
+}
+@keyframes lp-drift {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(1px, -2px);
+  }
+  100% {
+    transform: translate(2px, -4px);
+  }
+}
+html[data-motion='on'] .lp-frame-a {
+  animation: lp-a 1.6s steps(1) 20;
+}
+html[data-motion='on'] .lp-frame-b {
+  animation: lp-b 1.6s steps(1) 20;
+}
+html[data-motion='on'] .lp-flicker-a {
+  animation: lp-a 0.7s steps(1) 44;
+}
+html[data-motion='on'] .lp-flicker-b {
+  animation: lp-b 0.7s steps(1) 44;
+}
+html[data-motion='on'] .lp-led {
+  animation: lp-a 1.1s steps(1) 28;
+}
+html[data-motion='on'] .lp-ledoff {
+  animation: lp-b 1.1s steps(1) 28;
+}
+html[data-motion='on'] .lp-motes {
+  animation: lp-drift 6s steps(3) 5;
+}
+html[data-motion='on'] .lp-blink {
+  animation: lp-blink 5s steps(1) 6;
+}
+html[data-motion='on'] .lp-glow {
+  animation: lp-a 1.8s steps(1) 16;
+}
+html[data-motion='on'] .lp-bob {
+  animation: lp-bob 2.6s steps(1) 12;
+}

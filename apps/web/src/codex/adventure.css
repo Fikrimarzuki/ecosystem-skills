@@ -1,0 +1,1181 @@
+/*
+ * ES29.5 Archivist's Little Adventure, visual pass: no window, no frame, no scenery. A small idle-RPG scene (ground,
+ * the Archivist, three monsters, pixel effects) sits directly on the page, with a subtle toolbar (move, pin, reset,
+ * minimize) that appears on hover or keyboard focus, and is always shown on touch screens.
+ *
+ * Timing: one encounter lasts 14 s (--adv-t), three make a 42 s round. Every timeline element has .adv-t (or .adv-loop
+ * for the small on-the-spot loops), so they start together and pause together: while the Archivist reacts to a skill,
+ * while the tab is hidden, and (by never starting) with animation off.
+ *
+ *    0–36 %   walk: the ground scrolls (eased start and stop), boots step, the body rises with each stride
+ *   12–36 %   the monster travels in, easing to a stop (hop, hover or scuttle on the spot)
+ *   30–37 %   "!"      38–41 %  anticipation: the Archivist leans back, the ledger gathers light
+ *   41–43 %   lunge forward      42–48 %  the attack flies (gathered light, then a trail)
+ *   48–50 %   impact: hit star, flash, recoil, squash      50–55 %  defeat: flattens, smoke and sparks
+ *   48–58 %   the Archivist eases back      56–60 %  two happy hops, sparkle
+ *   60–80 %   reading      80–100 %  walk on (ground eases back up to speed)
+ *
+ * Travel uses smooth transforms; character frames (boots, wings, feet, glow) step, to stay crisp.
+ */
+
+/* ----------------------------------------------------------------------------------- the scene */
+
+.adv,
+.adv-launch {
+  position: fixed;
+  right: max(0.75rem, env(safe-area-inset-right));
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+  z-index: 35;
+}
+.adv {
+  --adv-u: 2px; /* CSS pixels per scene unit; 112 × 46 units */
+
+  /* morning */
+  --lp-grass: #7fb25a;
+  --lp-grass2: #5d9a4a;
+  --lp-soil: #b98a5c;
+  --lp-soil2: #8a6240;
+  --lp-flower: #f0a202;
+  --lp-shadow: #1f2638;
+  --lp-slime: #5d9a4a;
+  --lp-slime2: #3f6e36;
+  --lp-metal: #9aa3b5;
+  --lp-metal2: #6b7488;
+  --lp-flash: #ffffff;
+  --lp-smoke: #e8ecf5;
+
+  width: calc(var(--adv-u) * 112);
+  color: var(--cw-ink);
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+@media (min-width: 1024px) {
+  .adv {
+    --adv-u: 2.5px;
+  }
+}
+html.dark .adv {
+  /* evening */
+  --lp-grass: #4f8a4c;
+  --lp-grass2: #3f6e36;
+  --lp-soil: #6b4a32;
+  --lp-soil2: #4a3322;
+  --lp-flower: #ffc433;
+  --lp-shadow: #000000;
+  --lp-slime: #5fae52;
+  --lp-slime2: #3f7a38;
+  --lp-metal: #8a93a8;
+  --lp-metal2: #59617a;
+  --lp-flash: #fff6dc;
+  --lp-smoke: #a8b0c3;
+}
+.adv[data-placed] {
+  right: auto;
+  bottom: auto;
+}
+.adv[data-pinned],
+.adv[data-pinned] .adv-stage {
+  cursor: default;
+}
+.adv[data-dragging] {
+  cursor: grabbing;
+}
+
+.adv-stage {
+  position: relative;
+  line-height: 0;
+}
+.adv-scene {
+  display: block;
+  width: calc(var(--adv-u) * 112);
+  height: calc(var(--adv-u) * 46);
+}
+
+/* the speech bubble: skill (or page) name and what the Archivist is doing */
+.adv-bubble {
+  position: absolute;
+  top: 0;
+  left: calc(var(--adv-u) * 36);
+  max-width: calc(var(--adv-u) * 72);
+  padding: 0.3rem 0.5rem;
+  border: 2px solid var(--cw-edge);
+  background: var(--cw-window);
+  box-shadow: 2px 2px 0 0 var(--cw-drop);
+  color: var(--cw-ink);
+  font-size: 0.6875rem;
+  line-height: 1.3;
+}
+.adv-bubble::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: -10px;
+  width: 8px;
+  height: 8px;
+  background: var(--cw-edge);
+  clip-path: polygon(100% 0, 50% 0, 50% 25%, 0 25%, 0 75%, 50% 75%, 50% 100%, 100% 100%);
+}
+.adv-bubble-name {
+  display: -webkit-box;
+  overflow: hidden;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.adv-bubble-line {
+  color: var(--cw-muted);
+}
+
+/* ----------------------------------------------------------------------------------- the toolbar */
+
+.adv-bar {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  margin: 2px 0 0 auto;
+  border: 2px solid var(--cw-edge);
+  background: var(--cw-window);
+  box-shadow: 2px 2px 0 0 var(--cw-drop);
+  opacity: 0;
+  transition: opacity 150ms;
+  touch-action: none;
+}
+.adv:is(:hover, :focus-within, [data-dragging]) .adv-bar {
+  opacity: 1;
+}
+/* touch screens have no hover: the toolbar stays visible, a little quieter, and its buttons are larger */
+@media (hover: none) {
+  .adv-bar {
+    opacity: 0.85;
+  }
+}
+.adv-btn {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  border: 0;
+  background: transparent;
+  color: var(--cw-ink);
+}
+@media (pointer: coarse) {
+  .adv-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+}
+.adv-btn:hover {
+  background: var(--cw-sunken);
+}
+.adv-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.adv-btn[aria-pressed='true'] {
+  background: var(--cw-signal);
+  color: var(--cw-on-signal);
+}
+.adv-btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.adv-grip {
+  cursor: grab;
+}
+.adv-sep {
+  align-self: stretch;
+  width: 2px;
+  background: var(--cw-rule);
+}
+
+/* minimized: a small Archivist portrait in the corner; a reaction shows its name beside it */
+.adv-launch {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+.adv-launcher {
+  display: block;
+  padding: 4px 6px 2px;
+  border: 2px solid var(--cw-edge);
+  background: var(--cw-window);
+  box-shadow: 3px 3px 0 0 var(--cw-drop);
+  pointer-events: auto;
+}
+.adv-launcher:hover {
+  box-shadow: 3px 3px 0 0 var(--cw-signal);
+}
+.adv-launch-bubble {
+  max-width: min(12rem, calc(100vw - 6rem));
+  margin-bottom: 0.75rem;
+  padding: 0.3rem 0.5rem;
+  border: 2px solid var(--cw-edge);
+  background: var(--cw-window);
+  box-shadow: 2px 2px 0 0 var(--cw-drop);
+  font-size: 0.75rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+@keyframes adv-pop {
+  0% {
+    scale: 0.9;
+  }
+  100% {
+    scale: 1;
+  }
+}
+html[data-motion='on'] :is(.adv-bubble, .adv-launch-bubble) {
+  animation: adv-pop 140ms steps(2, jump-none) both;
+}
+
+/* ------------------------------------------------------------------------ the Archivist sprite */
+
+.adv .sx-r,
+.adv .sx-glow,
+.adv .sx-cast,
+.adv .sx-read,
+.adv .sx-blink,
+.adv .sx-fb,
+.adv-react-emote {
+  opacity: 0;
+}
+.adv[data-react='idle'] .sx-r-idle,
+.adv[data-react='code'] .sx-r-code,
+.adv[data-react='quill'] .sx-r-quill,
+.adv[data-react='shield'] .sx-r-shield,
+.adv[data-react='lens'] .sx-r-lens,
+.adv[data-react='book'] .sx-r-book,
+.adv[data-react='map'] .sx-r-map,
+.adv[data-react='ledger'] .sx-r-ledger {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------------------- the scene, at rest */
+
+.adv-v2,
+.adv-v3,
+.adv-shot,
+.adv-flash,
+.adv-hit,
+.adv-puff,
+.adv-burst,
+.adv-alert,
+.adv-sparkle,
+.adv-spin-b,
+.adv-wing-b,
+.adv-feet-b,
+.adv-zz {
+  opacity: 0;
+}
+/* animation off: a still picture. The Archivist reads, the slime naps beside it; the controls still work. */
+html:not([data-motion='on']) .adv-zz,
+html:not([data-motion='on']) .adv .sx-read {
+  opacity: 1;
+}
+html:not([data-motion='on']) .adv-mon {
+  scale: 1 0.92;
+}
+html:not([data-motion='on']) .adv:not([data-react='idle']) .adv-react-emote {
+  opacity: 1;
+}
+
+/* animated parts rotate about their own middle (or feet) */
+.adv-mon,
+.adv-hop-loop,
+.adv-scuttle-loop {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.adv-hit,
+.adv-puff,
+.adv-burst,
+.adv-shot,
+.adv-float-loop {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+.adv-world {
+  transition: opacity 180ms;
+}
+
+/* ------------------------------------------------------------------------------------- motion */
+
+html[data-motion='on'] .adv {
+  --adv-t: 14s;
+  --adv-round: 42s;
+}
+/* the Archivist: stepped frames */
+html[data-motion='on'] .adv .sx-bob {
+  animation: adv-walkbob var(--adv-t) steps(1) infinite;
+}
+html[data-motion='on'] .adv .sx-boot-l {
+  animation: adv-step-l var(--adv-t) steps(1) infinite;
+}
+html[data-motion='on'] .adv .sx-boot-r {
+  animation: adv-step-r var(--adv-t) steps(1) infinite;
+}
+html[data-motion='on'] .adv[data-react='idle'] .sx-glow {
+  animation: cw-glow 1.8s steps(1) infinite;
+}
+html[data-motion='on'] .adv[data-react='idle'] .sx-blink {
+  animation: cw-blink 5s steps(1) infinite;
+}
+html[data-motion='on'] .adv .sx-cast {
+  animation: adv-cast var(--adv-t) steps(1) infinite;
+}
+html[data-motion='on'] .adv .sx-read {
+  animation: adv-read var(--adv-t) steps(1) infinite;
+}
+html[data-motion='on'] .adv-alert {
+  animation: adv-alert var(--adv-t) steps(1) infinite;
+}
+html[data-motion='on'] .adv-sparkle {
+  animation: adv-sparkle var(--adv-t) steps(1) infinite;
+}
+html[data-motion='on'] .adv-flash {
+  animation: adv-flash var(--adv-t) steps(1) infinite;
+}
+/* the Archivist and the world: smooth travel */
+html[data-motion='on'] .adv-detail {
+  animation: adv-ground var(--adv-t) linear infinite;
+}
+html[data-motion='on'] .adv-hero {
+  animation: adv-hero var(--adv-t) linear infinite;
+}
+html[data-motion='on'] .adv-hop {
+  animation: adv-hop var(--adv-t) linear infinite;
+}
+html[data-motion='on'] .adv-mon {
+  animation: adv-mon var(--adv-t) linear infinite;
+}
+html[data-motion='on'] .adv-shot {
+  animation: adv-shot var(--adv-t) linear infinite;
+}
+html[data-motion='on'] .adv-shot-1 {
+  animation-delay: 70ms;
+}
+html[data-motion='on'] .adv-shot-2 {
+  animation-delay: 140ms;
+}
+html[data-motion='on'] .adv-hit {
+  animation: adv-hit var(--adv-t) linear infinite;
+}
+html[data-motion='on'] .adv-puff {
+  animation: adv-puff var(--adv-t) linear infinite;
+}
+html[data-motion='on'] .adv-burst {
+  animation: adv-burst var(--adv-t) linear infinite;
+}
+html[data-motion='on'] .adv-v1 {
+  animation: adv-v1 var(--adv-round) steps(1) infinite;
+}
+html[data-motion='on'] .adv-v2 {
+  animation: adv-v2 var(--adv-round) steps(1) infinite;
+}
+html[data-motion='on'] .adv-v3 {
+  animation: adv-v3 var(--adv-round) steps(1) infinite;
+}
+/* the monsters, on the spot */
+html[data-motion='on'] .adv-hop-loop {
+  animation: adv-slime 1s ease-in-out infinite;
+}
+html[data-motion='on'] .adv-float-loop {
+  animation: adv-float 1.6s ease-in-out infinite;
+}
+html[data-motion='on'] .adv-scuttle-loop {
+  animation: adv-scuttle 0.5s steps(1) infinite;
+}
+html[data-motion='on'] :is(.adv-wing-a, .adv-feet-a, .adv-spin-a) {
+  animation: sx-a 0.3s steps(1) infinite;
+}
+html[data-motion='on'] :is(.adv-wing-b, .adv-feet-b, .adv-spin-b) {
+  animation: sx-b 0.3s steps(1) infinite;
+}
+
+/* A reaction interrupts the adventure: the whole timeline holds where it is, transient effects hide and the world
+   dims; when the reaction ends everything resumes from the same moment. */
+.adv:not([data-react='idle'])
+  :is(.adv-t, .adv-loop, .sx-bob, .sx-cast, .sx-read, .sx-boot-l, .sx-boot-r) {
+  animation-play-state: paused;
+}
+.adv:not([data-react='idle']) .adv-world {
+  opacity: 0.45;
+}
+.adv:not([data-react='idle'])
+  :is(.adv-flash, .adv-hit, .adv-puff, .adv-burst, .adv-shot, .adv-alert, .adv-sparkle) {
+  visibility: hidden;
+}
+html[data-motion='on'] .adv:not([data-react='idle']) .sx-fa {
+  animation: sx-a 0.8s steps(1) infinite;
+}
+html[data-motion='on'] .adv:not([data-react='idle']) .sx-fb {
+  animation: sx-b 0.8s steps(1) infinite;
+}
+html[data-motion='on'] .adv:not([data-react='idle']) .adv-react-emote {
+  animation: adv-emote 1.2s steps(1) both;
+}
+/* a hidden tab: everything holds still */
+:is(.adv, .adv-launch)[data-hidden] * {
+  animation-play-state: paused !important;
+}
+
+/* --------------------------------------------------------------------------------- the timeline */
+
+@keyframes adv-ground {
+  0% {
+    translate: 0 0;
+    animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
+  }
+  36% {
+    translate: -96px 0;
+  }
+  80% {
+    translate: -96px 0;
+    animation-timing-function: cubic-bezier(0.11, 0, 0.5, 0);
+  }
+  100% {
+    translate: -144px 0;
+  }
+}
+@keyframes adv-hero {
+  0%,
+  38% {
+    translate: 0 0;
+    animation-timing-function: ease-out;
+  }
+  40.5% {
+    translate: -1.5px 0;
+    animation-timing-function: cubic-bezier(0.5, 0, 1, 0.6);
+  }
+  42%,
+  48% {
+    translate: 3px 0;
+  }
+  48% {
+    animation-timing-function: ease-in-out;
+  }
+  58%,
+  100% {
+    translate: 0 0;
+  }
+}
+@keyframes adv-hop {
+  0%,
+  56% {
+    translate: 0 0;
+    animation-timing-function: ease-out;
+  }
+  57.2% {
+    translate: 0 -3px;
+    animation-timing-function: ease-in;
+  }
+  58.4%,
+  58.8% {
+    translate: 0 0;
+  }
+  58.8% {
+    animation-timing-function: ease-out;
+  }
+  59.8% {
+    translate: 0 -2px;
+    animation-timing-function: ease-in;
+  }
+  60.8%,
+  100% {
+    translate: 0 0;
+  }
+}
+@keyframes adv-mon {
+  0%,
+  11.9% {
+    opacity: 0;
+    translate: 46px 0;
+    scale: 1 1;
+  }
+  12% {
+    opacity: 1;
+    translate: 46px 0;
+    animation-timing-function: cubic-bezier(0.3, 0.6, 0.35, 1);
+  }
+  36%,
+  48% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1 1;
+  }
+  48% {
+    animation-timing-function: ease-out;
+  }
+  49% {
+    opacity: 1;
+    translate: 4px 0;
+    scale: 1.12 0.88;
+  }
+  50% {
+    opacity: 1;
+    translate: 3px 0;
+    scale: 1 1;
+    animation-timing-function: ease-in;
+  }
+  54.9% {
+    opacity: 1;
+    translate: 3px 0;
+    scale: 1.25 0.12;
+  }
+  55% {
+    opacity: 0;
+    translate: 3px 0;
+    scale: 1.25 0.12;
+  }
+  55.1%,
+  100% {
+    opacity: 0;
+    translate: 46px 0;
+    scale: 1 1;
+  }
+}
+@keyframes adv-flash {
+  0%,
+  47.9% {
+    opacity: 0;
+  }
+  48%,
+  48.9% {
+    opacity: 1;
+  }
+  49%,
+  49.4% {
+    opacity: 0;
+  }
+  49.5%,
+  50.4% {
+    opacity: 1;
+  }
+  50.5%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes adv-alert {
+  0%,
+  29.9% {
+    opacity: 0;
+    translate: 0 3px;
+  }
+  30%,
+  30.9% {
+    opacity: 1;
+    translate: 0 3px;
+  }
+  31%,
+  36.5% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  37%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes adv-cast {
+  0%,
+  37.9% {
+    opacity: 0;
+  }
+  38%,
+  48% {
+    opacity: 1;
+  }
+  48.1%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes adv-read {
+  0%,
+  59.9% {
+    opacity: 0;
+  }
+  60%,
+  79.9% {
+    opacity: 1;
+  }
+  80%,
+  100% {
+    opacity: 0;
+  }
+}
+/* the attack: light gathers at the ledger (small to full), then flies, quickening, to the monster */
+@keyframes adv-shot {
+  0%,
+  37.9% {
+    opacity: 0;
+    translate: 0 0;
+    scale: 0.2;
+  }
+  38% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 0.2;
+    animation-timing-function: ease-out;
+  }
+  42% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.8, 0.65);
+  }
+  48% {
+    opacity: 1;
+    translate: var(--sx) var(--sy);
+    scale: 1;
+  }
+  48.1%,
+  100% {
+    opacity: 0;
+    translate: var(--sx) var(--sy);
+    scale: 1;
+  }
+}
+@keyframes adv-hit {
+  0%,
+  47.9% {
+    opacity: 0;
+    scale: 0.3;
+  }
+  48% {
+    opacity: 1;
+    scale: 0.3;
+    animation-timing-function: ease-out;
+  }
+  49.5%,
+  50.5% {
+    opacity: 1;
+    scale: 1.3;
+  }
+  50.6%,
+  100% {
+    opacity: 0;
+    scale: 1.3;
+  }
+}
+@keyframes adv-puff {
+  0%,
+  49.9% {
+    opacity: 0;
+    translate: 0 0;
+    scale: 0.5;
+  }
+  50% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 0.5;
+    animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1);
+  }
+  56% {
+    opacity: 1;
+    translate: var(--dx) var(--dy);
+    scale: 1.1;
+  }
+  56.1%,
+  57.5% {
+    opacity: 0.55;
+    translate: var(--dx) var(--dy);
+    scale: 1.1;
+  }
+  57.6%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes adv-burst {
+  0%,
+  49.9% {
+    opacity: 0;
+    translate: 0 0;
+    scale: 1;
+  }
+  50% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1);
+  }
+  54.5% {
+    opacity: 1;
+    translate: var(--dx) var(--dy);
+    scale: 0.6;
+  }
+  54.6%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes adv-sparkle {
+  0%,
+  56.9% {
+    opacity: 0;
+  }
+  57%,
+  59.9% {
+    opacity: 1;
+  }
+  60%,
+  60.9% {
+    opacity: 0;
+  }
+  61%,
+  64% {
+    opacity: 1;
+  }
+  64.1%,
+  100% {
+    opacity: 0;
+  }
+}
+/* the round: slime, then paper imp, then clockwork beetle, switching while no monster is on screen */
+@keyframes adv-v1 {
+  0%,
+  33.3% {
+    opacity: 1;
+  }
+  33.4%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes adv-v2 {
+  0%,
+  33.3% {
+    opacity: 0;
+  }
+  33.4%,
+  66.6% {
+    opacity: 1;
+  }
+  66.7%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes adv-v3 {
+  0%,
+  66.6% {
+    opacity: 0;
+  }
+  66.7%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes adv-emote {
+  0% {
+    opacity: 1;
+    translate: 0 2px;
+  }
+  12% {
+    translate: 0 0;
+  }
+  75% {
+    opacity: 1;
+  }
+  76%,
+  100% {
+    opacity: 0;
+  }
+}
+/* the monsters on the spot */
+@keyframes adv-slime {
+  0%,
+  100% {
+    translate: 0 0;
+    scale: 1.06 0.94;
+  }
+  40% {
+    translate: 0 -3px;
+    scale: 0.94 1.08;
+  }
+  70% {
+    translate: 0 0;
+    scale: 1.1 0.9;
+  }
+}
+@keyframes adv-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -2px;
+  }
+}
+@keyframes adv-scuttle {
+  0%,
+  49.9% {
+    translate: 0 0;
+  }
+  50%,
+  100% {
+    translate: 0 -0.5px;
+  }
+}
+
+/* generated: the walk. One stride every 4 % (0.56 s): each boot lifts in turn and the body rises with it. */
+@keyframes adv-step-l {
+  0% {
+    translate: 0 -1px;
+  }
+  1.7% {
+    translate: 0 0;
+  }
+  4% {
+    translate: 0 -1px;
+  }
+  5.7% {
+    translate: 0 0;
+  }
+  8% {
+    translate: 0 -1px;
+  }
+  9.7% {
+    translate: 0 0;
+  }
+  12% {
+    translate: 0 -1px;
+  }
+  13.7% {
+    translate: 0 0;
+  }
+  16% {
+    translate: 0 -1px;
+  }
+  17.7% {
+    translate: 0 0;
+  }
+  20% {
+    translate: 0 -1px;
+  }
+  21.7% {
+    translate: 0 0;
+  }
+  24% {
+    translate: 0 -1px;
+  }
+  25.7% {
+    translate: 0 0;
+  }
+  28% {
+    translate: 0 -1px;
+  }
+  29.7% {
+    translate: 0 0;
+  }
+  32% {
+    translate: 0 -1px;
+  }
+  33.7% {
+    translate: 0 0;
+  }
+  80% {
+    translate: 0 -1px;
+  }
+  81.7% {
+    translate: 0 0;
+  }
+  84% {
+    translate: 0 -1px;
+  }
+  85.7% {
+    translate: 0 0;
+  }
+  88% {
+    translate: 0 -1px;
+  }
+  89.7% {
+    translate: 0 0;
+  }
+  92% {
+    translate: 0 -1px;
+  }
+  93.7% {
+    translate: 0 0;
+  }
+  96% {
+    translate: 0 -1px;
+  }
+  97.7% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+@keyframes adv-step-r {
+  0% {
+    translate: 0 0;
+  }
+  2% {
+    translate: 0 -1px;
+  }
+  3.7% {
+    translate: 0 0;
+  }
+  6% {
+    translate: 0 -1px;
+  }
+  7.7% {
+    translate: 0 0;
+  }
+  10% {
+    translate: 0 -1px;
+  }
+  11.7% {
+    translate: 0 0;
+  }
+  14% {
+    translate: 0 -1px;
+  }
+  15.7% {
+    translate: 0 0;
+  }
+  18% {
+    translate: 0 -1px;
+  }
+  19.7% {
+    translate: 0 0;
+  }
+  22% {
+    translate: 0 -1px;
+  }
+  23.7% {
+    translate: 0 0;
+  }
+  26% {
+    translate: 0 -1px;
+  }
+  27.7% {
+    translate: 0 0;
+  }
+  30% {
+    translate: 0 -1px;
+  }
+  31.7% {
+    translate: 0 0;
+  }
+  34% {
+    translate: 0 -1px;
+  }
+  35.7% {
+    translate: 0 0;
+  }
+  82% {
+    translate: 0 -1px;
+  }
+  83.7% {
+    translate: 0 0;
+  }
+  86% {
+    translate: 0 -1px;
+  }
+  87.7% {
+    translate: 0 0;
+  }
+  90% {
+    translate: 0 -1px;
+  }
+  91.7% {
+    translate: 0 0;
+  }
+  94% {
+    translate: 0 -1px;
+  }
+  95.7% {
+    translate: 0 0;
+  }
+  98% {
+    translate: 0 -1px;
+  }
+  99.7% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+@keyframes adv-walkbob {
+  0% {
+    translate: 0 -1px;
+  }
+  1.7% {
+    translate: 0 0;
+  }
+  2% {
+    translate: 0 -1px;
+  }
+  3.7% {
+    translate: 0 0;
+  }
+  4% {
+    translate: 0 -1px;
+  }
+  5.7% {
+    translate: 0 0;
+  }
+  6% {
+    translate: 0 -1px;
+  }
+  7.7% {
+    translate: 0 0;
+  }
+  8% {
+    translate: 0 -1px;
+  }
+  9.7% {
+    translate: 0 0;
+  }
+  10% {
+    translate: 0 -1px;
+  }
+  11.7% {
+    translate: 0 0;
+  }
+  12% {
+    translate: 0 -1px;
+  }
+  13.7% {
+    translate: 0 0;
+  }
+  14% {
+    translate: 0 -1px;
+  }
+  15.7% {
+    translate: 0 0;
+  }
+  16% {
+    translate: 0 -1px;
+  }
+  17.7% {
+    translate: 0 0;
+  }
+  18% {
+    translate: 0 -1px;
+  }
+  19.7% {
+    translate: 0 0;
+  }
+  20% {
+    translate: 0 -1px;
+  }
+  21.7% {
+    translate: 0 0;
+  }
+  22% {
+    translate: 0 -1px;
+  }
+  23.7% {
+    translate: 0 0;
+  }
+  24% {
+    translate: 0 -1px;
+  }
+  25.7% {
+    translate: 0 0;
+  }
+  26% {
+    translate: 0 -1px;
+  }
+  27.7% {
+    translate: 0 0;
+  }
+  28% {
+    translate: 0 -1px;
+  }
+  29.7% {
+    translate: 0 0;
+  }
+  30% {
+    translate: 0 -1px;
+  }
+  31.7% {
+    translate: 0 0;
+  }
+  32% {
+    translate: 0 -1px;
+  }
+  33.7% {
+    translate: 0 0;
+  }
+  34% {
+    translate: 0 -1px;
+  }
+  35.7% {
+    translate: 0 0;
+  }
+  80% {
+    translate: 0 -1px;
+  }
+  81.7% {
+    translate: 0 0;
+  }
+  82% {
+    translate: 0 -1px;
+  }
+  83.7% {
+    translate: 0 0;
+  }
+  84% {
+    translate: 0 -1px;
+  }
+  85.7% {
+    translate: 0 0;
+  }
+  86% {
+    translate: 0 -1px;
+  }
+  87.7% {
+    translate: 0 0;
+  }
+  88% {
+    translate: 0 -1px;
+  }
+  89.7% {
+    translate: 0 0;
+  }
+  90% {
+    translate: 0 -1px;
+  }
+  91.7% {
+    translate: 0 0;
+  }
+  92% {
+    translate: 0 -1px;
+  }
+  93.7% {
+    translate: 0 0;
+  }
+  94% {
+    translate: 0 -1px;
+  }
+  95.7% {
+    translate: 0 0;
+  }
+  96% {
+    translate: 0 -1px;
+  }
+  97.7% {
+    translate: 0 0;
+  }
+  98% {
+    translate: 0 -1px;
+  }
+  99.7% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
